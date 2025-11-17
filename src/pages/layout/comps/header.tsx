@@ -1,0 +1,166 @@
+import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuLink,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+
+export default function Header() {
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [mobileOpen]);
+
+  const navItems = [
+    ["Home", "/"],
+    ["About Us", "/about"],
+    ["Membership", "/membership"],
+    ["Events", "/events"],
+    ["News", "/news-media"],
+    ["Reports", "/reports"],
+    ["Contact Us", "/contact"],
+  ];
+
+  return (
+    <header className="fixed top-0 left-0 w-full z-50 bg-transparent">
+
+      {/* Desktop Header */}
+      <div className="hidden lg:flex justify-center w-full">
+        <div className="w-[95%] max-w-[1600px] mt-4 flex items-center justify-between px-8 py-4 bg-transparent">
+
+          {/* Logo */}
+          <Link to="/" className="w-[54px] h-[61px] flex items-center justify-center">
+            <img src="/DBRG-logo.svg" className="w-full h-full" />
+          </Link>
+
+          {/* Navigation */}
+          <NavigationMenu>
+            <NavigationMenuList className="space-x-10 text-sm">
+              {navItems.map(([label, link]) => {
+                const active = location.pathname === link;
+                return (
+                  <NavigationMenuItem key={label}>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to={link}
+                        className={`transition-colors font-inter text-[20px] leading-[100%] ${
+                          active
+                            ? "text-[#C6A95F] font-medium"
+                            : "text-white font-normal hover:text-[#C6A95F]"
+                        }`}
+                      >
+                        {label}
+                      </Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                );
+              })}
+            </NavigationMenuList>
+          </NavigationMenu>
+
+          {/* Buttons */}
+          <div className="flex space-x-4">
+            <Button
+              variant="site_btn"
+              className="w-[155px] h-[46px] rounded-[10px] flex items-center justify-center font-inter font-medium text-[15px]"
+            >
+              Become a Member
+            </Button>
+
+            <Button
+              variant="site_btn_transparent"
+              className="w-[110px] h-[46px] rounded-[10px] flex items-center justify-center font-inter font-medium text-[15px] border border-current"
+            >
+              Log In
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between px-4 py-4 mt-2 w-full">
+        <Link to="/" className="w-[50px] h-[55px] flex items-center justify-center">
+          <img src="/DBRG-logo.svg" className="w-full h-full" />
+        </Link>
+
+        <button onClick={() => setMobileOpen(!mobileOpen)}>
+          {mobileOpen ? (
+            <X className="text-[#C6A95F] w-8 h-8" />
+          ) : (
+            <Menu className="text-[#C6A95F] w-8 h-8" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Sidebar + Overlay */}
+      <div
+        className={`
+          lg:hidden fixed top-0 left-0 h-full w-full 
+          transition-opacity duration-500 ease-in-out
+          ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+          z-50
+        `}
+      >
+        {/* Sidebar Panel */}
+        <div
+          className={`
+            w-[70%] h-full bg-[#0d0d0d] px-6 py-8 shadow-xl
+            transform transition-transform duration-500 ease-in-out
+            ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+          `}
+        >
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center space-x-2">
+              <img src="/DBRG-logo.svg" className="w-[50px] h-[55px]" />
+              <p className="text-[#C6A95F] text-xl font-semibold">DBRG</p>
+            </div>
+            <button onClick={() => setMobileOpen(false)}>
+              <X className="text-[#C6A95F] w-7 h-7" />
+            </button>
+          </div>
+
+          {/* Menu Items */}
+          <nav className="flex flex-col space-y-6 text-white">
+            {navItems.map(([label, link]) => {
+              const active = location.pathname === link;
+              return (
+                <Link
+                  key={label}
+                  to={link}
+                  onClick={() => setMobileOpen(false)}
+                  className={`text-lg font-inter ${
+                    active ? "text-[#C6A95F]" : "text-white"
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Help Center */}
+          <div className="mt-auto mb-6 w-full bg-[#C6A95F] text-black p-5 rounded-xl text-center">
+            <p className="font-semibold text-lg mb-2">Help Center</p>
+            <p className="text-sm mb-4">Having trouble in learning? Contact us for help.</p>
+
+            <Button className="bg-black text-white w-full rounded-lg h-10">
+              Go To Help Center
+            </Button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
