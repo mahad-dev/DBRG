@@ -11,7 +11,7 @@ export default function NewsDBRG() {
         </h2>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[42%_58%]  gap-6">
           {/* LEFT — Big Video */}
           <div className="relative rounded-xl overflow-hidden bg-[#d3d3d3]/30 aspect-video flex items-center justify-center border border-white/10">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-white flex items-center justify-center">
@@ -31,7 +31,7 @@ export default function NewsDBRG() {
                 key={idx}
                 className="flex flex-col sm:flex-row gap-4 items-center h-full"
               >
-                <div className="w-full sm:w-56 h-40 sm:h-40 rounded-md overflow-hidden border border-white/10 bg-[#333] shrink-0">
+                <div className="w-full sm:w-56 h-34 rounded-md overflow-hidden border border-white/10 bg-[#333] shrink-0">
                   <img
                     src={item.img}
                     className="w-full h-full object-cover"

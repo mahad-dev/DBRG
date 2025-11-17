@@ -48,7 +48,7 @@ export default function MemberDBRG() {
             <p
               className="
               font-gilroy-medium
-              text-[20px] sm:text-[22px] md:text-[26px]
+              text-[20px] sm:text-[22px] md:text-[24px]
               leading-[100%]
               tracking-[0]
               text-white
@@ -66,21 +66,21 @@ export default function MemberDBRG() {
           {benefits.map((benefit, index) => (
             <div
               key={index}
-              className="flex gap-4 sm:gap-5 md:gap-6 items-start"
+              className="flex gap-4 sm:gap-5 md:gap-6 items-center"
             >
-              <div className="w-16 h-16 flex items-center justify-center">
+              <div className="flex items-center justify-center">
                 <img
                   src={benefit.icon}
                   alt={benefit.title}
-                  className="w-10 h-10 sm:w-12 sm:h-12"
+                  className="w-14 h-14 sm:w-24 sm:h-24"
                 />
               </div>
 
               <div>
-                <span className="font-gilroy-bold font-bold text-[20px] sm:text-[22px] md:text-[24px] leading-[100%] text-white mb-1">
+                <span className="font-gilroy-bold font-bold text-[20px] sm:text-[22px] leading-[100%] text-white mb-1">
                   {benefit.title + " "}
                 </span>
-                <span className="font-gilroy-medium text-[20px] sm:text-[22px] md:text-[24px] leading-[100%] text-white">
+                <span className="font-gilroy-medium text-[20px] sm:text-[22px] leading-[100%] text-white">
                   {benefit.description}
                 </span>
               </div>

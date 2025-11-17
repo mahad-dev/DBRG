@@ -26,11 +26,11 @@ export default function AboutDBRG() {
         <p
           className="
             font-gilroy-medium
-            text-[20px] sm:text-[24px] md:text-[28px]
+            text-[20px] sm:text-[24px]
             leading-[140%] md:leading-[100%]
             tracking-[0]
             text-white
-            mt-4 md:mt-2
+            mt-4 md:mt-10
           "
         >
           The Dubai Business Group for Bullion & Gold Refinery (DBRG) is at the
@@ -48,7 +48,7 @@ export default function AboutDBRG() {
         <img
           src="/static/DBRG-team-meeting.jpg"
           alt="DBRG team meeting"
-          className="w-full h-auto md:h-[389px] object-cover rounded-xl"
+          className="w-full h-auto md:h-[389px] object-cover"
         />
       </div>
 
@@ -77,7 +77,7 @@ export default function AboutDBRG() {
             <CardDescription
               className="
                 font-gilroy-medium
-                text-[20px] sm:text-[22px] md:text-[24px]
+                text-[20px] sm:text-[22px]
                 leading-[140%] md:leading-[100%]
                 tracking-[0]
                 text-white
@@ -115,7 +115,7 @@ export default function AboutDBRG() {
             <CardDescription
               className="
                 font-gilroy-medium
-                text-[20px] sm:text-[22px] md:text-[24px]
+                text-[20px] sm:text-[22px]
                 leading-[140%] md:leading-[100%]
                 tracking-[0]
                 text-white

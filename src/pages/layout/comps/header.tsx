@@ -12,6 +12,7 @@ import { Menu, X } from "lucide-react";
 export default function Header() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -21,6 +22,22 @@ export default function Header() {
       document.body.style.overflow = "auto";
     }
   }, [mobileOpen]);
+
+  // Scroll event handler
+  const handleScroll = () => {
+    if (window.scrollY > 50) {
+      setScrolled(true);
+    } else {
+      setScrolled(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const navItems = [
     ["Home", "/"],
@@ -33,14 +50,21 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-transparent">
-
+    <header
+      className={`fixed z-50 transition-all duration-300 ${
+        scrolled
+          ? "top-4 inset-x-4 rounded-xl bg-opacity-60 backdrop-blur-lg"
+          : "top-0 inset-x-0 bg-transparent"
+      }`}
+    >
       {/* Desktop Header */}
       <div className="hidden lg:flex justify-center w-full">
         <div className="w-[95%] max-w-[1600px] mt-4 flex items-center justify-between px-8 py-4 bg-transparent">
-
           {/* Logo */}
-          <Link to="/" className="w-[54px] h-[61px] flex items-center justify-center">
+          <Link
+            to="/"
+            className="w-[54px] h-[61px] flex items-center justify-center"
+          >
             <img src="/DBRG-logo.svg" className="w-full h-full" />
           </Link>
 
@@ -90,7 +114,10 @@ export default function Header() {
 
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between px-4 py-4 mt-2 w-full">
-        <Link to="/" className="w-[50px] h-[55px] flex items-center justify-center">
+        <Link
+          to="/"
+          className="w-[50px] h-[55px] flex items-center justify-center"
+        >
           <img src="/DBRG-logo.svg" className="w-full h-full" />
         </Link>
 
@@ -105,20 +132,17 @@ export default function Header() {
 
       {/* Mobile Sidebar + Overlay */}
       <div
-        className={`
-          lg:hidden fixed top-0 left-0 h-full w-full 
-          transition-opacity duration-500 ease-in-out
-          ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
-          z-50
-        `}
+        className={`lg:hidden fixed top-0 left-0 h-full w-full transition-opacity duration-500 ease-in-out ${
+          mobileOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        } z-50`}
       >
         {/* Sidebar Panel */}
         <div
-          className={`
-            w-[70%] h-full bg-[#0d0d0d] px-6 py-8 shadow-xl
-            transform transition-transform duration-500 ease-in-out
-            ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
-          `}
+          className={`w-[70%] h-full bg-[#0d0d0d] px-6 py-8 shadow-xl transform transition-transform duration-500 ease-in-out ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         >
           {/* Sidebar Header */}
           <div className="flex items-center justify-between mb-10">
@@ -153,7 +177,9 @@ export default function Header() {
           {/* Help Center */}
           <div className="mt-auto mb-6 w-full bg-[#C6A95F] text-black p-5 rounded-xl text-center">
             <p className="font-semibold text-lg mb-2">Help Center</p>
-            <p className="text-sm mb-4">Having trouble in learning? Contact us for help.</p>
+            <p className="text-sm mb-4">
+              Having trouble in learning? Contact us for help.
+            </p>
 
             <Button className="bg-black text-white w-full rounded-lg h-10">
               Go To Help Center

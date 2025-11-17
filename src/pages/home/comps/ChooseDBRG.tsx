@@ -63,7 +63,7 @@ export default function ChooseDBRG() {
               <img
                 src={feature.icon}
                 alt={feature.title}
-                className="w-10 h-10"
+                className="w-18 h-18"
               />
 
               {/* Feature Title */}
@@ -71,7 +71,7 @@ export default function ChooseDBRG() {
                 className="
                   font-['Inter']
                   font-semibold
-                  text-[22px] md:text-[24px]
+                  text-[22px]
                   leading-[100%]
                   text-[#C6A95F]
                   tracking-[0]
@@ -84,7 +84,7 @@ export default function ChooseDBRG() {
               <p
                 className="
                   font-gilroy-medium
-                  text-[20px] md:text-[22px]
+                  text-[20px] md:text-[20px]
                   leading-[100%]
                   text-white
                   tracking-[0]

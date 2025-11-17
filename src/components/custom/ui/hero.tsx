@@ -55,7 +55,7 @@ export default function Hero({ image, title, description }: HeroProps) {
 
           {/* Description */}
           <p
-            className="mx-auto mt-4 text-[16px] sm:text-[20px] md:text-[24px] leading-snug sm:leading-snug md:leading-[100%]"
+            className="mx-auto mt-10 text-[16px] sm:text-[20px] md:text-[24px] leading-snug sm:leading-snug md:leading-[100%]"
             style={{
               fontFamily: "Gilroy-Medium, sans-serif",
               fontWeight: 400,

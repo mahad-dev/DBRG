@@ -37,7 +37,7 @@ export default function BoardMembersDBRG() {
         </h2>
 
         {/* Description */}
-        <p className="text-base sm:text-lg md:text-[20px] leading-relaxed mb-14 sm:mb-16 md:mb-20">
+        <p className="text-base sm:text-lg md:text-[20px] leading-[1.4] max-w-6xl mb-14 sm:mb-16 md:mb-20">
           The DBRG Board comprises distinguished industry leaders and professionals who
           provide strategic direction and ensure that we continue to meet our mission
           and vision. These experts bring a wealth of knowledge and experience to our

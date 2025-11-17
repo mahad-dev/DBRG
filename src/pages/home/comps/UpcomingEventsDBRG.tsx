@@ -25,8 +25,8 @@ export default function UpcomingEventsDBRG() {
           <p
             className="
               font-gilroy-medium
-              text-[20px] sm:text-[22px] md:text-[26px]
-              leading-relaxed
+              text-[20px] sm:text-[22px] md:text-[24px]
+              leading-[100%]
               text-white
               mb-8
               text-center md:text-left
@@ -53,7 +53,7 @@ export default function UpcomingEventsDBRG() {
                 className="
                   font-inter
                   font-bold
-                  text-[28px] sm:text-[32px] md:text-[34px]
+                  text-[28px] sm:text-[32px]
                   leading-tight
                   text-white
                   mb-3
@@ -65,8 +65,8 @@ export default function UpcomingEventsDBRG() {
               <p
                 className="
                   font-gilroy-medium
-                  text-[20px] sm:text-[22px] md:text-[24px]
-                  leading-relaxed
+                  text-[20px] sm:text-[22px] 
+                  leading-[100%]
                   text-white
                   mb-6
                 "
@@ -76,10 +76,10 @@ export default function UpcomingEventsDBRG() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
-                <div className="flex items-center gap-2 text-white font-gilroy-medium text-[20px] sm:text-[22px] md:text-[24px]">
+                <div className="flex items-center gap-2 text-white font-gilroy-medium text-[20px] sm:text-[22px]">
                   <span>Date :</span>
                 </div>
-                <div className="flex items-center gap-2 text-white font-gilroy-medium text-[20px] sm:text-[22px] md:text-[24px]">
+                <div className="flex items-center gap-2 text-white font-gilroy-medium text-[20px] sm:text-[22px]">
                   <span>Time :</span>
                 </div>
               </div>

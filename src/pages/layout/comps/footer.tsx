@@ -231,13 +231,16 @@ export default function Footer() {
           <Button
             variant="site_btn"
             className="
+    w-[120px]
+    h-[52px]
+    rounded-[10px]
+    p-2.5
     font-gilroy-semi-bold
     font-normal
     text-[20px]
     leading-[100%]
     tracking-[0%]
     text-center
-    p-3
   "
           >
             Join Now

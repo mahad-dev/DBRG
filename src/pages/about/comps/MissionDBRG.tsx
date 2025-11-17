@@ -1,9 +1,9 @@
 export default function MissionDBRG() {
   return (
-    <section className="relative w-full bg-[#0e0e0e] text-white px-4 sm:px-6 md:px-12 lg:px-16 py-16 sm:py-20 md:py-24 font-gilory-medium">
+    <section className="relative w-full bg-[#0e0e0e] text-white px-4 sm:px-6 md:px-12 lg:px-16 py-14 font-gilory-medium">
 
       {/* Top Description */}
-      <div className="max-w-5xl mx-auto text-center text-[18px] sm:text-[20px] md:text-[22px] leading-[1.6] mb-16 md:mb-24">
+      <div className="max-w-5xl mx-auto text-center text-[18px] sm:text-[20px] md:text-[22px] leading-[1.4] mb-16 md:mb-24">
         <p className="mb-6">
           Dubai Business Group for Bullion & Gold Refinery (DBRG) is a premier
           organization established to represent and promote the bullion and gold
@@ -34,7 +34,7 @@ export default function MissionDBRG() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.6] max-w-4xl">
+          <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.4] max-w-4xl">
             At DBRG, our mission is to empower businesses in the precious metals
             industry by providing them with a robust platform for networking,
             collaboration, and growth. We aim to set the global standard for
@@ -57,7 +57,7 @@ export default function MissionDBRG() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.6] max-w-4xl">
+          <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.4] max-w-4xl">
             Our vision is to create a world-class network that sets Dubai at the
             heart of the global gold refining and bullion trade. We envision a
             collaborative environment where businesses of all sizes come
@@ -77,7 +77,7 @@ export default function MissionDBRG() {
           Chairman’s Message
         </h2>
 
-        <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.6] mb-12 md:mb-14 text-center md:text-left ">
+        <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.4] mb-12 md:mb-14 text-center md:text-left ">
           As Chairman of DBRG, I am proud to lead an organization that plays a pivotal
           role in shaping the future of the bullion and gold refining industry. DBRG
           represents a powerful network of businesses and professionals who share a

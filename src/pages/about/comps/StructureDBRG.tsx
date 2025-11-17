@@ -23,7 +23,7 @@ export default function StructureDBRG() {
   ];
 
   return (
-    <section className="w-full bg-[#0c0c0c] text-white px-4 sm:px-6 md:px-12 lg:px-20 xl:px-28 py-16 sm:py-20 md:py-24">
+    <section className="w-full bg-[#0c0c0c] text-white px-4 sm:px-6 md:px-12  py-16 sm:py-20 md:py-24">
       <div className="max-w-[1500px] mx-auto">
 
         {/* Heading */}
@@ -39,9 +39,9 @@ export default function StructureDBRG() {
 
         <p className="
           font-gilory-medium
-          text-[18px] sm:text-[20px] md:text-[24px]
-          leading-normal
-          max-w-4xl
+          text-[18px] sm:text-[20px] md:text-[22px]
+          leading-[1.4]
+          max-w-7xl
           mb-12 sm:mb-14 md:mb-16
           text-center md:text-left
         ">
