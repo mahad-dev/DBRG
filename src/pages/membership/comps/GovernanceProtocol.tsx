@@ -1,4 +1,3 @@
-import React from "react";
 import { Building2, ShieldCheck, Handshake, Users, FileCheck2, ScrollText } from "lucide-react";
 
 export default function GovernanceProtocol() {

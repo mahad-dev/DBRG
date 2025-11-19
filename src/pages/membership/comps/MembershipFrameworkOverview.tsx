@@ -1,4 +1,3 @@
-import React from "react";
 import { Shield, FileCheck, Search, Users } from "lucide-react";
 
 export default function MembershipFramework() {
