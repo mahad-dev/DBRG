@@ -1,4 +1,8 @@
 import Hero from "@/components/custom/ui/hero";
+import ContactForm from "./comps/ContactForm";
+import Address from "./comps/Address";
+import EmailPhone from "./comps/EmailPhone";
+import ChooseDBRG from "./comps/ChooseDBRG";
 
 export default function ContactPage() {
   return (
@@ -8,6 +12,10 @@ export default function ContactPage() {
         title="Contact Us"
         description="Home / Contact Us"
       />
+      <ContactForm />
+      <Address />
+      <EmailPhone/>
+      <ChooseDBRG/>
     </>
   );
 }
