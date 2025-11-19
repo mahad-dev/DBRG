@@ -4,6 +4,7 @@ import EventsPage from "@/pages/events";
 import HomePage from "@/pages/home";
 import Layout from "@/pages/layout";
 import MemberShipPage from "@/pages/membership";
+import MemberShipTable from "@/pages/memberTable";
 import NewsPage from "@/pages/news";
 import ReportsPage from "@/pages/reports";
 import type { ReactElement } from "react";
@@ -25,6 +26,7 @@ export const ROUTE_PATHS = {
   News_Media:'/news-media',
   Events:'/events',
   Reports:'/reports',
+  MemberList:'/member-list',
 } as const;
 const layoutRoutes: RouteConfig[] = [
   {
@@ -61,6 +63,11 @@ const layoutRoutes: RouteConfig[] = [
     path: ROUTE_PATHS.Reports,
     element: <ReportsPage />,
     name: "Reports",
+  },
+  {
+    path: ROUTE_PATHS.MemberList,
+    element: <MemberShipTable/>,
+    name: "MemberList",
   }
   // {
   //   path: ROUTE_PATHS.CONTACT,

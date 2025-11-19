@@ -4,7 +4,7 @@ import Footer from "./comps/footer";
 
 const Layout = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#121212]">
       <Header />
 
       <main className="grow p-0">

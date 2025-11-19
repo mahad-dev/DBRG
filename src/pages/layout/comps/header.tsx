@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import BecomeMemberModal from "./BecomeMemberModal";
 
 export default function Header() {
   const location = useLocation();
@@ -47,7 +48,7 @@ export default function Header() {
         }`}
       >
         {/* Desktop Header */}
-        <div className="hidden lg:flex justify-center w-full">
+        <div className="hidden xl:flex justify-center w-full">
           <div className="w-[95%] max-w-[1600px] mt-4 flex items-center justify-between px-8 py-4 bg-transparent">
             <Link to="/" className="w-[54px] h-[61px]">
               <img src="/DBRG-logo.svg" className="w-full h-full" />
@@ -78,9 +79,7 @@ export default function Header() {
             </NavigationMenu>
 
             <div className="flex space-x-4">
-              <Button variant="site_btn" className="w-[155px] h-[46px] rounded-[10px]">
-                Become a Member
-              </Button>
+             <BecomeMemberModal />
               <Button
                 variant="site_btn_transparent"
                 className="w-[110px] h-[46px] rounded-[10px] border border-current"
@@ -92,7 +91,7 @@ export default function Header() {
         </div>
 
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between px-4 py-4 mt-2 w-full">
+        <div className="xl:hidden flex items-center justify-between px-4 py-4 mt-2 w-full">
           <Link to="/" className="w-[50px] h-[55px]">
             <img src="/DBRG-logo.svg" className="w-full h-full" />
           </Link>
