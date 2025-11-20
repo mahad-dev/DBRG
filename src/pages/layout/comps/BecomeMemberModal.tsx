@@ -60,7 +60,7 @@ export default function BecomeMemberModal({
   ) => {
     try {
       await axios.post(`${API_BASE}/ContactUs/Create`, values);
-      toast.success("Request sent successfully! Thanks for contacting us! We'll get back to you as soon as possible.", { position: "top-right" });
+      toast.success("Thanks for contacting us! We'll get back to you as soon as possible.", { position: "top-right" });
       resetForm();
       setOpen(false);
     } catch (error) {

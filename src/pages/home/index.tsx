@@ -20,8 +20,8 @@ ahead of industry trends."
       <AboutDBRG />
       <ChooseDBRG />
       <MemberDBRG />
-      <NewsDBRG />
-      <UpcomingEventsDBRG />
+      {/* <NewsDBRG /> */}
+      {/* <UpcomingEventsDBRG /> */}
     </>
   );
 }

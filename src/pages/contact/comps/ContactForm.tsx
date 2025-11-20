@@ -70,9 +70,9 @@ export default function ContactForm() {
       </h2>
 
       {/* Card */}
-      <div className="w-full max-w-5xl bg-[#D9D9D926] rounded-xl shadow-2xl p-6 md:p-10 flex flex-col md:flex-row gap-8">
+      <div className="w-full max-w-[500px] bg-[#D9D9D926] rounded-xl shadow-2xl p-6 md:p-10 flex flex-col md:flex-row gap-8">
         {/* Left Gray Box */}
-        <div className="w-full md:w-1/2 rounded-lg bg-[#d3d3d3] h-56 sm:h-72 md:h-auto" />
+        {/* <div className="w-full md:w-1/2 rounded-lg bg-[#d3d3d3] h-56 sm:h-72 md:h-auto" /> */}
 
         {/* Form */}
         <Formik
@@ -95,7 +95,7 @@ export default function ContactForm() {
           }}
         >
           {({ isSubmitting }) => (
-            <Form className="w-full md:w-1/2 space-y-5">
+            <Form className="w-full space-y-5">
               {/* Name */}
               <div className="space-y-1">
                 <label className="text-[18px] sm:text-[20px] md:text-[20px] font-normal leading-snug font-gilory-regular">

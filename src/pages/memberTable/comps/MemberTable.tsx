@@ -29,6 +29,7 @@ interface Member {
   email: string;
   mobile: string;
   message: string;
+  membershipType: string;
 }
 
 export default function MemberTable() {
@@ -41,7 +42,7 @@ export default function MemberTable() {
 
   const pageSize = 10;
   const API_BASE = import.meta.env.VITE_API_URL as string;
-  console.log("ff",API_BASE)
+  console.log("ff", API_BASE);
 
   const fetchMembers = async () => {
     setLoading(true);
@@ -100,6 +101,9 @@ export default function MemberTable() {
               <TableHead className="text-left hidden lg:table-cell">
                 Message
               </TableHead>
+               <TableHead className="text-left hidden lg:table-cell">
+                Membership Type
+              </TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -134,6 +138,9 @@ export default function MemberTable() {
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
                     {member.message}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {member.membershipType || "N/A"}
                   </TableCell>
                   <TableCell className="text-center">
                     <Button

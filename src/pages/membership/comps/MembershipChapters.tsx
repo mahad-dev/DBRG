@@ -5,6 +5,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
 import { Check } from "lucide-react";
 
 export default function MembershipChapters() {
@@ -115,11 +116,11 @@ export default function MembershipChapters() {
                 {item.id}
               </div>
 
-              <div className="font-['Inter'] text-[#C6A95F] text-[24px] md:text-[38px] font-medium no-underline hover:no-underline">
+              <div className="font-['Inter'] text-[#C6A95F] text-[20px] sm:text-[24px] md:text-[38px] font-medium no-underline hover:no-underline">
                 {item.title}
               </div>
 
-              <span className="font-['Inter'] cursor-pointer text-[22px] md:text-[28px] font-medium underline">
+              <span className="font-['Inter'] min-w-[100px] cursor-pointer text-[16px] sm:text-[22px] md:text-[28px] font-medium underline">
                 View Details
               </span>
             </AccordionTrigger>
@@ -160,12 +161,7 @@ export default function MembershipChapters() {
                   ))}
                 </ul>
 
-                <Button
-                  variant="site_btn"
-                  className="mt-10 bg-[#C6A95F] font-['Gilroy-Bold'] text-[20px] md:text-[22px] px-8 py-4 rounded-lg"
-                >
-                  Join Membership
-                </Button>
+               <BecomeMemberModal triggerClassName="mt-4"/>
               </div>
             </AccordionContent>
           </AccordionItem>

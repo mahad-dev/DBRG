@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -26,10 +27,13 @@ export default function Footer() {
           Technology Partner :
         </p>
 
-        <a href="https://www.orosoft.com/" target="_blank" rel="noopener noreferrer">
-  <img src="/OroSoft-Logo.svg" alt="OroSoft" className="w-32 mt-2" />
-</a>
-
+        <a
+          href="https://www.orosoft.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src="/OroSoft-Logo.svg" alt="OroSoft" className="w-32 mt-2" />
+        </a>
       </div>
 
       {/* MAIN GRID */}
@@ -130,12 +134,26 @@ export default function Footer() {
     font-semibold
   "
           >
-            <li>About Us</li>
-            <li>Memberships</li>
-            <li>Events</li>
-            <li>News & Articles</li>
-            <li>Resources</li>
-            <li>Contact Us</li>
+            <ul>
+              <li className="hover:text-[#C6A95F]">
+                <Link to="/about">About Us</Link>
+              </li>
+              <li className="hover:text-[#C6A95F]">
+                <Link to="/membership">Membership</Link>
+              </li>
+              <li className="hover:text-[#C6A95F]">
+                <Link to="/events">Events</Link>
+              </li>
+              <li className="hover:text-[#C6A95F]">
+                <Link to="/news-media">News & Articles</Link>
+              </li>
+              <li className="hover:text-[#C6A95F]">
+                <Link to="/reports">Resources</Link>
+              </li>
+              <li className="hover:text-[#C6A95F]">
+                <Link to="/contact">Contact Us</Link>
+              </li>
+            </ul>
           </ul>
         </div>
 
@@ -197,12 +215,30 @@ export default function Footer() {
     font:gilroy-semi-bold
   "
           >
-            <li>Dribbble</li>
-            <li>Behance</li>
-            <li>Medium</li>
-            <li>Instagram</li>
-            <li>Facebook</li>
-            <li>Twitter</li>
+            <li>
+              <a
+                href="https://www.instagram.com/dbrg.ae/?hl=en"
+                target="_blank"
+              >
+                Instagram
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://www.facebook.com/people/Dubai-Bullion-and-Refinery-Group/61564015094333/"
+                target="_blank"
+              >
+                Facebook
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://www.linkedin.com/in/dubai-bullion-and-refinery-group-191154307/"
+                target="_blank"
+              >
+                Twitter
+              </a>
+            </li>
           </ul>
         </div>
 

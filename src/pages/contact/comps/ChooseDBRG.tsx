@@ -32,7 +32,7 @@ export default function WhyContactDBRG() {
 
       <div className="mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-start">
         {/* LEFT GREY BOX */}
-        <div className="w-full h-64 sm:h-80 md:h-[420px] bg-[#d9d9d9] rounded-xl" />
+        {/* <div className="w-full h-64 sm:h-80 md:h-[420px] bg-[#d9d9d9] rounded-xl" /> */}
 
         {/* RIGHT CONTENT */}
         <div className="space-y-6 md:space-y-8">
