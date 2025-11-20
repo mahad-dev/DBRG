@@ -6,7 +6,6 @@ import {
   NavigationMenuList,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import BecomeMemberModal from "./BecomeMemberModal";
 
@@ -80,12 +79,12 @@ export default function Header() {
 
             <div className="flex space-x-4">
              <BecomeMemberModal />
-              <Button
+              {/* <Button
                 variant="site_btn_transparent"
                 className="w-[110px] h-[46px] rounded-[10px] border border-current"
               >
                 Log In
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
@@ -146,17 +145,9 @@ export default function Header() {
               );
             })}
           </nav>
-
-          {/* Help Center */}
-          <div className="mt-auto mb-6 bg-[#C6A95F] text-black p-5 rounded-xl text-center">
-            <p className="font-semibold text-lg mb-2">Help Center</p>
-            <p className="text-sm mb-4">
-              Having trouble in learning? Contact us for help.
-            </p>
-            <Button className="bg-black text-white w-full rounded-lg h-10">
-              Go To Help Center
-            </Button>
-          </div>
+        <div className="mt-6">
+        <BecomeMemberModal/>
+        </div>
         </div>
       </div>
     </>

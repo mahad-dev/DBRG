@@ -20,16 +20,17 @@ export default function Address() {
 
       {/* Map */}
       <div className="w-full h-64 sm:h-80 md:h-[400px] rounded-2xl overflow-hidden shadow-lg">
-        <iframe
-          title="Google Map"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.0306921186524!2d67.03617697534279!3d24.85715557792615!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33fdd7700ad6b%3A0xaea0a0d0b2ecfac1!2sKarachi%20Pakistan!5e0!3m2!1sen!2s!4v1700000000000"
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        ></iframe>
-      </div>
+  <iframe
+    title="Google Map - Dubai UAE"
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14437.129799385848!2d55.271884!3d25.197197!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f434dd5c2f7df%3A0xa52ffb62a1c04357!2sBurj%20Khalifa!5e0!3m2!1sen!2sae!4v1700000000001"
+    width="100%"
+    height="100%"
+    style={{ border: 0 }}
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+  ></iframe>
+</div>
+
     </section>
   );
 }

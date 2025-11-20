@@ -50,15 +50,13 @@ export default function MembershipBenefits() {
         {/* Top Description */}
         <p
           className="
-    text-[28px] 
-    md:text-[30px] 
-    leading-[100%] 
+    text-[18px] sm:text-[20px] md:text-[22px] leading-[1.4]
     text-center 
     font-gilroy 
     font-normal 
     mb-16 
     mx-auto
-    max-w-6xl
+    max-w-5xl
     font-gilory-medium
   "
         >
@@ -73,7 +71,7 @@ export default function MembershipBenefits() {
 
         {/* Heading */}
         <h2
-          className="text-center sm:text-left text-[#C6A95F] text-[48px] md:text-[62px] leading-[100%] font-normal mb-10"
+          className="text-center sm:text-left text-[#C6A95F] text-[48px] md:text-[52px] leading-[100%] font-normal mb-10"
           style={{
             fontFamily: "DM Serif Display",
             fontWeight: 400,
@@ -84,14 +82,10 @@ export default function MembershipBenefits() {
         </h2>
 
         {/* Sub Paragraph */}
-        <p className="text-[28px] md:text-[30px] leading-[100%] font-gilory-medium text-center sm:text-left font-normal mb-16 mx-auto">
-          Joining Dubai Business Group for Bullion & Gold Refinery (DBRG)
-          provides you with a unique opportunity to grow your business in the
-          global bullion and gold refining sector. As a member, you will gain
-          access to a range of benefits designed to help you stay ahead in a
-          competitive market. From exclusive industry insights to valuable
-          networking opportunities, DBRG offers a robust platform to support
-          your business goals.
+        <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.4] font-gilory-medium text-center sm:text-left font-normal mb-16 mx-auto">
+         At DBRG, we believe in creating value for our members by providing resources that
+foster growth, innovation, and compliance in the bullion and gold refining industry. As
+a member, you will enjoy the following benefits:
         </p>
 
         {/* Benefits Grid */}
@@ -109,14 +103,14 @@ export default function MembershipBenefits() {
                 />
 
                 <h3
-                  className="text-[22px] font-semibold "
+                  className="text-[20px] font-semibold "
                   style={{ fontFamily: "Inter" }}
                 >
                   {item.title}
                 </h3>
 
                 <p
-                  className="text-[20px] leading-[100%]"
+                  className="text-[20px] font-light leading-[1.1]"
                   style={{ fontFamily: "Inter" }}
                 >
                   {item.desc}

@@ -84,7 +84,7 @@ export default function MissionDBRG() {
           common goal: advancing the standards of the industry and contributing to
           Dubai’s position as a global leader in the precious metals sector. We are
           committed to building a transparent, compliant, and sustainable platform
-          that supports our members' growth and success. – [Chairman Name], Chairman
+          that supports our members' growth and success. – [Mohammad Ayyob], Chairman
           of DBRG
         </p>
 

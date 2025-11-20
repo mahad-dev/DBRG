@@ -26,7 +26,7 @@ export default function ChooseMembership() {
       </h2>
 
       {/* Subtitle */}
-      <p className="font-gilory-medium text-base sm:text-lg md:text-[24px] leading-relaxed sm:leading-[1.4] max-w-3xl md:max-w-7xl mb-12 text-center md:text-left mx-auto md:mx-0">
+      <p className="font-gilory-medium text-base sm:text-lg md:text-[22px] leading-relaxed sm:leading-[1.4] max-w-3xl md:max-w-7xl mb-12 text-center md:text-left mx-auto md:mx-0">
         DBRG is committed to supporting its members through valuable resources, educational
         opportunities, and an active network. When you join DBRG, you gain access to:
       </p>
