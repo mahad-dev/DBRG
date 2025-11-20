@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
 
 export default function MembershipProcess() {
   const steps = [
@@ -37,21 +38,27 @@ export default function MembershipProcess() {
 
         {/* Description */}
         <p className="text-[18px] sm:text-[24px] leading-[1.2] mb-12 max-w-5xl font-gilory-medium">
-          Becoming a member of DBRG is simple and straightforward. Follow these steps to join our network of industry
-          leaders and professionals:
+          Becoming a member of DBRG is simple and straightforward. Follow these
+          steps to join our network of industry leaders and professionals:
         </p>
 
         {/* Steps */}
         <div className="flex flex-col gap-16 sm:gap-20 relative">
           {steps.map((item, index) => (
-            <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 relative">
+            <div
+              key={index}
+              className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 relative"
+            >
               {/* Vertical Line */}
               {index !== steps.length - 1 && (
                 <span className="hidden sm:block absolute left-8 sm:left-10 top-20 sm:top-22 h-16 sm:h-16 w-px bg-[#FFFFFF]" />
               )}
 
               {/* Number Circle */}
-              <div className="shrink-0 w-16 sm:w-20 h-16 sm:h-20 rounded-full border-2 border-[#C6A95F] flex justify-center items-center text-[#C6A95F] text-[20px] sm:text-[24px]" style={{ fontFamily: "Inter" }}>
+              <div
+                className="shrink-0 w-16 sm:w-20 h-16 sm:h-20 rounded-full border-2 border-[#C6A95F] flex justify-center items-center text-[#C6A95F] text-[20px] sm:text-[24px]"
+                style={{ fontFamily: "Inter" }}
+              >
                 {item.number}
               </div>
 
@@ -65,23 +72,11 @@ export default function MembershipProcess() {
 
         {/* Button */}
         <div className="mt-8 sm:mt-10">
-         <Button
-  variant="site_btn"
-  className="w-[223px] h-[52px] rounded-md text-[20px] font-medium flex justify-center items-center"
-  style={{
-    fontFamily: "Inter",
-    lineHeight: "100%",
-    letterSpacing: "0",
-    textAlign: "center",
-    padding: "10px",
-    gap: "10px",
-    opacity: 1,
-    transform: "rotate(0deg)"
-  }}
->
-  Apply Membership
-</Button>
-
+          <BecomeMemberModal
+            triggerText="Apply for Membership"
+            triggerVariant="site_btn"
+            triggerClassName="w-[223px] h-[52px] rounded-md text-[20px] font-medium flex justify-center items-center"
+          />
         </div>
       </div>
     </section>

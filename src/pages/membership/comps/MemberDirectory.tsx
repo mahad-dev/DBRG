@@ -1,67 +1,86 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, User, Star } from "lucide-react";
 
 export default function MemberDirectory() {
+  const features = [
+    {
+      id: 1,
+      title: "Search & Filter Options :",
+      desc: "Our directory allows you to search for members by category, location, services, and more.",
+      icon: "/icons/search.svg",
+    },
+    {
+      id: 2,
+      title: "Member Profiles :",
+      desc: "Each approved member has a profile page showcasing their business, including brief company details and services.",
+      icon: "/icons/member.svg",
+    },
+    {
+      id: 3,
+      title: "Optional Member Logos :",
+      desc: "Member logos and company profiles can be featured to enhance visibility and trust.",
+      icon: "/icons/memberOptional.svg",
+    },
+  ];
+
   return (
-    <section className="w-full bg-[#0e0e0e] text-white px-6 md:px-16 py-20">
+    <section className="w-full bg-[#0e0e0e] text-white px-6 sm:px-10 md:px-16 py-16 md:py-20">
       <div className="max-w-7xl mx-auto">
+        
         {/* Heading */}
-        <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+        <h2 className="font-gilroy-bold font-bold text-[30px] sm:text-[36px] md:text-[44px] leading-tight mb-4">
           Members Directory
         </h2>
 
-        {/* Sub-heading */}
-        <p className="text-lg md:text-xl text-gray-300 max-w-5xl">
-          As a member of DBRG, you will be listed in our exclusive Members Directory, providing visibility and recognition within the industry. The directory features businesses and professionals who are committed to maintaining the highest standards in the gold refining and bullion trade.
+        {/* Subheading */}
+        <p className="font-gilroy-medium text-[16px] sm:text-[18px] md:text-[22px] leading-[120%] max-w-8xl">
+          As a member of DBRG, you will be listed in our exclusive Members Directory,
+          providing visibility and recognition within the industry. The directory features
+          businesses and professionals who are committed to maintaining the highest
+          standards in the gold refining and bullion trade.
         </p>
 
         {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-16">
-          {/* Card 1 */}
-          <Card className="bg-transparent shadow-none border-none text-center">
-            <CardContent className="flex flex-col items-center text-center p-0">
-              <div className="mb-4">
-                <Search className="w-14 h-14 text-[#C6A95F]" strokeWidth={1.5} />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Search & Filter Options:</h3>
-              <p className="text-gray-300 text-[15px] leading-relaxed max-w-xs">
-                Our directory allows you to search for members by category, location, services, and more.
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 mt-14 mx-auto max-w-6xl">
+          {features.map((item) => (
+            <Card
+              key={item.id}
+              className="bg-transparent shadow-none border-none"
+            >
+              <CardContent className="flex flex-col p-0">
+                
+                {/* Icon */}
+                <img
+                  src={item.icon}
+                  alt={item.title}
+                  className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mb-4"
+                />
 
-          {/* Card 2 */}
-          <Card className="bg-transparent shadow-none border-none text-center">
-            <CardContent className="flex flex-col items-center text-center p-0">
-              <div className="mb-4">
-                <User className="w-14 h-14 text-[#C6A95F]" strokeWidth={1.5} />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Member Profiles:</h3>
-              <p className="text-gray-300 text-[15px] leading-relaxed max-w-xs">
-                Each approved member has a profile page showcasing their business, including brief company details and services.
-              </p>
-            </CardContent>
-          </Card>
+                <h3 className="font-gilroy-bold font-bold text-[18px] sm:text-[20px] md:text-[22px] leading-tight">
+                  {item.title}
+                </h3>
 
-          {/* Card 3 */}
-          <Card className="bg-transparent shadow-none border-none text-center">
-            <CardContent className="flex flex-col items-center text-center p-0">
-              <div className="mb-4">
-                <Star className="w-14 h-14 text-[#C6A95F]" strokeWidth={1.5} />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Optional Member Logos:</h3>
-              <p className="text-gray-300 text-[15px] leading-relaxed max-w-xs">
-                Member logos and company profiles can be featured to enhance visibility and trust.
-              </p>
-            </CardContent>
-          </Card>
+                <p className="font-gilroy-medium text-[16px] sm:text-[18px] md:text-[20px] leading-[150%] max-w-sm">
+                  {item.desc}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Button */}
-        <div className="flex justify-center mt-14">
+        <div className="flex justify-center mt-12">
           <Button
-            className="bg-[#C6A95F] text-black font-medium px-8 py-6 rounded-xl text-lg hover:bg-[#b49650] transition"
+          variant={"site_btn"}
+            className="
+              font-gilroy-semibold
+              text-[16px] sm:text-[18px] md:text-[20px]
+              w-[200px] sm:w-[230px] md:w-[260px]
+              h-12 sm:h-[50px] md:h-[52px]
+              rounded-[10px]
+              hover:bg-[#b49650]
+              transition
+            "
           >
             View Members Directory
           </Button>

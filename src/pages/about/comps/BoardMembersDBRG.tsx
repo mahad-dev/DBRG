@@ -1,24 +1,13 @@
 import { Button } from "@/components/ui/button";
 
 const boardMembers = [
-  {
-    id: 1,
-    name: "Name",
-    role: "Co-Founder",
-    image: "/static/board-member1.jpg",
-  },
-  {
-    id: 2,
-    name: "Name",
-    role: "Co-Founder",
-    image: "/static/board-member2.jpg",
-  },
-  {
-    id: 3,
-    name: "Name",
-    role: "CEO",
-    image: "/static/board-member3.jpg",
-  },
+  { id: 1, name: "Mohammad Ayyob", role: "Chairman", image: "/static/Mr_Ayyob.jpg" },
+  { id: 2, name: "Essa Al Falasi", role: "Vice Chairman", image: "/static/Essa-Al-Falasi.jpg" },
+  { id: 3, name: "Hussein Osman", role: "Director Membership & Marketing", image: "/static/Mr_Hussein.jpeg" },
+  { id: 4, name: "Anshuman Sharma", role: "General Secretary", image: "/static/Mr_Anshuman.jpeg" },
+  { id: 5, name: "Harish Pawani", role: "Treasurer", image: "/static/Mr_Harish.jpg" },
+  { id: 6, name: "Sudheesh Nambiath", role: "Founding Member", image: "/static/Mr_Sudheesh.jpg" },
+  { id: 7, name: "Ayoub Ahli", role: "Founding Member", image: "/static/Mr_Ayoub_Ahli.jpg" },
 ];
 
 export default function BoardMembersDBRG() {
@@ -44,8 +33,8 @@ export default function BoardMembersDBRG() {
           organization, guiding us towards greater achievements.
         </p>
 
-        {/* Cards using MAP */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 md:gap-10 place-items-center w-full">
+        {/* Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 md:gap-10 place-items-center">
           {boardMembers.map((member) => (
             <div
               key={member.id}
@@ -54,11 +43,11 @@ export default function BoardMembersDBRG() {
               <img
                 src={member.image}
                 alt={member.name}
-                className="w-full h-full object-cover"
+                className="w-full h-80 sm:h-96 md:h-80 lg:h-96 object-cover"
               />
 
-              {/* Text inside image */}
-              <div className="p-4 text-left absolute bottom-0">
+              {/* Text overlay */}
+              <div className="p-4 text-left absolute bottom-0 bg-black/40 w-full">
                 <p className="text-lg sm:text-xl font-semibold text-white">{member.name}</p>
                 <p className="text-sm text-gray-300">{member.role}</p>
               </div>
@@ -67,11 +56,11 @@ export default function BoardMembersDBRG() {
         </div>
 
         {/* View More Button */}
-        <div className="mt-12 sm:mt-14 flex justify-center">
+        {/* <div className="mt-12 sm:mt-14 flex justify-center">
           <Button className="bg-transparent border border-[#C6A95F] text-[#C6A95F] px-8 sm:px-10 py-2 rounded-full hover:bg-[#C6A95F] hover:text-black transition-all duration-300 text-base sm:text-lg">
             View More
           </Button>
-        </div>
+        </div> */}
       </div>
     </section>
   );

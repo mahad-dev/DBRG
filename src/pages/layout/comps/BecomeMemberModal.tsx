@@ -32,7 +32,17 @@ const MemberSchema = Yup.object().shape({
     .min(10, "Message must be at least 10 characters"),
 });
 
-export default function BecomeMemberModal() {
+interface BecomeMemberModalProps {
+  triggerClassName?: string;
+  triggerVariant?: string;
+  triggerText?: string;
+}
+
+export default function BecomeMemberModal({
+  triggerClassName,
+  triggerVariant = "default",
+  triggerText = "Become a Member",
+}: BecomeMemberModalProps) {
   const [open, setOpen] = React.useState(false);
   const API_BASE = import.meta.env.VITE_API_URL as string;
 
@@ -56,8 +66,15 @@ export default function BecomeMemberModal() {
     <Dialog open={open} onOpenChange={setOpen}>
       {/* Trigger Button */}
       <DialogTrigger asChild>
-        <Button className="w-full sm:w-[155px] h-[46px] rounded-lg bg-[#C6A95F] text-black font-semibold hover:bg-[#b79a55] transition-colors duration-300">
-          Become a Member
+        <Button
+          variant={triggerVariant}
+          className={
+            triggerClassName
+              ? triggerClassName
+              : "w-full cursor-pointer sm:w-[155px] h-[46px] rounded-lg bg-[#C6A95F] text-black font-semibold hover:bg-[#b79a55]"
+          }
+        >
+          {triggerText}
         </Button>
       </DialogTrigger>
 

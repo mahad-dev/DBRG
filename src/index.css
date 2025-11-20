@@ -53,3 +53,20 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;     /* Firefox */
 }
+
+/* REMOVE DEFAULT SHADCN ACCORDION CHEVRON (ALL VERSIONS) */
+
+/* 1. Target the SVG inside trigger */
+.accordion-trigger svg {
+  display: none !important;
+}
+
+/* 2. Target ANY svg inside button[data-state] (new version) */
+button[data-state] > svg {
+  display: none !important;
+}
+
+/* 3. If shadcn wraps icon in span > svg */
+button[data-state] span svg {
+  display: none !important;
+}

@@ -1,20 +1,51 @@
-import { Card } from "@/components/ui/card";
-
 export default function WithdrawalOrRejection() {
   return (
-    <section className="w-full bg-[#0e0e0e] text-white px-6 md:px-16 py-24">
+    <section className="w-full bg-[#0E0E0E] text-white px-6 md:px-16 py-12 md:py-20">
+      
       {/* Title */}
-      <h2 className="font-['Gilroy-Bold'] text-[42px] md:text-[48px] leading-[110%] mb-12">
+      <h2 className="
+        font-gilory-bold
+        font-bold
+        text-[40px] md:text-[46px] lg:text-[48px]
+        leading-[100%]
+        mb-12 md:mb-16
+        text-center md:text-left
+      ">
         Withdrawal or Rejection
       </h2>
 
-      {/* Layout Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-        {/* Left Square Placeholder using shadcn Card */}
-        <Card className="w-full h-[320px] md:h-[380px] bg-[#d3d3d3] rounded-xl" />
+      {/* Layout Wrapper */}
+      <div className="
+        grid grid-cols-1 md:grid-cols-2
+        gap-10 md:gap-16
+        items-center
+      ">
+         {/* Left Placeholder Block */}
+        {/* <Card
+          className="
+            w-full
+            aspect-square
+            bg-[#D3D3D3] /static/placeholder-image.png
+            rounded-xl
+          "
+        /> */}
+        {/* Left Image */}
+        <div className="mx-auto md:mx-0 w-full max-w-[509px]">
+          <img
+            src="/static/DBRGLOGO.png"
+            alt="Withdrawal or Rejection"
+            className="w-full h-auto rounded-[15px] object-cover"
+          />
+        </div>
 
-        {/* Right Text Content */}
-        <div className="text-[18px] leading-[160%] max-w-xl font-['Gilroy-Medium']">
+        {/* Right Text */}
+        <div className="
+          font-gilory-medium
+          text-[18px] md:text-[20px] lg:text-[22px]
+          leading-[150%]
+          max-w-xl
+          mx-auto md:mx-0
+        ">
           <p className="mb-6">
             DBRG reserves the right to reject or withdraw membership if:
           </p>

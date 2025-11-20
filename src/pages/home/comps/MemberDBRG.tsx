@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
 
 export default function MemberDBRG() {
   const benefits = [
@@ -90,9 +90,9 @@ export default function MemberDBRG() {
 
         {/* BUTTON — Centered */}
         <div className="flex justify-center mt-12 sm:mt-16">
-          <Button
-            variant={"site_btn"}
-            className="
+         <BecomeMemberModal
+  triggerVariant="site_btn"
+  triggerClassName="
     w-[202px] 
     h-[52px] 
     rounded-[10px] 
@@ -105,9 +105,7 @@ export default function MemberDBRG() {
     justify-center
     gap-2.5
   "
-          >
-            Become a Member
-          </Button>
+/>
         </div>
       </div>
     </section>

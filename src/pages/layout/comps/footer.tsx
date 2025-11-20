@@ -26,7 +26,10 @@ export default function Footer() {
           Technology Partner :
         </p>
 
-        <img src="/OroSoft-Logo.svg" alt="OroSoft" className="w-32 mt-2" />
+        <a href="https://www.orosoft.com/" target="_blank" rel="noopener noreferrer">
+  <img src="/OroSoft-Logo.svg" alt="OroSoft" className="w-32 mt-2" />
+</a>
+
       </div>
 
       {/* MAIN GRID */}
@@ -66,7 +69,7 @@ export default function Footer() {
   "
             >
               <MapPin color="white" className="mt-1" size={28} />
-              8819 Ohio St. South Gate, CA 90280
+              Dubai, UAE
             </p>
 
             <p
@@ -81,7 +84,7 @@ export default function Footer() {
   "
             >
               <Mail size={18} color="white" />
-              Ourstudio@hello.com
+              info@dbrg.ae
             </p>
 
             <p
@@ -96,7 +99,7 @@ export default function Footer() {
   "
             >
               <Phone size={18} color="white" />
-              +1 386-688-3295
+              +971 056 539 1246
             </p>
           </div>
         </div>

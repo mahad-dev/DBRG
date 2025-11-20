@@ -76,12 +76,12 @@ export default function StructureDBRG() {
           </div>
 
           {/* Right Info Card */}
-          <div className="
+          {/* <div className="
             w-full 
             h-[220px] sm:h-[260px] md:h-[340px] lg:h-[420px] xl:h-[460px]
             bg-[#D9D9D9]
             rounded-xl 
-          " />
+          " /> */}
         </div>
       </div>
     </section>
