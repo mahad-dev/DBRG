@@ -58,7 +58,15 @@ export default function Header() {
                 {navItems.map(([label, link]) => {
                   const active = location.pathname === link;
                   return (
-                    <NavigationMenuItem key={label}>
+                    <NavigationMenuItem
+                      key={label}
+                      onClick={() => {
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }}
+                    >
                       <NavigationMenuLink asChild>
                         <Link
                           to={link}
@@ -78,7 +86,7 @@ export default function Header() {
             </NavigationMenu>
 
             <div className="flex space-x-4">
-             <BecomeMemberModal />
+              <BecomeMemberModal />
               {/* <Button
                 variant="site_btn_transparent"
                 className="w-[110px] h-[46px] rounded-[10px] border border-current"
@@ -145,13 +153,12 @@ export default function Header() {
               );
             })}
           </nav>
-        <div className="mt-6">
-        <BecomeMemberModal
-  triggerText="Become a Member"
-  onOpen={() => setMobileOpen(false)} 
-/>
-
-        </div>
+          <div className="mt-6">
+            <BecomeMemberModal
+              triggerText="Become a Member"
+              onOpen={() => setMobileOpen(false)}
+            />
+          </div>
         </div>
       </div>
     </>
