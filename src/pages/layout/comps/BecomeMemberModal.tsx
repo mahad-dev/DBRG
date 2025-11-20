@@ -40,7 +40,6 @@ interface BecomeMemberModalProps {
 
 export default function BecomeMemberModal({
   triggerClassName,
-  triggerVariant = "default",
   triggerText = "Become a Member",
 }: BecomeMemberModalProps) {
   const [open, setOpen] = React.useState(false);
@@ -67,7 +66,7 @@ export default function BecomeMemberModal({
       {/* Trigger Button */}
       <DialogTrigger asChild>
         <Button
-          variant={triggerVariant}
+          variant={"site_btn"}
           className={
             triggerClassName
               ? triggerClassName

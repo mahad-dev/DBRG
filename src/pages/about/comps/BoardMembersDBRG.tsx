@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 
 const boardMembers = [
   { id: 1, name: "Mohammad Ayyob", role: "Chairman", image: "/static/Mr_Ayyob.jpg" },

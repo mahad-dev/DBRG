@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
 
 export default function MembershipProcess() {
