@@ -122,10 +122,14 @@ export default function AboutDBRG() {
                 mt-4
               "
             >
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem
-              ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-              tempor incididunt ut labore et dolore magna aliqua.
+              Our vision is to create a world-class network that sets Dubai at
+              the heart of the global gold rening and bullion trade. We envision
+              a collaborative environment where businesses of all sizes come
+              together to share knowledge, adopt industry innovations, and
+              maintain the highest levels of integrity, transparency, and
+              sustainability. DBRG will continue to be the gold standard for
+              ethical and responsible business practices in the precious metals
+              industry.
             </CardDescription>
           </CardContent>
         </Card>

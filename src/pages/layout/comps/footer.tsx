@@ -260,7 +260,7 @@ export default function Footer() {
     text-[#77808B]
   "
           >
-            Copyright Company Name
+            Copyright DBRG
           </p>
         </div>
       </div>
