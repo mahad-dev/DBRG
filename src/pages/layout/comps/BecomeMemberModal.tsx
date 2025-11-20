@@ -203,6 +203,9 @@ export default function BecomeMemberModal({
                         <SelectValue placeholder="Select Membership Type" />
                       </SelectTrigger>
                       <SelectContent className="w-full bg-white text-black z-50">
+                         <SelectItem value="Principal Member">
+                          Principal Member
+                        </SelectItem>
                         <SelectItem value="Member Banks">
                           Member Banks
                         </SelectItem>

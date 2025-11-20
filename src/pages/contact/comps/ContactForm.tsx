@@ -171,6 +171,9 @@ export default function ContactForm() {
                         <SelectValue placeholder="Select Membership Type" />
                       </SelectTrigger>
                       <SelectContent className="w-full bg-white text-black z-50">
+                        <SelectItem value="Principal Member">
+                          Principal Member
+                        </SelectItem>
                         <SelectItem value="Member Banks">
                           Member Banks
                         </SelectItem>
@@ -224,31 +227,29 @@ export default function ContactForm() {
         </Formik>
       </div>
 
-{/* Success Modal */}
-<Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-  <DialogContent className="bg-[#121212] text-white rounded-2xl max-w-sm mx-auto py-12 px-8 shadow-2xl transform transition-all duration-300 ease-out scale-100 opacity-100">
-    <DialogHeader>
-      <DialogTitle className="text-3xl font-bold text-[#C6A95F]">
-        Thank You!
-      </DialogTitle>
-    </DialogHeader>
-    <p className="mt-4 text-lg text-white/90">
-      Thanks for contacting us! We'll get back to you as soon as possible.
-    </p>
+      {/* Success Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-[#121212] text-white rounded-2xl max-w-sm mx-auto py-12 px-8 shadow-2xl transform transition-all duration-300 ease-out scale-100 opacity-100">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-bold text-[#C6A95F]">
+              Thank You!
+            </DialogTitle>
+          </DialogHeader>
+          <p className="mt-4 text-lg text-white/90">
+            Thanks for contacting us! We'll get back to you as soon as possible.
+          </p>
 
-    <div className="mt-8">
-      <Button
-        variant="site_btn"
-        className="bg-[#C6A95F] text-black hover:bg-yellow-400 px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
-        onClick={() => setIsModalOpen(false)}
-      >
-        Close
-      </Button>
-    </div>
-  </DialogContent>
-</Dialog>
-
-
+          <div className="mt-8">
+            <Button
+              variant="site_btn"
+              className="bg-[#C6A95F] text-black hover:bg-yellow-400 px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

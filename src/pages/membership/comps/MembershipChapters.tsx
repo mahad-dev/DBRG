@@ -4,7 +4,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
 import { Check } from "lucide-react";
 

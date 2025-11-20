@@ -2,8 +2,8 @@ import Hero from "../../components/custom/ui/hero";
 import AboutDBRG from "./comps/AboutDBRG";
 import ChooseDBRG from "./comps/ChooseDBRG";
 import MemberDBRG from "./comps/MemberDBRG";
-import NewsDBRG from "./comps/NewsDBRG";
-import UpcomingEventsDBRG from "./comps/UpcomingEventsDBRG";
+// import NewsDBRG from "./comps/NewsDBRG";
+// import UpcomingEventsDBRG from "./comps/UpcomingEventsDBRG";
 
 export default function HomePage() {
   return (
