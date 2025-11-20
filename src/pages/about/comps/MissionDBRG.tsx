@@ -90,9 +90,10 @@ export default function MissionDBRG() {
 
         {/* Chairman Image */}
         <div
-          className="w-full h-60 sm:h-[300px] md:h-[380px] lg:h-[420px] bg-center bg-cover bg-no-repeat rounded-xl"
+          className="w-full h-60 sm:h-[300px] md:h-[380px] lg:h-[420px] bg-center bg-cover bg-no-repeat rounded-xl overflow-hidden"
           style={{
-            backgroundImage: "url('/static/chairman.jpg')",
+            backgroundImage: "url('/static/Mr_Ayyob.jpg')",
+            backgroundSize: "50%"
           }}
         ></div>
       </div>
