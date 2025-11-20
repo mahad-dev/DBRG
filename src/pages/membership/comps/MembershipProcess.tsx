@@ -73,7 +73,6 @@ export default function MembershipProcess() {
         <div className="mt-8 sm:mt-10">
           <BecomeMemberModal
             triggerText="Apply for Membership"
-            triggerVariant="site_btn"
             triggerClassName="w-[223px] h-[52px] rounded-md text-[20px] font-medium flex justify-center items-center"
           />
         </div>

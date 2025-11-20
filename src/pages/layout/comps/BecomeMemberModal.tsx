@@ -14,6 +14,13 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const MemberSchema = Yup.object().shape({
   name: Yup.string()
@@ -30,17 +37,19 @@ const MemberSchema = Yup.object().shape({
   message: Yup.string()
     .required("Message is required")
     .min(10, "Message must be at least 10 characters"),
+  membershipType: Yup.string().required("Please select a membership type"),
 });
 
 interface BecomeMemberModalProps {
   triggerClassName?: string;
-  triggerVariant?: string;
   triggerText?: string;
+  onOpen?: () => void;
 }
 
 export default function BecomeMemberModal({
   triggerClassName,
   triggerText = "Become a Member",
+  onOpen,
 }: BecomeMemberModalProps) {
   const [open, setOpen] = React.useState(false);
   const API_BASE = import.meta.env.VITE_API_URL as string;
@@ -51,7 +60,7 @@ export default function BecomeMemberModal({
   ) => {
     try {
       await axios.post(`${API_BASE}/ContactUs/Create`, values);
-      toast.success("Request sent successfully!", { position: "top-right" });
+      toast.success("Request sent successfully! Thanks for contacting us! We'll get back to you as soon as possible.", { position: "top-right" });
       resetForm();
       setOpen(false);
     } catch (error) {
@@ -61,8 +70,13 @@ export default function BecomeMemberModal({
     }
   };
 
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value);
+    if (value && onOpen) onOpen();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {/* Trigger Button */}
       <DialogTrigger asChild>
         <Button
@@ -90,7 +104,13 @@ export default function BecomeMemberModal({
         </DialogHeader>
 
         <Formik
-          initialValues={{ name: "", email: "", mobile: "", message: "" }}
+          initialValues={{
+            name: "",
+            email: "",
+            mobile: "",
+            message: "",
+            membershipType: "",
+          }}
           validationSchema={MemberSchema}
           onSubmit={handleSubmit}
         >
@@ -157,6 +177,48 @@ export default function BecomeMemberModal({
                 />
                 <ErrorMessage
                   name="mobile"
+                  component="p"
+                  className="text-red-500 text-xs"
+                />
+              </div>
+
+              {/* Membership Type Dropdown */}
+              <div className="space-y-2 w-full relative">
+                <label
+                  htmlFor="membershipType"
+                  className="text-sm sm:text-base font-medium text-white"
+                >
+                  Membership Type
+                </label>
+
+                <Field name="membershipType">
+                  {({ field, form }: any) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(val) =>
+                        form.setFieldValue(field.name, val)
+                      }
+                    >
+                      <SelectTrigger className="bg-white mt-2 text-black w-full h-[46px] rounded-lg focus:ring-2 focus:ring-[#C6A95F]">
+                        <SelectValue placeholder="Select Membership Type" />
+                      </SelectTrigger>
+                      <SelectContent className="w-full bg-white text-black z-50">
+                        <SelectItem value="Member Banks">
+                          Member Banks
+                        </SelectItem>
+                        <SelectItem value="Contributing Member">
+                          Contributing Member
+                        </SelectItem>
+                        <SelectItem value="Affiliate Member">
+                          Affiliate Member
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+
+                <ErrorMessage
+                  name="membershipType"
                   component="p"
                   className="text-red-500 text-xs"
                 />

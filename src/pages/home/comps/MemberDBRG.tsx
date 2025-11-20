@@ -91,7 +91,6 @@ export default function MemberDBRG() {
         {/* BUTTON — Centered */}
         <div className="flex justify-center mt-12 sm:mt-16">
          <BecomeMemberModal
-  triggerVariant="site_btn"
   triggerClassName="
     w-[202px] 
     h-[52px] 

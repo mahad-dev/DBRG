@@ -146,7 +146,11 @@ export default function Header() {
             })}
           </nav>
         <div className="mt-6">
-        <BecomeMemberModal/>
+        <BecomeMemberModal
+  triggerText="Become a Member"
+  onOpen={() => setMobileOpen(false)} 
+/>
+
         </div>
         </div>
       </div>
