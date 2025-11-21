@@ -13,9 +13,10 @@ export default function Footer() {
         }}
       />
       {/* TOP ROW: Technology Partner */}
-      <div className="flex gap-4 items-center w-full justify-center mb-16">
-        <p
-          className="
+      <div className="flex flex-col md:flex-row mb-14 items-center justify-center gap-5 md:gap-10">
+        <div className="flex gap-4 items-center sm:justify-center justify-between">
+          <p
+            className="
     text-[20px]
     leading-[22px]
     tracking-[0px]
@@ -23,17 +24,40 @@ export default function Footer() {
     font-gilroy-bold
     font-bold
   "
-        >
-          Technology Partner :
-        </p>
+          >
+            Technology Partner :
+          </p>
 
-        <a
-          href="https://www.orosoft.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="/OroSoft-Logo.svg" alt="OroSoft" className="w-32 mt-2" />
-        </a>
+          <a
+            href="https://www.orosoft.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/OroSoft-Logo.svg" alt="OroSoft" className="w-32 mt-2" />
+          </a>
+        </div>{" "}
+        <div className="flex gap-4 items-center justify-between sm:justify-center ">
+          <p
+            className="
+    text-[20px]
+    leading-[22px]
+    tracking-[0px]
+    text-gray-300
+    font-gilroy-bold
+    font-bold
+  "
+          >
+            Strategic Partner :
+          </p>
+
+          {/* <a
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          > */}
+            <img src="/FINMET LOGO_VERTICAL.png" alt="OroSoft" className="w-32 mt-2" />
+          {/* </a> */}
+        </div>
       </div>
 
       {/* MAIN GRID */}

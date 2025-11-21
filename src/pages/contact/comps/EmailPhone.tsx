@@ -1,9 +1,9 @@
 export default function EmailPhone() {
   const contacts = [
-    { label: "General Inquiries", value: "[Email Address]" },
-    { label: "Phone Number", value: "[Phone Number]" },
-    { label: "Membership Inquiries", value: "[Email Address]" },
-    { label: "Office Address", value: "[Office Address]" },
+    { label: "General Inquiries", value: "info@dbrg.ae" },
+    { label: "Phone Number", value: "+971 056 539 1246" },
+    { label: "Membership Inquiries", value: "info@dbrg.ae" },
+    { label: "Office Address", value: "Dubai, UAE" },
   ];
 
   return (

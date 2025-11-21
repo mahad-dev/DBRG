@@ -102,9 +102,7 @@ export default function MembershipChapters() {
 
       {/* PARAGRAPH */}
       <p className="font-gilory-medium text-[20px] md:text-[22px] leading-[1.4] max-w-8xl mb-16">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation.
+        DBRG offers three structured membership categories for
       </p>
 
       {/* ACCORDION */}
