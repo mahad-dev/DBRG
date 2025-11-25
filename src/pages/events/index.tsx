@@ -1,4 +1,7 @@
 import Hero from "@/components/custom/ui/hero";
+import Events from "./comps/Events";
+import PastEvents from "./comps/PastEvents";
+import DBRGEvents from "./comps/DBRGEvents";
 
 export default function EventsPage() {
   return (
@@ -8,6 +11,9 @@ export default function EventsPage() {
         title="Events"
         description="Home / Events"
       />
+      <Events />
+      <PastEvents />
+      <DBRGEvents />
     </>
   );
 }
