@@ -1,4 +1,7 @@
 import Hero from "@/components/custom/ui/hero";
+import Report from "./comps/Report";
+import Compliance from "./comps/Compliance";
+import ReportQueries from "./comps/ReportQueries";
 
 export default function ReportsPage() {
   return (
@@ -8,6 +11,9 @@ export default function ReportsPage() {
         title="Reports & Publications"
         description="Home / Reports & Publications"
       />
+      <Report />
+      <ReportQueries/>
+      <Compliance />
     </>
   );
 }
