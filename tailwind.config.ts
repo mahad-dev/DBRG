@@ -9,6 +9,7 @@ module.exports = {
         'gilroy-bold': ['Gilroy-Bold', 'sans-serif'],
         'dm-serif': ['"DM Serif Display"', 'serif'],
         inter: ['Inter', 'sans-serif'],
+        'plus-jakarta': ['"Plus Jakarta Sans"', 'sans-serif'],
       },
     },
   },
