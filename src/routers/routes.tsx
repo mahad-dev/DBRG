@@ -1,5 +1,9 @@
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
+import Dashboard from "@/pages/dashboard";
+import DashboardLayout from "@/pages/dashboard/layout";
+import TrackingStatus from "@/pages/dashboard/TrackStatus";
+import UpcomingEvents from "@/pages/dashboard/UpcomingEvents";
 import EventsPage from "@/pages/events";
 import HomePage from "@/pages/home";
 import Layout from "@/pages/layout";
@@ -76,11 +80,34 @@ const layoutRoutes: RouteConfig[] = [
   // },
 ];
 
+const dashboardLayoutRoutes: RouteConfig[] = [
+  {
+    path: "",
+    element: <Dashboard />,
+    name: "Dashboard",
+  },
+  {
+    path: "upcoming-events",
+    element: <UpcomingEvents />,
+    name: "UpcomingEvents",
+  },
+  {
+    path: "track-status",
+    element: <TrackingStatus />,
+    name: "TrackingStatus",
+  },
+];
+
 export const publicRoutes: RouteConfig[] = [
   {
     element: <Layout/>,
     children: layoutRoutes,     // Nested pages
   },
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    children : dashboardLayoutRoutes
+  }
 ];
 
 // Protected routes (require authentication)
