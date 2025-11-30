@@ -2,6 +2,7 @@ import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
 import Dashboard from "@/pages/dashboard";
 import DashboardLayout from "@/pages/dashboard/layout";
+import MemberDirectory from "@/pages/dashboard/MemberDirectory";
 import TrackingStatus from "@/pages/dashboard/TrackStatus";
 import UpcomingEvents from "@/pages/dashboard/UpcomingEvents";
 import EventsPage from "@/pages/events";
@@ -95,6 +96,11 @@ const dashboardLayoutRoutes: RouteConfig[] = [
     path: "track-status",
     element: <TrackingStatus />,
     name: "TrackingStatus",
+  },
+   {
+    path: "members-directory",
+    element: <MemberDirectory />,
+    name: "MemberDirectory",
   },
 ];
 
