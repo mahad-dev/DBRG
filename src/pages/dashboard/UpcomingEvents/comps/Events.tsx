@@ -138,7 +138,7 @@ export default function Events() {
                 {event.description}
               </p>
 
-              <div className="flex justify-between items-center mt-4">
+              <div className="flex flex-wrap gap-2 justify-between items-center mt-4">
                 <Button
                   variant={"site_btn"}
                   className="rounded-[10px] px-4 py-2 text-[20px] font-normal"

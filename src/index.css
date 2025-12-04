@@ -70,3 +70,49 @@ button[data-state] > svg {
 button[data-state] span svg {
   display: none !important;
 }
+/* HIDE SCROLLBAR (Chrome, Safari, Edge) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* HIDE SCROLLBAR (Firefox) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* Smooth horizontal scroll (keeps smooth behavior but we use JS for wheel/drag) */
+.horizontal-scroll {
+  scroll-behavior: smooth;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+/* Prevent cards from shrinking */
+.horizontal-scroll > * {
+  flex: 0 0 auto;
+}
+
+/* Ensure grab cursor on hover (improved UX) */
+.resource-card + .resource-card {
+  /* spacing kept by gap in flex container */
+}
+
+/* Optional: make pointer events and user select nicer while dragging */
+.no-scrollbar {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* index.css */
+
+/* Hide scrollbars globally */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

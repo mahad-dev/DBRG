@@ -3,6 +3,8 @@ import ContactPage from "@/pages/contact";
 import Dashboard from "@/pages/dashboard";
 import DashboardLayout from "@/pages/dashboard/layout";
 import MemberDirectory from "@/pages/dashboard/MemberDirectory";
+import Notifications from "@/pages/dashboard/Notifications";
+import ResourceLibrary from "@/pages/dashboard/ResourseLibrary";
 import TrackingStatus from "@/pages/dashboard/TrackStatus";
 import UpcomingEvents from "@/pages/dashboard/UpcomingEvents";
 import EventsPage from "@/pages/events";
@@ -27,11 +29,11 @@ export const ROUTE_PATHS = {
   HOME: "/",
   ABOUT: "/about",
   CONTACT: "/contact",
-  MemberShip:'/membership',
-  News_Media:'/news-media',
-  Events:'/events',
-  Reports:'/reports',
-  MemberList:'/member-list',
+  MemberShip: "/membership",
+  News_Media: "/news-media",
+  Events: "/events",
+  Reports: "/reports",
+  MemberList: "/member-list",
 } as const;
 const layoutRoutes: RouteConfig[] = [
   {
@@ -54,7 +56,7 @@ const layoutRoutes: RouteConfig[] = [
     element: <MemberShipPage />,
     name: "MemberShip",
   },
-  { 
+  {
     path: ROUTE_PATHS.News_Media,
     element: <NewsPage />,
     name: "News_Media",
@@ -71,9 +73,9 @@ const layoutRoutes: RouteConfig[] = [
   },
   {
     path: ROUTE_PATHS.MemberList,
-    element: <MemberShipTable/>,
+    element: <MemberShipTable />,
     name: "MemberList",
-  }
+  },
   // {
   //   path: ROUTE_PATHS.CONTACT,
   //   element: <ContactPage />,
@@ -97,23 +99,33 @@ const dashboardLayoutRoutes: RouteConfig[] = [
     element: <TrackingStatus />,
     name: "TrackingStatus",
   },
-   {
+  {
     path: "members-directory",
     element: <MemberDirectory />,
     name: "MemberDirectory",
   },
+  {
+    path: "resource-library",
+    element: <ResourceLibrary />,
+    name: "ResourceLibrary",
+  },
+  {
+    path:'notifications',
+    element:<Notifications />,
+    name:'notifications'
+  }
 ];
 
 export const publicRoutes: RouteConfig[] = [
   {
-    element: <Layout/>,
-    children: layoutRoutes,     // Nested pages
+    element: <Layout />,
+    children: layoutRoutes, // Nested pages
   },
   {
     path: "/dashboard",
     element: <DashboardLayout />,
-    children : dashboardLayoutRoutes
-  }
+    children: dashboardLayoutRoutes,
+  },
 ];
 
 // Protected routes (require authentication)
@@ -131,13 +143,13 @@ export const routeConfig: RouteConfig[] = [
   ...publicRoutes,
 
   // Protected route wrapper with no direct path
-//   {
-//     element: <ProtectedRoute />,
-//     children: protectedRoutes,
-//   },
+  //   {
+  //     element: <ProtectedRoute />,
+  //     children: protectedRoutes,
+  //   },
 
-//   {
-//     path: "*",
-//     element: <NotFoundPage />,
-//   },
+  //   {
+  //     path: "*",
+  //     element: <NotFoundPage />,
+  //   },
 ];
