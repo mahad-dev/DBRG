@@ -7,6 +7,7 @@ import Notifications from "@/pages/dashboard/Notifications";
 import ResourceLibrary from "@/pages/dashboard/ResourseLibrary";
 import TrackingStatus from "@/pages/dashboard/TrackStatus";
 import UpcomingEvents from "@/pages/dashboard/UpcomingEvents";
+import UploadDetails from "@/pages/dashboard/UploadDetails";
 import EventsPage from "@/pages/events";
 import HomePage from "@/pages/home";
 import Layout from "@/pages/layout";
@@ -14,7 +15,10 @@ import MemberShipPage from "@/pages/membership";
 import MemberShipTable from "@/pages/memberTable";
 import NewsPage from "@/pages/news";
 import ReportsPage from "@/pages/reports";
+import Signup from "@/pages/auth/Signup";
+import AdminLogin from "@/pages/auth/AdminLogin";
 import type { ReactElement } from "react";
+import Login from "@/pages/auth/Login";
 
 // Route configuration types
 export interface RouteConfig {
@@ -113,6 +117,11 @@ const dashboardLayoutRoutes: RouteConfig[] = [
     path:'notifications',
     element:<Notifications />,
     name:'notifications'
+  },
+  {
+    path:'upload-details',
+    element:<UploadDetails />,
+    name:'uploadDetails'
   }
 ];
 
@@ -125,6 +134,21 @@ export const publicRoutes: RouteConfig[] = [
     path: "/dashboard",
     element: <DashboardLayout />,
     children: dashboardLayoutRoutes,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+    name: "Login",
+  },
+  {
+    path: "/signup",
+    element: <Signup />,
+    name: "Signup",
+  },
+  {
+    path: "/admin/login",
+    element: <AdminLogin />,
+    name: "AdminLogin",
   },
 ];
 
