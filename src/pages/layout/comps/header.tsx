@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   NavigationMenu,
@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Menu, X } from "lucide-react";
 import BecomeMemberModal from "./BecomeMemberModal";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -87,12 +89,15 @@ export default function Header() {
 
             <div className="flex space-x-4">
               <BecomeMemberModal />
-              {/* <Button
+              <Button
                 variant="site_btn_transparent"
                 className="w-[110px] h-[46px] rounded-[10px] border border-current"
+                onClick={()=>{
+                  navigate('/login')
+                }}
               >
                 Log In
-              </Button> */}
+              </Button>
             </div>
           </div>
         </div>
@@ -115,7 +120,7 @@ export default function Header() {
           mobileOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
-        } z-[99999]`}
+        } z-99999`}
       >
         {/* Panel */}
         <div
