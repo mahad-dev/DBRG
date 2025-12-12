@@ -1,5 +1,9 @@
+import UserManagementTable from "./comps/UserManagementTable";
+
 export default function UserManagement() {
   return (
-    <div>index</div>
+    <div>
+      <UserManagementTable />
+    </div>
   )
 }
