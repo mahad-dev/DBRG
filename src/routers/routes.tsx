@@ -20,7 +20,16 @@ import AdminLogin from "@/pages/auth/AdminLogin";
 import type { ReactElement } from "react";
 import Login from "@/pages/auth/Login";
 
-// Route configuration types
+import AdminDashboardLayout from "@/pages/adminDashboard/layout";
+import UserManagement from "@/pages/adminDashboard/UserManagement";
+import SendNotifications from "@/pages/adminDashboard/SendNotifications";
+import CMS from "@/pages/adminDashboard/CMS";
+import PaymentDetails from "@/pages/adminDashboard/PaymentDetails";
+import SpecialConsideration from "@/pages/adminDashboard/SpecialConsideration";
+import Settings from "@/pages/adminDashboard/Settings";
+import AdminDashboard from "@/pages/adminDashboard";
+
+// Route configuration type
 export interface RouteConfig {
   path?: string;
   element: ReactElement;
@@ -28,7 +37,7 @@ export interface RouteConfig {
   children?: RouteConfig[];
 }
 
-// Route paths as constants
+// MAIN ROUTE CONSTANTS
 export const ROUTE_PATHS = {
   HOME: "/",
   ABOUT: "/about",
@@ -39,101 +48,65 @@ export const ROUTE_PATHS = {
   Reports: "/reports",
   MemberList: "/member-list",
 } as const;
+
+/* ---------------------------------------------------------
+PUBLIC WEBSITE ROUTES
+--------------------------------------------------------- */
 const layoutRoutes: RouteConfig[] = [
-  {
-    path: ROUTE_PATHS.HOME,
-    element: <HomePage />,
-    name: "Home",
-  },
-  {
-    path: ROUTE_PATHS.ABOUT,
-    element: <AboutPage />,
-    name: "About",
-  },
-  {
-    path: ROUTE_PATHS.CONTACT,
-    element: <ContactPage />,
-    name: "Contact",
-  },
-  {
-    path: ROUTE_PATHS.MemberShip,
-    element: <MemberShipPage />,
-    name: "MemberShip",
-  },
-  {
-    path: ROUTE_PATHS.News_Media,
-    element: <NewsPage />,
-    name: "News_Media",
-  },
-  {
-    path: ROUTE_PATHS.Events,
-    element: <EventsPage />,
-    name: "Events",
-  },
-  {
-    path: ROUTE_PATHS.Reports,
-    element: <ReportsPage />,
-    name: "Reports",
-  },
-  {
-    path: ROUTE_PATHS.MemberList,
-    element: <MemberShipTable />,
-    name: "MemberList",
-  },
-  // {
-  //   path: ROUTE_PATHS.CONTACT,
-  //   element: <ContactPage />,
-  //   name: "Contact",
-  // },
+  { path: ROUTE_PATHS.HOME, element: <HomePage />, name: "Home" },
+  { path: ROUTE_PATHS.ABOUT, element: <AboutPage />, name: "About" },
+  { path: ROUTE_PATHS.CONTACT, element: <ContactPage />, name: "Contact" },
+  { path: ROUTE_PATHS.MemberShip, element: <MemberShipPage />, name: "MemberShip" },
+  { path: ROUTE_PATHS.News_Media, element: <NewsPage />, name: "News_Media" },
+  { path: ROUTE_PATHS.Events, element: <EventsPage />, name: "Events" },
+  { path: ROUTE_PATHS.Reports, element: <ReportsPage />, name: "Reports" },
+  { path: ROUTE_PATHS.MemberList, element: <MemberShipTable />, name: "MemberList" },
 ];
 
+/* ---------------------------------------------------------
+USER DASHBOARD ROUTES (/dashboard)
+--------------------------------------------------------- */
 const dashboardLayoutRoutes: RouteConfig[] = [
-  {
-    path: "",
-    element: <Dashboard />,
-    name: "Dashboard",
-  },
-  {
-    path: "upcoming-events",
-    element: <UpcomingEvents />,
-    name: "UpcomingEvents",
-  },
-  {
-    path: "track-status",
-    element: <TrackingStatus />,
-    name: "TrackingStatus",
-  },
-  {
-    path: "members-directory",
-    element: <MemberDirectory />,
-    name: "MemberDirectory",
-  },
-  {
-    path: "resource-library",
-    element: <ResourceLibrary />,
-    name: "ResourceLibrary",
-  },
-  {
-    path:'notifications',
-    element:<Notifications />,
-    name:'notifications'
-  },
-  {
-    path:'upload-details',
-    element:<UploadDetails />,
-    name:'uploadDetails'
-  }
+  { path: "", element: <Dashboard />, name: "Dashboard" },
+  { path: "upcoming-events", element: <UpcomingEvents />, name: "UpcomingEvents" },
+  { path: "track-status", element: <TrackingStatus />, name: "TrackingStatus" },
+  { path: "members-directory", element: <MemberDirectory />, name: "MemberDirectory" },
+  { path: "resource-library", element: <ResourceLibrary />, name: "ResourceLibrary" },
+  { path: "notifications", element: <Notifications />, name: "Notifications" },
+  { path: "upload-details", element: <UploadDetails />, name: "UploadDetails" },
 ];
 
+/* ---------------------------------------------------------
+ADMIN PANEL ROUTES (/admin/dashboard)
+--------------------------------------------------------- */
+const adminDashboardRoutes: RouteConfig[] = [
+  { path: "", element: <AdminDashboard />, name: "AdminDashboard" },
+  { path: "user-management", element: <UserManagement />, name: "UserManagement" },
+  { path: "send-notification", element: <SendNotifications />, name: "SendNotifications" },
+  { path: "cms", element: <CMS />, name: "CMS" },
+  { path: "payment-details", element: <PaymentDetails />, name: "PaymentDetails" },
+  { path: "special-consideration", element: <SpecialConsideration />, name: "SpecialConsideration" },
+  { path: "settings", element: <Settings />, name: "Settings" },
+  { path: "logout", element: <Login />, name: "Logout" },
+];
+
+/* ---------------------------------------------------------
+PUBLIC ROUTES CONFIG
+--------------------------------------------------------- */
 export const publicRoutes: RouteConfig[] = [
   {
     element: <Layout />,
-    children: layoutRoutes, // Nested pages
+    children: layoutRoutes,
   },
   {
     path: "/dashboard",
     element: <DashboardLayout />,
     children: dashboardLayoutRoutes,
+  },
+  {
+    path: "/admin/login",
+    element: <AdminLogin />,
+    name: "AdminLogin",
   },
   {
     path: "/login",
@@ -146,34 +119,13 @@ export const publicRoutes: RouteConfig[] = [
     name: "Signup",
   },
   {
-    path: "/admin/login",
-    element: <AdminLogin />,
-    name: "AdminLogin",
+    path: "/admin/dashboard",
+    element: <AdminDashboardLayout />,
+    children: adminDashboardRoutes,
   },
 ];
 
-// Protected routes (require authentication)
-export const protectedRoutes: RouteConfig[] = [
-  // Example:
-  // {
-  //   path: "/dashboard",
-  //   element: <DashboardPage />,
-  //   name: "Dashboard",
-  // },
-];
-
-// Main route configuration
-export const routeConfig: RouteConfig[] = [
-  ...publicRoutes,
-
-  // Protected route wrapper with no direct path
-  //   {
-  //     element: <ProtectedRoute />,
-  //     children: protectedRoutes,
-  //   },
-
-  //   {
-  //     path: "*",
-  //     element: <NotFoundPage />,
-  //   },
-];
+/* ---------------------------------------------------------
+FINAL EXPORTED ROUTE CONFIG
+--------------------------------------------------------- */
+export const routeConfig: RouteConfig[] = [...publicRoutes];

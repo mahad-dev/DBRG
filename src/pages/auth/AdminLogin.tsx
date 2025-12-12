@@ -16,7 +16,7 @@ const AdminLogin: React.FC = () => {
 
   const handleSubmit = (values: { email: string; password: string }) => {
     console.log('Admin Login values:', values);
-    navigate('/dashboard');
+    navigate('/admin/dashboard');
   };
 
   return (
