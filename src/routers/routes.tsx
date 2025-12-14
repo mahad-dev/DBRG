@@ -19,6 +19,7 @@ import Signup from "@/pages/auth/Signup";
 import AdminLogin from "@/pages/auth/AdminLogin";
 import type { ReactElement } from "react";
 import Login from "@/pages/auth/Login";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 import AdminDashboardLayout from "@/pages/adminDashboard/layout";
 import UserManagement from "@/pages/adminDashboard/UserManagement";
@@ -87,7 +88,6 @@ const adminDashboardRoutes: RouteConfig[] = [
   { path: "payment-details", element: <PaymentDetails />, name: "PaymentDetails" },
   { path: "special-consideration", element: <SpecialConsideration />, name: "SpecialConsideration" },
   { path: "settings", element: <Settings />, name: "Settings" },
-  { path: "logout", element: <Login />, name: "Logout" },
 ];
 
 /* ---------------------------------------------------------
@@ -100,7 +100,7 @@ export const publicRoutes: RouteConfig[] = [
   },
   {
     path: "/dashboard",
-    element: <DashboardLayout />,
+    element: <ProtectedRoute requiredRole="member"><DashboardLayout /></ProtectedRoute>,
     children: dashboardLayoutRoutes,
   },
   {
@@ -120,7 +120,7 @@ export const publicRoutes: RouteConfig[] = [
   },
   {
     path: "/admin/dashboard",
-    element: <AdminDashboardLayout />,
+    element: <ProtectedRoute requiredRole="admin"><AdminDashboardLayout /></ProtectedRoute>,
     children: adminDashboardRoutes,
   },
 ];

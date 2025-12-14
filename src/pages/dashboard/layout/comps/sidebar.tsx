@@ -14,6 +14,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import LogoutDialog from "@/components/LogoutDialog";
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -27,6 +31,16 @@ interface NavItemProps {
 }
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setLogoutDialogOpen(false);
+  };
+
   return (
     <>
       {/* MOBILE OVERLAY */}
@@ -70,7 +84,14 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
             <NavItem icon={<Users size={26} />} label="Members Directory" to="/dashboard/members-directory" />
             <NavItem icon={<Bell size={26} />} label="Notifications" to="/dashboard/notifications" />
             <NavItem icon={<Library size={26} />} label="Resource Library" to="/dashboard/resource-library" />
-            <NavItem icon={<LogOut size={26} />} label="Log Out" to="/logout" />
+            <Button
+              variant="ghost"
+              className="flex justify-start items-center gap-4 text-[18px] px-5 py-4 rounded-xl w-full font-semibold text-white hover:bg-[#1E1E1E]"
+              onClick={() => setLogoutDialogOpen(true)}
+            >
+              <LogOut size={26} />
+              <span className="tracking-tight">Log Out</span>
+            </Button>
           </div>
 
           {/* HELP CENTER CARD */}
@@ -101,6 +122,13 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </Card>
         </ScrollArea>
       </aside>
+
+      {/* LOGOUT CONFIRMATION DIALOG */}
+      <LogoutDialog
+        open={logoutDialogOpen}
+        onOpenChange={setLogoutDialogOpen}
+        onConfirm={handleLogout}
+      />
     </>
   );
 }

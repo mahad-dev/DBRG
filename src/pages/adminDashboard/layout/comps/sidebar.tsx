@@ -13,6 +13,11 @@ import {
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import LogoutDialog from "@/components/LogoutDialog";
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -20,6 +25,16 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setLogoutDialogOpen(false);
+  };
+
   return (
     <>
       {/* MOBILE OVERLAY */}
@@ -84,11 +99,14 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               to="/admin/dashboard/special-consideration"
             />
 
-            <NavItem
-              icon={<LogOut size={24} />}
-              label="Log out"
-              to="/admin/dashboard/logout"
-            />
+            <Button
+              variant="ghost"
+              className="flex items-center gap-4 px-4 py-3 rounded-xl transition-all tracking-tight text-white hover:bg-[#1A1A1A] w-full justify-start"
+              onClick={() => setLogoutDialogOpen(true)}
+            >
+              <LogOut size={24} />
+              <span>Log out</span>
+            </Button>
           </nav>
 
           {/* SETTINGS AT BOTTOM */}
@@ -101,6 +119,13 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </div>
         </ScrollArea>
       </aside>
+
+      {/* LOGOUT CONFIRMATION DIALOG */}
+      <LogoutDialog
+        open={logoutDialogOpen}
+        onOpenChange={setLogoutDialogOpen}
+        onConfirm={handleLogout}
+      />
     </>
   );
 }
