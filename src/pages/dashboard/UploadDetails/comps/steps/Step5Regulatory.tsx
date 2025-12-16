@@ -4,14 +4,95 @@ import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import { useStep5Regulatory } from "@/hooks/useStep5Regulatory";
 import { Input } from "@/components/ui/input";
-export default function Step5Regulatory({
-  onNext,
-  onBack,
-}: {
-  onNext?: () => void;
-  onBack?: () => void;
-}) {
+import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
+import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
+import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { toast } from 'react-toastify';
+
+export default function Step5Regulatory() {
+  const dispatch = useAppDispatch();
+  const formData = useAppSelector(selectFormData);
+  const isSaving = useAppSelector(selectIsSaving);
   const hook = useStep5Regulatory();
+
+  const handleSave = async () => {
+    try {
+      // Upload files if present and collect document IDs
+      let amlCftPolicyDocumentFileId: number | null = null;
+      let declarationNoPenaltyFileId: number | null = null;
+      let supplyChainPolicyDocumentFileId: number | null = null;
+      let assuranceReportFileId: number | null = null;
+
+      if (hook.amlPolicyFile) {
+        const result = await dispatch(uploadDocument(hook.amlPolicyFile));
+        if (uploadDocument.fulfilled.match(result)) {
+          amlCftPolicyDocumentFileId = result.payload;
+        }
+      }
+
+      if (hook.declarationFile) {
+        const result = await dispatch(uploadDocument(hook.declarationFile));
+        if (uploadDocument.fulfilled.match(result)) {
+          declarationNoPenaltyFileId = result.payload;
+        }
+      }
+
+      if (hook.supplyChainDueDiligenceFile) {
+        const result = await dispatch(uploadDocument(hook.supplyChainDueDiligenceFile));
+        if (uploadDocument.fulfilled.match(result)) {
+          supplyChainPolicyDocumentFileId = result.payload;
+        }
+      }
+
+      if (hook.responsibleSourcingFile) {
+        const result = await dispatch(uploadDocument(hook.responsibleSourcingFile));
+        if (uploadDocument.fulfilled.match(result)) {
+          assuranceReportFileId = result.payload;
+        }
+      }
+
+      // Upload ongoing details file if present (though not used in payload)
+      if (hook.ongoingDetailsFile) {
+        await dispatch(uploadDocument(hook.ongoingDetailsFile));
+      }
+
+      // Save form data
+      await dispatch(saveUploadDetails({
+        payload: {
+          ...formData,
+          regulatoryCompliance: {
+            compliantWithAmlCft: hook.compliantUAE ?? false,
+            complianceOfficerFullName: hook.officerName,
+            complianceOfficerDesignation: hook.officerDesignation,
+            complianceOfficerContactNumber: hook.officerContact,
+            complianceOfficerEmail: hook.officerEmail,
+            hasOngoingCases: hook.ongoingCases ?? false,
+            ongoingCasesDetails: '',
+            anyOnSanctionsList: hook.sanctionsListed ?? false,
+            hasDocumentedAmlPolicies: hook.policiesPrepared ?? false,
+            amlCftPolicyDocumentFileId,
+            conductsRegularAmlTraining: hook.trainingOngoing ?? false,
+            hasCustomerVerificationProcess: hook.idProcesses ?? false,
+            hasInternalRiskAssessment: hook.riskAssessment ?? false,
+            supplyChainCompliant: hook.supplyChainCompliant ?? false,
+            hasResponsibleSourcingAuditEvidence: hook.responsibleSourcingAudit ?? false,
+            hadRegulatoryPenalties: hook.penalties ?? false,
+            penaltyExplanation: '',
+            declarationNoPenaltyFileId,
+            hasSupplyChainPolicy: hook.preciousPolicy ?? false,
+            supplyChainPolicyDocumentFileId,
+            responsibleSourcingAuditEvidence2: false,
+            assuranceReportFileId,
+          }
+        },
+        sectionNumber: MemberApplicationSection.RegulatorCompliance
+      }));
+
+      toast.success('Regulatory compliance details saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save regulatory compliance details. Please try again.');
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg">
@@ -440,24 +521,21 @@ export default function Step5Regulatory({
 
       {/* Buttons */}
       <div className="mt-10 flex justify-start gap-4">
-        {onBack && (
-          <Button
-            onClick={onBack}
-            className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white font-gilroySemiBold"
-          >
-            Back
-          </Button>
-        )}
-
-        {onNext && (
-          <Button
-            onClick={onNext}
-            variant="site_btn"
-            className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
-          >
-            Save / Next
-          </Button>
-        )}
+                <Button
+                  onClick={() => dispatch(setCurrentStep(4))}
+                  className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
+                >
+                  Back
+                </Button>
+        
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          variant="site_btn"
+          className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+        >
+          {isSaving ? 'Saving...' : 'Save / Next'}
+        </Button>
       </div>
     </div>
   );

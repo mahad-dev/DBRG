@@ -2,13 +2,35 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
+import { selectFormData, selectIsSaving, saveUploadDetails, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
+import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { toast } from 'react-toastify';
 
-interface StepProps {
-  onNext?: () => void;
-  onBack?: () => void;
-}
+export default function Step7DataProtection() {
+  const dispatch = useAppDispatch();
+  const formData = useAppSelector(selectFormData);
+  const isSaving = useAppSelector(selectIsSaving);
 
-export default function Step7DataProtection({ onNext, onBack }: StepProps) {
+  const handleSave = async () => {
+    try {
+      // Save form data
+      await dispatch(saveUploadDetails({
+        payload: {
+          ...formData,
+          dataProtectionPrivacy: {
+            acknowledge: true
+          }
+        },
+        sectionNumber: MemberApplicationSection.DataProtectionPrivacy
+      }));
+
+      toast.success('Data protection consent saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save data protection consent. Please try again.');
+    }
+  };
+
   return (
     <Card className="bg-[#353535] border-none rounded-xl w-full">
       <CardContent className="space-y-8 sm:space-y-6">
@@ -89,24 +111,21 @@ export default function Step7DataProtection({ onNext, onBack }: StepProps) {
 
         {/* Buttons */}
         <div className="mt-10 flex justify-start gap-4">
-          {onBack && (
-            <Button
-              onClick={onBack}
-              className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white font-gilroySemiBold"
-            >
-              Back
-            </Button>
-          )}
-
-          {onNext && (
-            <Button
-              onClick={onNext}
-              variant="site_btn"
-              className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
-            >
-              Save / Next
-            </Button>
-          )}
+                  <Button
+                    onClick={() => dispatch(setCurrentStep(6))}
+                    className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
+                  >
+                    Back
+                  </Button>
+          
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            variant="site_btn"
+            className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+          >
+            {isSaving ? 'Saving...' : 'Save / Next'}
+          </Button>
         </div>
       </CardContent>
     </Card>

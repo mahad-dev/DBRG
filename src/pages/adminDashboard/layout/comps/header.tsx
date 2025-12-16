@@ -9,6 +9,7 @@ interface HeaderProps {
 }
 
 export default function Header({ setMobileOpen }: HeaderProps) {
+  const name = localStorage.getItem("name");
   return (
     <header className="w-full lg:border md:border-white rounded-xl lg:px-4 lg:py-3 flex items-center justify-between">
       {/* LEFT: HAMBURGER (MOBILE ONLY) */}
@@ -44,7 +45,7 @@ export default function Header({ setMobileOpen }: HeaderProps) {
 
         <div className="hidden lg:block text-left">
           <p className="text-[#757575] text-[18px] font-semibold">
-            Sanjana Shah
+            {name}
           </p>
           <p className="text-[#B3B3B3] text-[16px]">Director</p>
         </div>

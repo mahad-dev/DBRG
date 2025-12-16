@@ -6,6 +6,7 @@ export function useStep3BankRelationshipRequirement() {
   const [isClient24Months, setIsClient24Months] = useState<boolean | null>(null);
 
   const [bankFile, setBankFile] = useState<File | null>(null);
+  const [bankReferenceLetterFileId, setBankReferenceLetterFileId] = useState<number>(0);
   const bankRef = useRef<HTMLInputElement | null>(null);
 
   const [bankName, setBankName] = useState("");
@@ -40,6 +41,9 @@ export function useStep3BankRelationshipRequirement() {
     bankFile,
     setBankFile,
     bankRef,
+
+    bankReferenceLetterFileId,
+    setBankReferenceLetterFileId,
 
     bankName,
     setBankName,

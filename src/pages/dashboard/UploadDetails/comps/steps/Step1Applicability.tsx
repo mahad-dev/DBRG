@@ -1,16 +1,34 @@
 "use client";
+import { useEffect } from "react";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useStep1Applicability } from "@/hooks/useStep1Applicability";
+import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
+import {
+  selectFormData,
+  selectIsSaving,
+  updateFormData,
+  saveUploadDetails,
+  uploadDocument,
+  setCurrentStep,
+} from "../../../../../store/uploadDetailsSlice";
+import {
+  MemberApplicationSection,
+  MembershipType,
+  ServiceType,
+  RefiningOrTradingType,
+} from "../../../../../types/uploadDetails";
+import { toast } from "react-toastify";
+import { useStep1Applicability } from "../../../../../hooks/useStep1Applicability";
 
-export default function Step1Applicability({
-  onNext,
-}: {
-  onNext?: () => void;
-}) {
+export default function Step1Applicability() {
+  const dispatch = useAppDispatch();
+  const formData = useAppSelector(selectFormData);
+  const isSaving = useAppSelector(selectIsSaving);
+
+  // Use the custom hook
   const {
     membership,
     services,
@@ -36,12 +54,121 @@ export default function Step1Applicability({
     removeEvidenceFile,
   } = useStep1Applicability();
 
+  // Pre-fill data if available
+  useEffect(() => {
+    if (formData.applicability) {
+      const app = formData.applicability;
+      if (app.principalMember) {
+        setMembership("principal");
+        // Pre-fill services, category, answers, etc.
+      } else if (app.memberBank) {
+        setMembership("member_bank");
+      } else if (app.contributingMember) {
+        setMembership("contributing");
+      } else if (app.affiliateMember) {
+        setMembership("affiliate");
+      }
+    }
+  }, [formData.applicability, setMembership]);
+
+  // Check if this step is completed
+
   const serviceOptions = [
     { id: "trading", label: "Trading in precious metals products" },
     { id: "refining", label: "Gold refining" },
     { id: "logistics", label: "Logistics & vaulting services" },
     { id: "financial", label: "Financial services in the UAE" },
   ] as const;
+
+  const handleSave = async () => {
+    try {
+      // Upload files if present
+      let signedAMLDocumentId: number | undefined;
+      let evidenceDocumentId: number | undefined;
+      console.log(" signedAMLFile", signedAMLFile);
+      console.log(" evidenceFile", evidenceFile);
+      if (signedAMLFile) {
+        signedAMLDocumentId = await dispatch(
+          uploadDocument(signedAMLFile)
+        ).unwrap();
+      }
+
+      if (evidenceFile) {
+        evidenceDocumentId = await dispatch(
+          uploadDocument(evidenceFile)
+        ).unwrap();
+      }
+
+      // Prepare applicability data based on membership type
+      let applicabilityData: any = {};
+
+      if (membership === "principal") {
+        applicabilityData.principalMember = {
+          hasOfficeInUAE: true, // Assuming based on context
+          services: Object.keys(services)
+            .filter((key) => services[key as keyof typeof services])
+            .map((key) => {
+              switch (key) {
+                case "trading":
+                  return ServiceType.TradingInPreciousMetals;
+                case "refining":
+                  return ServiceType.GoldRefining;
+                case "logistics":
+                  return ServiceType.LogisticsAndVaulting;
+                case "financial":
+                  return ServiceType.FinancialServicesInUAE;
+                default:
+                  return ServiceType.TradingInPreciousMetals;
+              }
+            }),
+          refiningOrTradingCategory: category.refiner
+            ? RefiningOrTradingType.Refiner
+            : RefiningOrTradingType.TradingCompany,
+          isAccreditedRefinery: refinerAnswers.accredited || false,
+          operatedUnderUAEML5Years: refinerAnswers.aml5yrs || false,
+          refiningOutputOver10Tons: refinerAnswers.output10tons || false,
+          ratedCompliantByMinistry: refinerAnswers.ratedCompliant || false,
+          involvedInWholesaleBullionTrading:
+            tradingAnswers.wholesaleBullion || false,
+          hasBankingRelationships3Years:
+            tradingAnswers.bankRelationships || false,
+          hasUnresolvedAMLNotices: anyAMLNotices || false,
+          bankingRelationshipEvidence: evidenceDocumentId,
+          signedAMLDeclaration: signedAMLDocumentId,
+        };
+      }
+
+      // Similar logic for other membership types...
+
+      const payload = {
+        membershipType:
+          membership === "principal"
+            ? MembershipType.PrincipalMember
+            : membership === "member_bank"
+            ? MembershipType.MemberBank
+            : membership === "contributing"
+            ? MembershipType.ContributingMember
+            : MembershipType.AffiliateMember,
+        applicability: applicabilityData,
+      };
+      console.log("first...", payload);
+      console.log("seconfd...", MemberApplicationSection.Applicability);
+
+      dispatch(updateFormData(payload));
+      await dispatch(
+        saveUploadDetails({
+          payload,
+          sectionNumber: MemberApplicationSection.Applicability,
+        })
+      ).unwrap();
+
+      toast.success("Applicability saved successfully!");
+      // Move to next step after successful save
+      dispatch(setCurrentStep(2));
+    } catch (error) {
+      toast.error("Failed to save applicability. Please try again.");
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg">
@@ -250,11 +377,12 @@ export default function Step1Applicability({
       {/* Save / Next Button */}
       <div className="mt-6 flex justify-start">
         <Button
-          onClick={onNext}
+          onClick={handleSave}
+          disabled={isSaving}
           variant="site_btn"
           className="w-[132px] sm:w-full md:w-[132px] h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] text-white transition"
         >
-          Save / Next
+          {isSaving ? "Saving..." : "Save / Next"}
         </Button>
       </div>
     </div>
