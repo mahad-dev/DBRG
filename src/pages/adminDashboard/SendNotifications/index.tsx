@@ -1,5 +1,9 @@
+import Notifications from "./comps/Notifications";
+
 export default function SendNotifications() {
   return (
-    <div>index</div>
+    <div>
+      <Notifications />
+    </div>
   )
 }

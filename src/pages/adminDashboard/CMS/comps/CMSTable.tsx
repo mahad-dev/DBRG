@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useMemo, useState } from "react";
 import {
@@ -18,39 +18,41 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical, MapPin } from "lucide-react";
+import { Search, Filter, Calendar, MoreVertical } from "lucide-react";
 
 /* ================= TYPES ================= */
 
-type User = {
+type CMSItem = {
   id: number;
-  name: string;
-  company: string;
-  status: "Pending" | "Completed" | "Blocked";
+  title: string;
+  description: string;
+  status: "Draft" | "Published" | "Unpublished";
   date: string;
 };
 
 /* ================= DATA ================= */
 
-const usersSeed: User[] = Array.from({ length: 42 }).map((_, i) => ({
-  id: i + 1,
-  name: "Sanjana Shah",
-  company: "Shah Investment",
-  status: "Pending",
-  date: ["01/06/2025", "02/06/2025", "03/06/2025", "04/06/2025"][i % 4],
-}));
+const cmsData: CMSItem[] = [
+  { id: 1, title: "Event", description: "Lorem ipsum dolor consectetur ...", status: "Draft", date: "09/07/2025" },
+  { id: 2, title: "News Latter", description: "Lorem ipsum dolor consectetur ...", status: "Published", date: "18/06/2025" },
+  { id: 3, title: "Report", description: "Lorem ipsum dolor consectetur ...", status: "Published", date: "18/06/2025" },
+  { id: 4, title: "FAQ", description: "Lorem ipsum dolor consectetur ...", status: "Unpublished", date: "09/07/2025" },
+  { id: 5, title: "Sanjana Shah", description: "Lorem ipsum dolor consectetur ...", status: "Draft", date: "18/06/2025" },
+  { id: 6, title: "FAQ", description: "Lorem ipsum dolor consectetur ...", status: "Published", date: "18/06/2025" },
+  { id: 7, title: "Report", description: "Lorem ipsum dolor consectetur ...", status: "Draft", date: "03/07/2025" },
+];
 
 const ITEMS_PER_PAGE = 6;
 
 /* ================= COMPONENT ================= */
 
-export default function UserManagementTable() {
+export default function CMSTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
   const filteredData = useMemo(() => {
-    return usersSeed.filter((i) =>
-      `${i.name} ${i.company} ${i.status}`
+    return cmsData.filter((i) =>
+      `${i.title} ${i.description} ${i.status}`
         .toLowerCase()
         .includes(search.toLowerCase())
     );
@@ -67,37 +69,64 @@ export default function UserManagementTable() {
     <div className="min-h-screen text-white">
       <div className="max-w-7xl mx-auto space-y-6">
 
-        <h1 className="text-3xl sm:text-[38px] font-semibold text-[#C6A95F]">
-          User Management
-        </h1>
-
-        {/* ================= SEARCH ================= */}
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="flex items-center w-full md:max-w-[380px] gap-2 bg-white/10 rounded-lg px-4 h-11 border border-[#3A3A3A]">
-            <Search className="w-4 h-4" />
-            <Input
-              placeholder="Search name, company, country"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent border-none text-white focus-visible:ring-0"
-            />
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" className="h-11 border-[#3A3A3A]">
-              <Filter className="w-4 h-4 mr-1" /> Status
+        {/* ===== HEADER ===== */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-3xl font-semibold text-[#C6A95F] text-center sm:text-left">
+            CMS Management
+          </h1>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
+            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
+              Add
             </Button>
-            <Button variant="outline" className="h-11 border-[#3A3A3A]">
-              <MapPin className="w-4 h-4 mr-1" /> Country
-            </Button>
-            <Button className="h-11 bg-[#D5B15F] text-black">
+            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
               Download Report
             </Button>
           </div>
         </div>
+
+        {/* ===== SEARCH & FILTER ===== */}
+<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+  {/* Title */}
+  <h1 className="text-2xl font-semibold whitespace-nowrap">
+    CMS List
+  </h1>
+
+  {/* Actions */}
+  <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-2">
+    {/* Search */}
+    <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-white/20 bg-white/10 min-w-0 flex-1 sm:flex-initial">
+      <Input
+        placeholder="Search"
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+        className="h-9 w-full placeholder:text-white bg-transparent border-none text-white focus-visible:ring-0"
+      />
+      <Search className="w-4 h-4 text-white shrink-0" />
+    </div>
+
+    {/* Status Filter */}
+    <Button
+      variant="outline"
+      className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+    >
+      <Filter className="w-4 h-4" />
+      Status
+    </Button>
+
+    {/* Date Filter */}
+    <Button
+      variant="outline"
+      className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+    >
+      <Calendar className="w-4 h-4" />
+      Date
+    </Button>
+  </div>
+</div>
+
 
         {/* ===== MOBILE CARDS ===== */}
         <div className="block sm:hidden">
@@ -105,14 +134,14 @@ export default function UserManagementTable() {
             {paginated.map((item) => (
               <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
                 <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-semibold text-white flex-1">{item.name}</h3>
+                  <h3 className="text-lg font-semibold text-white flex-1">{item.title}</h3>
                   <ActionMenu />
                 </div>
-                <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.company}</p>
+                <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.description}</p>
                 <div className="flex justify-between items-center">
                   <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                    item.status === 'Completed' ? 'bg-green-500/20 text-green-300' :
-                    item.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-300' :
+                    item.status === 'Published' ? 'bg-green-500/20 text-green-300' :
+                    item.status === 'Draft' ? 'bg-yellow-500/20 text-yellow-300' :
                     'bg-red-500/20 text-red-300'
                   }`}>
                     {item.status}
@@ -132,8 +161,8 @@ export default function UserManagementTable() {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="bg-white/5">
-                    <TableHead className="py-4 px-2">Name</TableHead>
-                    <TableHead className="py-4 px-4 sm:px-16">Company</TableHead>
+                    <TableHead className="py-4 px-2">Title</TableHead>
+                    <TableHead className="py-4 px-4 sm:px-16">Description</TableHead>
                     <TableHead className="py-4 px-2">Status</TableHead>
                     <TableHead className="py-4 px-2">Date</TableHead>
                     <TableHead className="py-4 px-2">Action</TableHead>
@@ -143,18 +172,9 @@ export default function UserManagementTable() {
                 <TableBody>
                   {paginated.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="py-4 px-2 flex items-center gap-3">
-                        <img
-                          src="/static/UserImg.png"
-                          alt="user"
-                          width={36}
-                          height={36}
-                          className="rounded-full"
-                        />
-                        {item.name}
-                      </TableCell>
+                      <TableCell className="py-4 px-2">{item.title}</TableCell>
                       <TableCell className="py-4 px-4 sm:px-16">
-                        {item.company}
+                        {item.description}
                       </TableCell>
                       <TableCell className="py-4 px-2">
                         {item.status}
@@ -178,6 +198,8 @@ export default function UserManagementTable() {
 }
 
 /* ================= COMPONENTS ================= */
+
+
 
 function FooterPagination({
   page,

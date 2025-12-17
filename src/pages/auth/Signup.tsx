@@ -1,174 +1,232 @@
-import React from 'react';
-import { Formik, Form, Field } from 'formik';
-import * as Yup from 'yup';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useState } from "react";
+import { Formik, Form, Field, type FormikHelpers } from "formik";
+import * as Yup from "yup";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 
-const SignupSchema = Yup.object().shape({
-  name: Yup.string().required('Required'),
-  email: Yup.string().email('Invalid email').required('Required'),
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+/* ================= TYPES ================= */
+interface SignupFormValues {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  membershipType: number | "";
+}
+
+/* ================= PASSWORD REGEX ================= */
+// Minimum 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+
+/* ================= VALIDATION ================= */
+const SignupSchema: Yup.Schema<SignupFormValues> = Yup.object({
+  fullName: Yup.string().required("Full name is required"),
+  email: Yup.string().email("Invalid email").required("Email is required"),
+  membershipType: Yup.number()
+    .typeError("Membership type is required")
+    .required("Membership type is required"),
   password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Required'),
+    .matches(
+      passwordRegex,
+      "Password must be at least 8 characters, include uppercase, lowercase, number & special character"
+    )
+    .required("Password is required"),
   confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password'), undefined], 'Passwords must match')
-    .required('Required'),
+    .oneOf([Yup.ref("password")], "Passwords must match")
+    .required("Confirm your password"),
 });
 
+/* ================= COMPONENT ================= */
 const Signup: React.FC = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (values: {
-    name: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-  }) => {
-    console.log('Signup values:', values);
-    navigate('/login');
+  const initialValues: SignupFormValues = {
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    membershipType: "",
+  };
+
+  const handleSubmit = async (
+    values: SignupFormValues,
+    { setSubmitting }: FormikHelpers<SignupFormValues>
+  ) => {
+    setLoading(true);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/Account/Register`,
+        {
+          email: values.email,
+          password: values.password,
+          fullName: values.fullName,
+          membershipType: values.membershipType,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      toast.success("Account created successfully!", { autoClose: 4000 });
+      navigate("/login");
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message, { autoClose: 4000 });
+      } else {
+        toast.error("Something went wrong. Please try again.", { autoClose: 4000 });
+      }
+    } finally {
+      setLoading(false);
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen bg-[#121212]">
-
-      {/* LEFT SIDE */}
-      <div className="hidden md:flex flex-col items-center justify-center w-1/2 bg-[#121212]">
-        <img
-          src="/static/DBRGLOGO.png"
-          alt="DBRG Logo"
-          className="max-w-[65%] object-contain"
-        />
+      {/* LEFT */}
+      <div className="hidden md:flex w-1/2 items-center justify-center">
+        <img src="/static/DBRGLOGO.png" alt="DBRG Logo" className="max-w-[65%]" />
       </div>
 
-      {/* WHITE THIN PARTITION LINE */}
-      <div className="hidden md:flex w-px bg-white opacity-70"></div>
+      <div className="hidden md:flex w-px bg-white opacity-70" />
 
-      {/* RIGHT SIDE */}
-      <div className="flex w-full md:w-1/2 items-center justify-center p-10 bg-[#121212]">
+      {/* RIGHT */}
+      <div className="flex w-full md:w-1/2 items-center justify-center p-10">
         <div className="w-full max-w-md">
-
-          {/* Title */}
-          <h2 className="text-4xl font-bold mb-8 text-center font-gilroy text-white tracking-wide">
+          <h2 className="text-4xl font-bold mb-8 text-center text-white">
             Create Account
           </h2>
 
           <Formik
-            initialValues={{ name: '', email: '', password: '', confirmPassword: '' }}
+            initialValues={initialValues}
             validationSchema={SignupSchema}
             onSubmit={handleSubmit}
           >
-            {({ errors, touched }) => (
+            {({ errors, touched, setFieldValue, values }) => (
               <Form className="space-y-6">
-
-                {/* NAME */}
+                {/* FULL NAME */}
                 <div>
-                  <Label htmlFor="name" className="text-white text-sm tracking-wide">
-                    Full Name
-                  </Label>
-
+                  <Label className="text-white">Full Name</Label>
                   <Field
                     as={Input}
-                    id="name"
-                    name="name"
-                    type="text"
+                    name="fullName"
                     placeholder="Enter your full name"
-                    className="w-full mt-2 bg-[#1a1a1a] border border-gray-700 text-white 
-                    placeholder-gray-500 py-6 rounded-xl focus:ring-2 focus:ring-[#C6A95F]"
+                    className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl"
                   />
-
-                  {errors.name && touched.name && (
-                    <div className="text-red-400 text-sm mt-1">{errors.name}</div>
+                  {errors.fullName && touched.fullName && (
+                    <p className="text-red-400 text-sm mt-1">{errors.fullName}</p>
                   )}
                 </div>
 
                 {/* EMAIL */}
                 <div>
-                  <Label htmlFor="email" className="text-white text-sm tracking-wide">
-                    Email Address
-                  </Label>
-
+                  <Label className="text-white">Email Address</Label>
                   <Field
                     as={Input}
-                    id="email"
                     name="email"
                     type="email"
                     placeholder="Enter your email"
-                    className="w-full mt-2 bg-[#1a1a1a] border border-gray-700 text-white 
-                    placeholder-gray-500 py-6 rounded-xl focus:ring-2 focus:ring-[#C6A95F]"
+                    className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl"
                   />
-
                   {errors.email && touched.email && (
-                    <div className="text-red-400 text-sm mt-1">{errors.email}</div>
+                    <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+                  )}
+                </div>
+
+                {/* MEMBERSHIP TYPE */}
+                <div>
+                  <Label className="text-white">Membership Type</Label>
+                  <Select
+                    value={values.membershipType.toString()}
+                    onValueChange={(val) => setFieldValue("membershipType", Number(val))}
+                  >
+                    <SelectTrigger className="mt-2 w-full  bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl">
+                      <SelectValue placeholder="Select membership type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a1a] border-gray-700 text-white">
+                      <SelectItem value="1">Principal Member</SelectItem>
+                      <SelectItem value="2">Member Bank</SelectItem>
+                      <SelectItem value="3">Contributing Member</SelectItem>
+                      <SelectItem value="4">Affiliate Member</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.membershipType && touched.membershipType && (
+                    <p className="text-red-400 text-sm mt-1">{errors.membershipType}</p>
                   )}
                 </div>
 
                 {/* PASSWORD */}
                 <div>
-                  <Label htmlFor="password" className="text-white text-sm tracking-wide">
-                    Password
-                  </Label>
-
+                  <Label className="text-white">Password</Label>
                   <Field
                     as={Input}
-                    id="password"
                     name="password"
                     type="password"
-                    placeholder="Create a password"
-                    className="w-full mt-2 bg-[#1a1a1a] border border-gray-700 text-white 
-                    placeholder-gray-500 py-6 rounded-xl focus:ring-2 focus:ring-[#C6A95F]"
+                    placeholder="Create a strong password"
+                    className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl"
                   />
-
                   {errors.password && touched.password && (
-                    <div className="text-red-400 text-sm mt-1">{errors.password}</div>
+                    <p className="text-red-400 text-sm mt-1">{errors.password}</p>
                   )}
                 </div>
 
                 {/* CONFIRM PASSWORD */}
                 <div>
-                  <Label htmlFor="confirmPassword" className="text-white text-sm tracking-wide">
-                    Confirm Password
-                  </Label>
-
+                  <Label className="text-white">Confirm Password</Label>
                   <Field
                     as={Input}
-                    id="confirmPassword"
                     name="confirmPassword"
                     type="password"
                     placeholder="Re-enter your password"
-                    className="w-full mt-2 bg-[#1a1a1a] border border-gray-700 text-white 
-                    placeholder-gray-500 py-6 rounded-xl focus:ring-2 focus:ring-[#C6A95F]"
+                    className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl"
                   />
-
                   {errors.confirmPassword && touched.confirmPassword && (
-                    <div className="text-red-400 text-sm mt-1">{errors.confirmPassword}</div>
+                    <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
                   )}
                 </div>
 
-                {/* SUBMIT BUTTON */}
                 <Button
                   type="submit"
-                  className="w-full py-6 text-lg rounded-xl bg-[#C6A95F] 
-                  hover:bg-[#b9974f] transition-all duration-300 shadow-lg"
+                  disabled={loading}
+                  className="w-full py-6 text-lg rounded-xl bg-[#C6A95F] hover:bg-[#b9974f]"
                 >
-                  Create Account
+                  {loading ? "Creating Account..." : "Create Account"}
                 </Button>
-
               </Form>
             )}
           </Formik>
 
-          {/* BACK TO LOGIN */}
           <div className="mt-6 text-center">
             <Link to="/login" className="text-[#C6A95F] hover:underline text-sm">
               Already have an account? Login
             </Link>
           </div>
-
         </div>
       </div>
 
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     </div>
   );
 };

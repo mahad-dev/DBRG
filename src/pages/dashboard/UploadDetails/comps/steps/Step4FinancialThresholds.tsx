@@ -6,16 +6,16 @@ import { Input } from "@/components/ui/input";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import { useStep4FinancialThresholds } from "@/hooks/useStep4FinancialThresholds";
+import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
+import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
+import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { toast } from 'react-toastify';
 
-interface StepProps {
-  onNext?: () => void;
-  onBack?: () => void;
-}
+export default function Step4FinancialThresholds() {
+  const dispatch = useAppDispatch();
+  const formData = useAppSelector(selectFormData);
+  const isSaving = useAppSelector(selectIsSaving);
 
-export default function Step4FinancialThresholds({
-  onNext,
-  onBack,
-}: StepProps) {
   const {
     paidUpCapital,
     annualTurnover,
@@ -34,6 +34,48 @@ export default function Step4FinancialThresholds({
     handleSelectFile,
     handleDropFile,
   } = useStep4FinancialThresholds();
+
+  const handleSave = async () => {
+    try {
+      // Upload files if present and collect document IDs
+      let bullionTurnoverProofFileId: number | null = null;
+      let netWorthProofFileId: number | null = null;
+
+      if (bullionFile) {
+        const result = await dispatch(uploadDocument(bullionFile));
+        if (uploadDocument.fulfilled.match(result)) {
+          bullionTurnoverProofFileId = result.payload;
+        }
+      }
+
+      if (netWorthFile) {
+        const result = await dispatch(uploadDocument(netWorthFile));
+        if (uploadDocument.fulfilled.match(result)) {
+          netWorthProofFileId = result.payload;
+        }
+      }
+
+      // Save form data
+      await dispatch(saveUploadDetails({
+        payload: {
+          ...formData,
+          financialThresholds: {
+            paidUpCapital: parseFloat(paidUpCapital) || 0,
+            annualTurnoverValue: parseFloat(annualTurnover) || 0,
+            hasRequiredBullionTurnover: bullionTurnover || false,
+            bullionTurnoverProofFileId,
+            hasRequiredNetWorth: netWorth || false,
+            netWorthProofFileId,
+          }
+        },
+        sectionNumber: MemberApplicationSection.FinancialThreshold
+      }));
+
+      toast.success('Financial thresholds saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save financial thresholds. Please try again.');
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg">
@@ -151,24 +193,21 @@ export default function Step4FinancialThresholds({
 
       {/* Navigation */}
       <div className="mt-12 flex flex-col sm:flex-row gap-4">
-        {onBack && (
-          <Button
-            onClick={onBack}
-            className="w-full sm:w-[132px] h-[42px] border border-white text-white rounded-[10px] font-gilroySemiBold"
-          >
-            Back
-          </Button>
-        )}
-
-        {onNext && (
-          <Button
-            onClick={onNext}
-            variant="site_btn"
-            className="w-full sm:w-[132px] h-[42px] rounded-[10px] font-gilroySemiBold"
-          >
-            Save / Next
-          </Button>
-        )}
+                <Button
+                  onClick={() => dispatch(setCurrentStep(3))}
+                  className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
+                >
+                  Back
+                </Button>
+        
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          variant="site_btn"
+          className="w-full sm:w-[132px] h-[42px] rounded-[10px] font-gilroySemiBold"
+        >
+          {isSaving ? 'Saving...' : 'Save / Next'}
+        </Button>
       </div>
     </div>
   );

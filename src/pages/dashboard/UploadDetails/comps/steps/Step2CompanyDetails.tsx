@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,46 +11,337 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
-import { useStep2CompanyDetails } from "@/hooks/useStep2CompanyDetails";
+import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
+import { selectFormData, selectIsSaving, updateFormData, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
+import type { Shareholder, UltimateBeneficialOwner, Director, CompanyDetails } from '../../../../../types/uploadDetails';
+import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { toast } from 'react-toastify';
 
 interface StepProps {
   onNext?: () => void;
-  onBack?: () => void;
 }
 
-export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
-  const {
-    form,
-    setField,
+export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.Element {
+  const dispatch = useAppDispatch();
+  const formData = useAppSelector(selectFormData);
+  const isSaving = useAppSelector(selectIsSaving);
 
-    uploadBoxes,
-    fileRefs,
-    handleSelectFile,
-    handleDropFile,
-    removeFile,
+  // Extract current step data
+  const defaultCompanyDetails: CompanyDetails = {
+    legalEntityName: '',
+    entityType: '',
+    tradeLicenseNo: '',
+    licensingAuthority: '',
+    dateIssued: '',
+    dateExpiry: '',
+    country: '',
+    dateIncorp: '',
+    passportId: '',
+    nationalId: '',
+    vatNumber: '',
+    taxRegNumber: '',
+    website: '',
+    emailOfficial: '',
+    phoneNumber: '',
+    primaryContactName: '',
+    primaryContactDesignation: '',
+    primaryContactEmail: '',
+    registeredOfficeAddress: '',
+    anyShareholderDirectorUBOPEP: false,
+    pepShareholders: false,
+    pepBeneficialOwners: false,
+    pepCustomers: false,
+    shareholdingType: 1,
+    shareholders: [],
+    ultimateBeneficialOwners: [],
+    directors: [],
+    tradeAssociationName: '',
+    tradeAssociationMember: '',
+    tradeAssociationDate: '',
+    refineryAccreditations: [],
+    accreditationOther: false,
+    accreditationOtherName: '',
+    tradeLicenseDocument: null,
+    certificateOfIncorporation: null,
+    taxRegistrationDocument: null,
+    vatDocument: null,
+    addressProofDocument: null,
+    accreditationCertificate: null,
+    shareholdingProof: null,
+    uboConfirmationDocument: null,
+    entityLegalType: "",
+    tradeLicenseNumber: "",
+    isRegisteredForCorporateTax: false,
+    taxRegistrationNumber: "",
+    isRegisteredForVAT: false,
+    officialEmail: "",
+    countryOfIncorporation: "",
+    dateOfIncorporation: "",
+    anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: false,
+    hasCustomerPEPChecks: false,
+    nameOfMember: "",
+    dateOfAppointment: "",
+    otherAccreditation: "",
+    lbma: false,
+    dmccDgd: false,
+    dmccMdb: false,
+    rjc: false,
+    iages: false
+  };
 
-    shareholders,
-    shareholderRefs,
-    addShareholder,
-    removeShareholder,
-    setShareholderField,
-    handleShareholderFile,
+  const companyDetails = { ...defaultCompanyDetails, ...formData.companyDetails };
 
-    ubos,
-    uboRefs,
-    addUbo,
-    removeUbo,
-    setUboField,
-    handleUboFile,
+  // Local state for dynamic arrays and files
+  const [shareholders, setShareholders] = useState<Shareholder[]>(companyDetails.shareholders || []);
+  const [ubos, setUbos] = useState<UltimateBeneficialOwner[]>(companyDetails.ultimateBeneficialOwners || []);
+  const [directors, setDirectors] = useState<Director[]>(companyDetails.directors || []);
 
-    directors,
-    addDirector,
-    removeDirector,
-    setDirectorField,
-  } = useStep2CompanyDetails();
+  const [uploadBoxes, setUploadBoxes] = useState({
+    tradeLicense: null as File | null,
+    coi: null as File | null,
+    passport: null as File | null,
+    nationalId: null as File | null,
+    vatDoc: null as File | null,
+    taxRegDoc: null as File | null,
+    addressProof: null as File | null,
+    tradeAssociationCertificate: null as File | null,
+  });
+
+  // Date picker states
+  const [dateIssued, setDateIssued] = useState<Date | undefined>();
+  const [dateExpiry, setDateExpiry] = useState<Date | undefined>();
+  const [dateIncorp, setDateIncorp] = useState<Date | undefined>();
+  const [shareholderAppointmentDates, setShareholderAppointmentDates] = useState<(Date | undefined)[]>(
+    companyDetails.shareholders?.map(s => s.dateOfAppointment ? new Date(s.dateOfAppointment) : undefined) || []
+  );
+  const [directorAppointmentDates, setDirectorAppointmentDates] = useState<(Date | undefined)[]>(
+    companyDetails.directors?.map(d => d.dateOfAppointment ? new Date(d.dateOfAppointment) : undefined) || []
+  );
+
+  const [tradeAssociationDate, setTradeAssociationDate] = useState<Date | undefined>(
+    companyDetails.tradeAssociationDate ? new Date(companyDetails.tradeAssociationDate) : undefined
+  );
+
+  const fileRefs = {
+    licenseRef: useRef<HTMLInputElement>(null),
+    coiRef: useRef<HTMLInputElement>(null),
+    passportRef: useRef<HTMLInputElement>(null),
+    nationalIdRef: useRef<HTMLInputElement>(null),
+    vatRef: useRef<HTMLInputElement>(null),
+    taxRegRef: useRef<HTMLInputElement>(null),
+    addressProofRef: useRef<HTMLInputElement>(null),
+    accreditationRef: useRef<HTMLInputElement>(null),
+  };
+
+  const shareholderRefs = useRef(new Map<number, HTMLInputElement>());
+  const uboRefs = useRef(new Map<number, HTMLInputElement>());
+
+  const setField = useCallback((field: string, value: any) => {
+    dispatch(updateFormData({
+      companyDetails: {
+        ...companyDetails,
+        [field]: value
+      }
+    }));
+  }, [dispatch, companyDetails]);
+
+  const handleSelectFile = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof uploadBoxes) => {
+      const file = e.target.files?.[0] ?? null;
+      setUploadBoxes((prev) => ({ ...prev, [key]: file }));
+    },
+    []
+  );
+
+  const handleDropFile = useCallback(
+    (e: React.DragEvent, key: keyof typeof uploadBoxes) => {
+      e.preventDefault();
+      const file = e.dataTransfer?.files?.[0] ?? null;
+      setUploadBoxes((prev) => ({ ...prev, [key]: file }));
+    },
+    []
+  );
+
+  const removeFile = (key: keyof typeof uploadBoxes) =>
+    setUploadBoxes((prev) => ({ ...prev, [key]: null }));
+
+  const addShareholder = () => {
+    setShareholders((prev:any) => [
+      ...prev,
+      {
+        fullName: "",
+        passportId: "",
+        nationalIdNumber: "",
+        shareholdingPercentage: 0,
+        nationality: "",
+        dateOfAppointment: "",
+        address: "",
+        passportDocument: null,
+        nationalIdDocument: null,
+        proofFile: null,
+      },
+    ]);
+    setShareholderAppointmentDates((prev) => [...prev, undefined]);
+  };
+
+  const removeShareholder = (index: number) => {
+    setShareholders((prev) => prev.filter((_, i) => i !== index));
+    setShareholderAppointmentDates((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const setShareholderField = <K extends keyof Shareholder>(
+    index: number,
+    field: K,
+    value: Shareholder[K]
+  ) => {
+    setShareholders((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
+  };
+
+  const handleShareholderFile = (
+    index: number,
+    file: File | null
+  ) => {
+    setShareholders((prev) => {
+      const updated = [...prev];
+      updated[index].proofFile = file;
+      return updated;
+    });
+  };
+
+  const addUbo = () => {
+    setUbos((prev) => [
+      ...prev,
+      {
+        fullName: "",
+        percentage: "",
+        nationality: "",
+        address: "",
+        passportDocument: null,
+        nationalIdDocument: null,
+        confirmationFile: null,
+      },
+    ]);
+  };
+
+  const removeUbo = (index: number) =>
+    setUbos((prev) => prev.filter((_, i) => i !== index));
+
+  const setUboField = (
+    index: number,
+    field: keyof UltimateBeneficialOwner,
+    value: any
+  ) => {
+    setUbos((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
+  };
+
+  const handleUboFile = (index: number, file: File | null) => {
+    setUbos((prev) => {
+      const updated = [...prev];
+      updated[index].confirmationFile = file;
+      return updated;
+    });
+  };
+
+  const addDirector = () => {
+    setDirectors((prev) => [
+      ...prev,
+      {
+        fullName: "",
+        dateOfAppointment: "",
+        nationality: "",
+        address: "",
+        phoneNumber: "",
+      },
+    ]);
+  };
+
+  const removeDirector = (index: number) =>
+    setDirectors((prev) => prev.filter((_, i) => i !== index));
+
+  const setDirectorField = (
+    index: number,
+    field: keyof Director,
+    value: any
+  ) => {
+    setDirectors((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      // Upload files first
+      const fileUploads = [];
+      if (uploadBoxes.tradeLicense) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.tradeLicense)));
+      }
+      if (uploadBoxes.coi) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.coi)));
+      }
+      if (uploadBoxes.passport) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.passport)));
+      }
+      if (uploadBoxes.nationalId) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.nationalId)));
+      }
+      if (uploadBoxes.vatDoc) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.vatDoc)));
+      }
+      if (uploadBoxes.taxRegDoc) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.taxRegDoc)));
+      }
+      if (uploadBoxes.addressProof) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.addressProof)));
+      }
+      if (uploadBoxes.tradeAssociationCertificate) {
+        fileUploads.push(dispatch(uploadDocument(uploadBoxes.tradeAssociationCertificate)));
+      }
+
+      // Wait for all file uploads to complete
+      await Promise.all(fileUploads);
+
+      // Save form data
+      await dispatch(saveUploadDetails({
+        payload: {
+          ...formData,
+          companyDetails: {
+            ...companyDetails,
+            shareholders,
+            ultimateBeneficialOwners: ubos,
+            directors,
+          }
+        },
+        sectionNumber: MemberApplicationSection.CompanyDetails
+      }));
+
+      toast.success('Company details saved successfully!');
+      onNext?.();
+    } catch (error) {
+      toast.error('Failed to save company details. Please try again.');
+    }
+  };
 
   return (
     <div className="w-full bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg min-h-screen text-white">
@@ -65,7 +357,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Legal Entity Name</Label>
           <Input
             type="text"
-            value={form.legalEntityName}
+            value={companyDetails.legalEntityName}
             onChange={(e) => setField("legalEntityName", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Legal Entity Name"
@@ -75,7 +367,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         <div>
           <Label>Entity Legal Type</Label>
           <Select
-            value={form.entityType}
+            value={companyDetails.entityType}
             onValueChange={(value) => setField("entityType", value)}
           >
             <SelectTrigger className="w-full mt-2 bg-white h-[42px] text-black border-gray-300 focus:ring-0 focus:ring-offset-0">
@@ -97,7 +389,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Trade License / Registration No</Label>
           <Input
             type="text"
-            value={form.tradeLicenseNo}
+            value={companyDetails.tradeLicenseNo}
             onChange={(e) => setField("tradeLicenseNo", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Trade License/Registration No"
@@ -108,7 +400,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Licensing Authority</Label>
           <Input
             type="text"
-            value={form.licensingAuthority}
+            value={companyDetails.licensingAuthority}
             onChange={(e) => setField("licensingAuthority", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Licensing Authority"
@@ -145,24 +437,52 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div>
           <Label>Date of Issuance</Label>
-          <Input
-            type="text"
-            value={form.dateIssued}
-            onChange={(e) => setField("dateIssued", e.target.value)}
-            placeholder="DD/MM/YYYY"
-            className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateIssued ? format(dateIssued, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-white">
+              <Calendar
+                mode="single"
+                selected={dateIssued}
+                onSelect={(date) => {
+                  setDateIssued(date);
+                  setField("dateIssued", date ? date.toISOString() : "");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>
           <Label>Date of Expiry</Label>
-          <Input
-            type="text"
-            value={form.dateExpiry}
-            onChange={(e) => setField("dateExpiry", e.target.value)}
-            placeholder="DD/MM/YYYY"
-            className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateExpiry ? format(dateExpiry, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-white">
+              <Calendar
+                mode="single"
+                selected={dateExpiry}
+                onSelect={(date) => {
+                  setDateExpiry(date);
+                  setField("dateExpiry", date ? date.toISOString() : "");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -174,7 +494,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Country of Incorporation</Label>
           <Input
             type="text"
-            value={form.country}
+            value={companyDetails.country}
             onChange={(e) => setField("country", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Dubai"
@@ -183,13 +503,27 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
 
         <div>
           <Label>Date of Incorporation</Label>
-          <Input
-            type="text"
-            value={form.dateIncorp}
-            onChange={(e) => setField("dateIncorp", e.target.value)}
-            className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
-            placeholder="DD/MM/YYYY"
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateIncorp ? format(dateIncorp, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-white">
+              <Calendar
+                mode="single"
+                selected={dateIncorp}
+                onSelect={(date) => {
+                  setDateIncorp(date);
+                  setField("dateIncorp", date ? date.toISOString() : "");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -223,7 +557,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         <Label>Passport ID</Label>
         <Input
           type="text"
-          value={form.passportId}
+          value={companyDetails.passportId}
           onChange={(e) => setField("passportId", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Enter Passport ID"
@@ -257,7 +591,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         <Label>National ID Number</Label>
         <Input
           type="text"
-          value={form.nationalId}
+          value={companyDetails.nationalId}
           onChange={(e) => setField("nationalId", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="National ID Number"
@@ -291,7 +625,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         <Label>VAT Number</Label>
         <Input
           type="text"
-          value={form.vatNumber}
+          value={companyDetails.vatNumber}
           onChange={(e) => setField("vatNumber", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="VAT Number"
@@ -325,7 +659,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         <Label>Tax Registration Number</Label>
         <Input
           type="text"
-          value={form.taxRegNumber}
+          value={companyDetails.taxRegNumber}
           onChange={(e) => setField("taxRegNumber", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Tax Registration Number"
@@ -360,7 +694,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Website</Label>
           <Input
             type="text"
-            value={form.website}
+            value={companyDetails.website}
             onChange={(e) => setField("website", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Website"
@@ -371,7 +705,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Email (Official)</Label>
           <Input
             type="text"
-            value={form.emailOfficial}
+            value={companyDetails.emailOfficial}
             onChange={(e) => setField("emailOfficial", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Email"
@@ -382,7 +716,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Phone Number</Label>
           <Input
             type="text"
-            value={form.phoneNumber}
+            value={companyDetails.phoneNumber}
             onChange={(e) => setField("phoneNumber", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Phone Number"
@@ -398,7 +732,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Primary Contact – Name</Label>
           <Input
             type="text"
-            value={form.primaryContactName}
+            value={companyDetails.primaryContactName}
             onChange={(e) => setField("primaryContactName", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Primary Contact – Name"
@@ -409,7 +743,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Primary Contact – Designation</Label>
           <Input
             type="text"
-            value={form.primaryContactDesignation}
+            value={companyDetails.primaryContactDesignation}
             onChange={(e) => setField("primaryContactDesignation", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Primary Contact – Designation"
@@ -421,7 +755,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         <Label>Primary Contact – Email</Label>
         <Input
           type="text"
-          value={form.primaryContactEmail}
+          value={companyDetails.primaryContactEmail}
           onChange={(e) => setField("primaryContactEmail", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Primary Contact – Email"
@@ -435,7 +769,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         <Label>Registered Office Address in UAE</Label>
         <Input
           type="text"
-          value={form.registeredOfficeAddress}
+          value={companyDetails.registeredOfficeAddress}
           onChange={(e) => setField("registeredOfficeAddress", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Registered Office Address in UAE"
@@ -490,19 +824,19 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
             </div>
 
             <div>
-              <Label>Shareholding (%)</Label>
+              <Label>Shareholding Percentage</Label>
               <Input
-                type="text"
-                value={s.percentage}
+                type="number"
+                value={s.shareholdingPercentage}
                 onChange={(e) =>
-                  setShareholderField(index, "percentage", e.target.value)
+                  setShareholderField(index, "shareholdingPercentage", parseFloat(e.target.value) || 0)
                 }
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
               />
             </div>
 
             <div>
-              <Label>Nationality / Country of Incorporation</Label>
+              <Label>Nationality</Label>
               <Input
                 type="text"
                 value={s.nationality}
@@ -511,6 +845,59 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
                 }
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
               />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mt-4">
+            <div>
+              <Label>Passport ID</Label>
+              <Input
+                type="text"
+                value={s.passportId}
+                onChange={(e) =>
+                  setShareholderField(index, "passportId", e.target.value)
+                }
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
+              />
+            </div>
+
+            <div>
+              <Label>National ID Number</Label>
+              <Input
+                type="text"
+                value={s.nationalIdNumber}
+                onChange={(e) =>
+                  setShareholderField(index, "nationalIdNumber", e.target.value)
+                }
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
+              />
+            </div>
+
+            <div>
+              <Label>Date of Appointment</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {shareholderAppointmentDates[index] ? format(shareholderAppointmentDates[index], "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-white">
+                  <Calendar
+                    mode="single"
+                    selected={shareholderAppointmentDates[index]}
+                    onSelect={(date) => {
+                      const updatedDates = [...shareholderAppointmentDates];
+                      updatedDates[index] = date;
+                      setShareholderAppointmentDates(updatedDates);
+                      setShareholderField(index, "dateOfAppointment", date ? date.toISOString() : "");
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -704,15 +1091,29 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
 
             <div>
               <Label>Date of Appointment</Label>
-              <Input
-                type="text"
-                value={d.dateOfAppointment}
-                onChange={(e) =>
-                  setDirectorField(index, "dateOfAppointment", e.target.value)
-                }
-                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
-                placeholder="DD/MM/YYYY"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {directorAppointmentDates[index] ? format(directorAppointmentDates[index], "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-white">
+                  <Calendar
+                    mode="single"
+                    selected={directorAppointmentDates[index]}
+                    onSelect={(date) => {
+                      const updatedDates = [...directorAppointmentDates];
+                      updatedDates[index] = date;
+                      setDirectorAppointmentDates(updatedDates);
+                      setDirectorField(index, "dateOfAppointment", date ? date.toISOString() : "");
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
@@ -761,7 +1162,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         d. Is any shareholder, director, UBO a Politically Exposed Person?
       </h4>
       <YesNoGroup
-        value={form.pepShareholders}
+        value={companyDetails.pepShareholders}
         onChange={(v) => setField("pepShareholders", v)}
       />
 
@@ -769,7 +1170,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         e. Is any shareholder / beneficial owner / key managerial person related to a PEP?
       </h4>
       <YesNoGroup
-        value={form.pepBeneficialOwners}
+        value={companyDetails.pepBeneficialOwners}
         onChange={(v) => setField("pepBeneficialOwners", v)}
       />
 
@@ -777,7 +1178,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
         f. Does your establishment check to identify PEP customers?
       </h4>
       <YesNoGroup
-        value={form.pepCustomers}
+        value={companyDetails.pepCustomers}
         onChange={(v) => setField("pepCustomers", v)}
       />
 
@@ -793,7 +1194,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Name of Trade Association</Label>
           <Input
             type="text"
-            value={form.tradeAssociationName}
+            value={companyDetails.tradeAssociationName}
             onChange={(e) => setField("tradeAssociationName", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
           />
@@ -803,7 +1204,7 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <Label>Name of Member</Label>
           <Input
             type="text"
-            value={form.tradeAssociationMember}
+            value={companyDetails.tradeAssociationMember}
             onChange={(e) => setField("tradeAssociationMember", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
           />
@@ -811,13 +1212,27 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
 
         <div>
           <Label>Date of Appointment</Label>
-          <Input
-            type="text"
-            value={form.tradeAssociationDate}
-            onChange={(e) => setField("tradeAssociationDate", e.target.value)}
-            className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
-            placeholder="DD/MM/YYYY"
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {tradeAssociationDate ? format(tradeAssociationDate, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-white">
+              <Calendar
+                mode="single"
+                selected={tradeAssociationDate}
+                onSelect={(date) => {
+                  setTradeAssociationDate(date);
+                  setField("tradeAssociationDate", date ? date.toISOString() : "");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -839,22 +1254,22 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
           <ServiceCheckbox
             key={key}
             label={label}
-            checked={(form as any)[key]}
-            onChange={() => setField(key as any, !(form as any)[key])}
+            checked={(companyDetails as any)[key]}
+            onChange={() => setField(key as any, !(companyDetails as any)[key])}
           />
         ))}
 
         {/* Other */}
         <ServiceCheckbox
           label="Other (please specify)"
-          checked={form.accreditationOther}
-          onChange={() => setField("accreditationOther", !form.accreditationOther)}
+          checked={companyDetails.accreditationOther}
+          onChange={() => setField("accreditationOther", !companyDetails.accreditationOther)}
         />
 
-        {form.accreditationOther && (
+        {companyDetails.accreditationOther && (
           <Input
             type="text"
-            value={form.accreditationOtherName}
+            value={companyDetails.accreditationOtherName}
             onChange={(e) => setField("accreditationOtherName", e.target.value)}
             className="w-full bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] mt-2 text-black placeholder:text-black/50"
             placeholder="Specify other accreditation"
@@ -889,24 +1304,21 @@ export default function Step2CompanyDetails({ onNext, onBack }: StepProps) {
       {/* Navigation Buttons */}
       {/* -------------------------------------- */}
       <div className="mt-10 flex justify-start gap-4">
-        {onBack && (
-          <Button
-            onClick={onBack}
-            className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
-          >
-            Back
-          </Button>
-        )}
+        <Button
+          onClick={() => dispatch(setCurrentStep(1))}
+          className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
+        >
+          Back
+        </Button>
 
-        {onNext && (
-          <Button
-            onClick={onNext}
-            variant="site_btn"
-            className="w-[132px] h-[42px] rounded-[10px] text-white"
-          >
-            Save / Next
-          </Button>
-        )}
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          variant="site_btn"
+          className="w-[132px] h-[42px] rounded-[10px] text-white"
+        >
+          {isSaving ? 'Saving...' : 'Save / Next'}
+        </Button>
       </div>
     </div>
   );

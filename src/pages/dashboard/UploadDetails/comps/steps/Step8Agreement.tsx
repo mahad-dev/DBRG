@@ -13,15 +13,27 @@ import {
 } from "@/components/ui/dialog";
 import SignaturePad from "react-signature-canvas";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
+import {
+  selectFormData,
+  selectIsSaving,
+  saveUploadDetails,
+  uploadDocument,
+  setCurrentStep,
+} from "../../../../../store/uploadDetailsSlice";
+import { MemberApplicationSection } from "../../../../../types/uploadDetails";
+import { toast } from "react-toastify";
 
-interface StepProps {
-  onNext?: () => void;
-  onBack?: () => void;
-}
+export default function Step8Agreement() {
+  const dispatch = useAppDispatch();
+  const formData = useAppSelector(selectFormData);
+  const isSaving = useAppSelector(selectIsSaving);
 
-export default function Step8Agreement({ onNext, onBack }: StepProps) {
   const sigPadRef = useRef<SignaturePad>(null);
-  const [signatureURL, setSignatureURL] = useState("");
+
+  const [signatureURL, setSignatureURL] = useState<string>("");
   const [openSigPad, setOpenSigPad] = useState(false);
 
   // Checkbox states
@@ -33,7 +45,7 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
   const [applicantName, setApplicantName] = useState("");
   const [signatoryName, setSignatoryName] = useState("");
   const [designation, setDesignation] = useState("");
-  const [date, setDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   // Signature functions
   const saveSignature = () => {
@@ -46,14 +58,68 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
 
   const clearSignature = () => sigPadRef.current?.clear();
 
+  const handleSave = async () => {
+    // Validate required fields
+    if (!consentData || !acknowledgeRetention || !agreeCode) {
+      toast.error("Please check all required consent checkboxes.");
+      return;
+    }
+
+    if (!applicantName || !signatoryName || !designation || !selectedDate) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    if (!signatureURL) {
+      toast.error("Please provide a digital signature.");
+      return;
+    }
+
+    try {
+      // Upload signature if it's a data URL
+      let signatureDocumentId: number | null = null;
+      if (signatureURL.startsWith("data:")) {
+        const response = await fetch(signatureURL);
+        const blob = await response.blob();
+        const signatureFile = new File([blob], "signature.png", { type: "image/png" });
+        const result = await dispatch(uploadDocument(signatureFile)).unwrap();
+        signatureDocumentId = result;
+      }
+
+      const declarationConsentData = {
+        consentsToDataProcessing: consentData,
+        acknowledgesDataRetention: acknowledgeRetention,
+        adheresToCodeOfConduct: agreeCode,
+        applicantName,
+        authorisedSignatoryName: signatoryName,
+        designation,
+        date: selectedDate.toISOString(),
+        digitalSignatureFileId: signatureDocumentId,
+      };
+
+      await dispatch(
+        saveUploadDetails({
+          payload: {
+            ...formData,
+            declarationConsent: declarationConsentData,
+          },
+          sectionNumber: MemberApplicationSection.DeclarationConsent,
+        })
+      ).unwrap();
+
+      toast.success("Declaration & Consent saved successfully! Application completed.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save declaration & consent. Please try again.");
+    }
+  };
+
   return (
     <>
       <Card className="bg-[#353535] border-none rounded-xl w-full">
         <CardContent className="space-y-6">
-          {/* Heading */}
           <h2 className="text-[28px] md:text-[30px] font-gilory font-bold leading-tight text-[#C6A95F]">
-            Section 8 – Declaration of Agreement for Consent and Data
-            Acknowledgment
+            Section 8 – Declaration of Agreement for Consent and Data Acknowledgment
           </h2>
 
           {/* Checkboxes */}
@@ -63,7 +129,6 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
               checked={consentData}
               onChange={() => setConsentData(!consentData)}
             />
-
             <ServiceCheckbox
               label="I acknowledge that my data will be retained for at least 5 years or more as per applicable laws (DFSA requires 6 years) after termination of membership."
               checked={acknowledgeRetention}
@@ -71,11 +136,9 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
             />
           </div>
 
-          {/* Subheading */}
           <h3 className="text-[24px] text-[#C6A95F] font-gilory font-bold mt-6">
             Declaration of Adherence to DBRG Code of Conduct
           </h3>
-
           <ServiceCheckbox
             label="I hereby confirm that I have read, understood, and agree to adhere to the DBRG Code of Conduct."
             checked={agreeCode}
@@ -85,9 +148,7 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
           {/* Inputs Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 text-black">
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">
-                Name of the Applicant
-              </label>
+              <label className="text-sm font-gilory font-normal">Name of the Applicant</label>
               <Input
                 value={applicantName}
                 onChange={(e) => setApplicantName(e.target.value)}
@@ -97,9 +158,7 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
             </div>
 
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">
-                Name of Authorised Signatory
-              </label>
+              <label className="text-sm font-gilory font-normal">Name of Authorised Signatory</label>
               <Input
                 value={signatoryName}
                 onChange={(e) => setSignatoryName(e.target.value)}
@@ -109,9 +168,7 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
             </div>
 
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">
-                Designation
-              </label>
+              <label className="text-sm font-gilory font-normal">Designation</label>
               <Input
                 value={designation}
                 onChange={(e) => setDesignation(e.target.value)}
@@ -122,20 +179,12 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
 
             {/* Signature */}
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">
-                Signature
-              </label>
+              <label className="text-sm font-gilory font-normal">Signature</label>
               <div className="relative w-full bg-white rounded-md h-9 flex items-center justify-center">
                 {signatureURL ? (
-                  <img
-                    src={signatureURL}
-                    alt="Signature"
-                    className="h-full object-contain py-1"
-                  />
+                  <img src={signatureURL} alt="Signature" className="h-full object-contain py-1" />
                 ) : (
-                  <span className="text-gray-500 text-sm">
-                    No signature uploaded
-                  </span>
+                  <span className="text-gray-500 text-sm">No signature uploaded</span>
                 )}
               </div>
               <Button
@@ -147,38 +196,49 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
             </div>
           </div>
 
-          {/* Date */}
+          {/* Date Picker */}
           <div className="w-full md:w-1/4 pt-4">
-            <label className="text-sm font-gilory font-normal text-white">
-              Date
-            </label>
-            <Input
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              placeholder="DD/MM/YYYY"
-              className="bg-white text-black rounded-md"
-            />
+            <label className="text-sm font-gilory font-normal text-white">Date</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full mt-2 text-left border-white bg-white text-black h-[47px] rounded-md"
+                >
+                  {selectedDate
+                    ? `${selectedDate.getDate().toString().padStart(2, "0")}/${
+                        (selectedDate.getMonth() + 1).toString().padStart(2, "0")
+                      }/${selectedDate.getFullYear()}`
+                    : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => setSelectedDate(date ?? undefined)}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Buttons */}
           <div className="mt-10 flex justify-start gap-4">
-            {onBack && (
-              <Button
-                onClick={onBack}
-                className="w-[132px] h-[42px] rounded-[10px] border border-white text-white font-gilorySemiBold"
-              >
-                Back
-              </Button>
-            )}
-            {onNext && (
-              <Button
-                onClick={onNext}
-                variant="site_btn"
-                className="w-[132px] h-[42px] rounded-[10px] text-white font-gilorySemiBold"
-              >
-                Save / Next
-              </Button>
-            )}
+                    <Button
+                      onClick={() => dispatch(setCurrentStep(7))}
+                      className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
+                    >
+                      Back
+                    </Button>
+            
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              variant="site_btn"
+              className="w-[180px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+            >
+              {isSaving ? "Saving..." : "Submit Application"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -189,14 +249,12 @@ export default function Step8Agreement({ onNext, onBack }: StepProps) {
           <DialogHeader>
             <DialogTitle className="font-bold">Draw Your Signature</DialogTitle>
           </DialogHeader>
-
           <div className="border rounded-md p-2 bg-white">
             <SignaturePad
               ref={sigPadRef}
               canvasProps={{ className: "w-full h-[180px] rounded-md" }}
             />
           </div>
-
           <DialogFooter className="flex justify-between">
             <Button variant="outline" onClick={clearSignature}>
               Clear

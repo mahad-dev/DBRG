@@ -3,14 +3,16 @@ import UploadBox from "@/components/custom/ui/UploadBox";
 import { Button } from "@/components/ui/button";
 import { useStep6RequiredDocuments } from "@/hooks/useStep6RequiredDocuments";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
+import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
+import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
+import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { toast } from 'react-toastify';
 
-export default function Step6RequiredDocumentChecklist({
-  onNext,
-  onBack,
-}: {
-  onNext?: () => void;
-  onBack?: () => void;
-}) {
+export default function Step6RequiredDocumentChecklist() {
+  const dispatch = useAppDispatch();
+  const formData = useAppSelector(selectFormData);
+  const isSaving = useAppSelector(selectIsSaving);
+
   const {
     items,
     checked,
@@ -29,6 +31,83 @@ export default function Step6RequiredDocumentChecklist({
 
   const [selectedDocType, setSelectedDocType] = useState<string>(""); // radio toggle state
   const otherRefs = useRef<Record<string, HTMLInputElement | null>>({}); // refs for other forms
+
+  const handleSave = async () => {
+    try {
+      // Upload files if present and collect document IDs
+      const fileIds: Record<string, number> = {};
+      const otherFormIds: Record<string, number> = {};
+
+      // Upload item files
+      for (const [key, file] of Object.entries(files)) {
+        if (file) {
+          const result = await dispatch(uploadDocument(file));
+          if (uploadDocument.fulfilled.match(result)) {
+            fileIds[key] = result.payload;
+          }
+        }
+      }
+
+      // Upload other form files
+      for (const of of otherForms) {
+        if (of.file) {
+          const result = await dispatch(uploadDocument(of.file));
+          if (uploadDocument.fulfilled.match(result)) {
+            otherFormIds[of.id] = result.payload;
+          }
+        }
+      }
+
+      // Save form data
+      await dispatch(saveUploadDetails({
+        payload: {
+          ...formData,
+          memberRequiredDocuments: {
+            tradeLicenseAndMoaFileId: fileIds.trade_license || 0,
+            isChecked_TradeLicenseAndMoa: checked.trade_license,
+            bankingRelationshipEvidenceFileId: fileIds.banking_evidence || 0,
+            isChecked_BankingRelationshipEvidence: checked.banking_evidence,
+            auditedFinancialStatementsFileId: fileIds.audited_fs || 0,
+            isChecked_AuditedFinancialStatements: checked.audited_fs,
+            netWorthCertificateFileId: fileIds.net_worth || 0,
+            isChecked_NetWorthCertificate: checked.net_worth,
+            amlCftPolicyFileId: fileIds.aml_policy || 0,
+            isChecked_AmlCftPolicy: checked.aml_policy,
+            supplyChainCompliancePolicyFileId: fileIds.supply_chain || 0,
+            isChecked_SupplyChainCompliancePolicy: checked.supply_chain,
+            amlCftAndSupplyChainPoliciesFileId: fileIds.amlCftAndSupplyChainPolicies || 0,
+            isChecked_AmlCftAndSupplyChainPolicies: checked.amlCftAndSupplyChainPolicies,
+            declarationNoUnresolvedAmlNoticesFileId: fileIds.declaration_aml || 0,
+            isChecked_DeclarationNoUnresolvedAmlNotices: checked.declaration_aml,
+            noUnresolvedAmlNoticesDeclarationFileId: fileIds.noUnresolvedAmlNoticesDeclaration || 0,
+            isChecked_NoUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration,
+            accreditationCertificatesFileId: fileIds.accreditation || 0,
+            isChecked_AccreditationCertificates: checked.accreditation,
+            boardResolutionFileId: fileIds.board_resolution || 0,
+            isChecked_BoardResolution: checked.board_resolution,
+            ownershipStructureFileId: fileIds.ownership_structure || 0,
+            isChecked_OwnershipStructure: checked.ownership_structure,
+            certifiedTrueCopyFileId: fileIds.certified_true_copy || 0,
+            isChecked_CertifiedTrueCopy: checked.certified_true_copy,
+            latestAssuranceReportFileId: fileIds.assurance_report || 0,
+            isChecked_LatestAssuranceReport: checked.assurance_report,
+            responsibleSourcingAssuranceReportFileId: fileIds.responsibleSourcingAssuranceReport || 0,
+            isChecked_ResponsibleSourcingAssuranceReport: checked.responsibleSourcingAssuranceReport,
+            uboProofDocumentsFileId: fileIds.uboProofDocuments || 0,
+            isChecked_UboProofDocuments: checked.uboProofDocuments,
+            certifiedIdsFileId: fileIds.certifiedIds || 0,
+            isChecked_CertifiedIds: checked.certifiedIds,
+            otherForms: otherForms.map(of => ({ otherFormName: of.name, otherFormFileId: otherFormIds[of.id] || 0 }))
+          }
+        },
+        sectionNumber: MemberApplicationSection.RequiredDocs
+      }));
+
+      toast.success('Required document checklist saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save required document checklist. Please try again.');
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg text-white font-gilroy">
@@ -156,24 +235,21 @@ export default function Step6RequiredDocumentChecklist({
 
         {/* Footer */}
         <div className="mt-10 flex justify-start gap-4">
-          {onBack && (
-            <Button
-              onClick={onBack}
-              className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white font-gilroySemiBold"
-            >
-              Back
-            </Button>
-          )}
+        <Button
+          onClick={() => dispatch(setCurrentStep(5))}
+          className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
+        >
+          Back
+        </Button>
 
-          {onNext && (
-            <Button
-              onClick={onNext}
-              variant="site_btn"
-              className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
-            >
-              Save / Next
-            </Button>
-          )}
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            variant="site_btn"
+            className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+          >
+            {isSaving ? 'Saving...' : 'Save / Next'}
+          </Button>
         </div>
       </div>
     </div>
