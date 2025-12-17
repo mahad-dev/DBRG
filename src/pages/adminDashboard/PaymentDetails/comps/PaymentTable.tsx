@@ -18,39 +18,43 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical, MapPin } from "lucide-react";
+import { Search, Filter, Calendar, MoreVertical } from "lucide-react";
 
 /* ================= TYPES ================= */
 
-type User = {
+type PaymentItem = {
   id: number;
   name: string;
   company: string;
-  status: "Pending" | "Completed" | "Blocked";
   date: string;
+  time: string;
+  status: "Pending" | "Completed" | "Rejected";
+  amount: string;
 };
 
 /* ================= DATA ================= */
 
-const usersSeed: User[] = Array.from({ length: 42 }).map((_, i) => ({
+const paymentData: PaymentItem[] = Array.from({ length: 25 }).map((_, i) => ({
   id: i + 1,
-  name: "Sanjana Shah",
-  company: "Shah Investment",
-  status: "Pending",
-  date: ["01/06/2025", "02/06/2025", "03/06/2025", "04/06/2025"][i % 4],
+  name: ["Sanjana Shah", "John Doe", "Jane Smith", "Alice Johnson", "Bob Brown"][i % 5],
+  company: ["Shah Investment", "Doe Corp", "Smith LLC", "Johnson Inc", "Brown Enterprises"][i % 5],
+  date: ["01/06/2025", "02/06/2025", "03/06/2025", "04/06/2025", "05/06/2025"][i % 5],
+  time: ["09:34 AM", "10:15 AM", "11:45 AM", "02:30 PM", "04:20 PM"][i % 5],
+  status: ["Pending", "Completed", "Rejected"][i % 3] as "Pending" | "Completed" | "Rejected",
+  amount: ["1,00,000 $", "55,000 $", "98,098 $", "10,000 $", "75,500 $"][i % 5],
 }));
 
 const ITEMS_PER_PAGE = 6;
 
 /* ================= COMPONENT ================= */
 
-export default function UserManagementTable() {
+export default function PaymentTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
   const filteredData = useMemo(() => {
-    return usersSeed.filter((i) =>
-      `${i.name} ${i.company} ${i.status}`
+    return paymentData.filter((i) =>
+      `${i.name} ${i.company} ${i.status} ${i.amount}`
         .toLowerCase()
         .includes(search.toLowerCase())
     );
@@ -67,34 +71,60 @@ export default function UserManagementTable() {
     <div className="min-h-screen text-white">
       <div className="max-w-7xl mx-auto space-y-6">
 
-        <h1 className="text-3xl sm:text-[38px] font-semibold text-[#C6A95F]">
-          User Management
-        </h1>
-
-        {/* ================= SEARCH ================= */}
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="flex items-center w-full md:max-w-[380px] gap-2 bg-white/10 rounded-lg px-4 h-11 border border-[#3A3A3A]">
-            <Search className="w-4 h-4" />
-            <Input
-              placeholder="Search name, company, country"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent border-none text-white focus-visible:ring-0"
-            />
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" className="h-11 border-[#3A3A3A]">
-              <Filter className="w-4 h-4 mr-1" /> Status
+        {/* ===== HEADER ===== */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-3xl font-semibold text-[#C6A95F] text-center sm:text-left">
+            Payment Management
+          </h1>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
+            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
+              Add Payment
             </Button>
-            <Button variant="outline" className="h-11 border-[#3A3A3A]">
-              <MapPin className="w-4 h-4 mr-1" /> Country
-            </Button>
-            <Button className="h-11 bg-[#D5B15F] text-black">
+            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
               Download Report
+            </Button>
+          </div>
+        </div>
+
+        {/* ===== SEARCH & FILTER ===== */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          {/* Title */}
+          <h1 className="text-2xl font-semibold whitespace-nowrap">
+            Payment List
+          </h1>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-2">
+            {/* Search */}
+            <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-white/20 bg-white/10 min-w-0 flex-1 sm:flex-initial">
+              <Input
+                placeholder="Search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                className="h-9 w-full placeholder:text-white bg-transparent border-none text-white focus-visible:ring-0"
+              />
+              <Search className="w-4 h-4 text-white shrink-0" />
+            </div>
+
+            {/* Status Filter */}
+            <Button
+              variant="outline"
+              className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+            >
+              <Filter className="w-4 h-4" />
+              Status
+            </Button>
+
+            {/* Date Filter */}
+            <Button
+              variant="outline"
+              className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+            >
+              <Calendar className="w-4 h-4" />
+              Date
             </Button>
           </div>
         </div>
@@ -110,15 +140,12 @@ export default function UserManagementTable() {
                 </div>
                 <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.company}</p>
                 <div className="flex justify-between items-center">
-                  <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                    item.status === 'Completed' ? 'bg-green-500/20 text-green-300' :
-                    item.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-300' :
-                    'bg-red-500/20 text-red-300'
-                  }`}>
+                  <span className="text-sm font-medium px-2 py-1 rounded-full text-white">
                     {item.status}
                   </span>
-                  <span className="text-sm text-white/60">{item.date}</span>
+                  <span className="text-sm text-white/60">{item.date} {item.time}</span>
                 </div>
+                <div className="mt-2 text-sm font-semibold text-white">{item.amount}</div>
               </div>
             ))}
           </div>
@@ -134,8 +161,10 @@ export default function UserManagementTable() {
                   <TableRow className="bg-white/5">
                     <TableHead className="py-4 px-2">Name</TableHead>
                     <TableHead className="py-4 px-4 sm:px-16">Company</TableHead>
-                    <TableHead className="py-4 px-2">Status</TableHead>
                     <TableHead className="py-4 px-2">Date</TableHead>
+                    <TableHead className="py-4 px-2">Time</TableHead>
+                    <TableHead className="py-4 px-2">Status</TableHead>
+                    <TableHead className="py-4 px-2">Amount</TableHead>
                     <TableHead className="py-4 px-2">Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -156,10 +185,14 @@ export default function UserManagementTable() {
                       <TableCell className="py-4 px-4 sm:px-16">
                         {item.company}
                       </TableCell>
-                      <TableCell className="py-4 px-2">
-                        {item.status}
-                      </TableCell>
                       <TableCell className="py-4 px-2">{item.date}</TableCell>
+                      <TableCell className="py-4 px-2">{item.time}</TableCell>
+                      <TableCell className="py-4 px-2">
+                        <span className="font-medium text-white">
+                          {item.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="py-4 px-2 font-semibold">{item.amount}</TableCell>
                       <TableCell className="py-4 px-2">
                         <ActionMenu />
                       </TableCell>
@@ -225,8 +258,8 @@ function ActionMenu() {
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem>Edit</DropdownMenuItem>
         <DropdownMenuItem>View</DropdownMenuItem>
+        <DropdownMenuItem>Edit</DropdownMenuItem>
         <DropdownMenuItem className="text-red-500">
           Delete
         </DropdownMenuItem>

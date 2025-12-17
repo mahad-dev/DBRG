@@ -1,5 +1,9 @@
+import PaymentTable from "./comps/PaymentTable";
+
 export default function PaymentDetails() {
   return (
-    <div>index</div>
+    <div>
+      <PaymentTable />
+    </div>
   )
 }
