@@ -18,7 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical, MapPin } from "lucide-react";
+import { Search, Filter, MoreVertical, MapPin } from "lucide-react";
 
 /* ================= TYPES ================= */
 

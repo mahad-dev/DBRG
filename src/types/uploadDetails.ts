@@ -248,7 +248,7 @@ export interface RegulatoryCompliance {
   ongoingCasesDetails: string;
   anyOnSanctionsList: boolean;
   hasDocumentedAmlPolicies: boolean;
-  amlCftPolicyDocumentFileId: number;
+  amlCftPolicyDocumentFileId: number | null;
   conductsRegularAmlTraining: boolean;
   hasCustomerVerificationProcess: boolean;
   hasInternalRiskAssessment: boolean;
@@ -256,11 +256,11 @@ export interface RegulatoryCompliance {
   hasResponsibleSourcingAuditEvidence: boolean;
   hadRegulatoryPenalties: boolean;
   penaltyExplanation: string;
-  declarationNoPenaltyFileId: number;
+  declarationNoPenaltyFileId: number | null;
   hasSupplyChainPolicy: boolean;
-  supplyChainPolicyDocumentFileId: number;
+  supplyChainPolicyDocumentFileId: number | null;
   responsibleSourcingAuditEvidence2: boolean;
-  assuranceReportFileId: number;
+  assuranceReportFileId: number | null;
 }
 
 export interface MemberRequiredDocuments {

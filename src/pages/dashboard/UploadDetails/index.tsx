@@ -17,18 +17,12 @@ import Step5Regulatory from "./comps/steps/Step5Regulatory";
 import Step6RequiredDocumentChecklist from "./comps/steps/Step6RequiredDocumentChecklist";
 import Step7DataProtection from "./comps/steps/Step7DataProtection";
 import Step8Agreement from "./comps/steps/Step8Agreement";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-
 export default function UploadDetails() {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const currentStep = useAppSelector(selectCurrentStep);
   const isLoadingFromStore = useAppSelector(selectIsLoading);
 
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [submittedDate, setSubmittedDate] = useState<string>("");
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -36,10 +30,7 @@ export default function UploadDetails() {
       dispatch(getUploadDetails(userId)).then((res: any) => {
         const data = res.payload?.data;
 
-        if (data?.isCompleted) {
-          setIsCompleted(true);
-          setSubmittedDate(data.completedAt ?? new Date().toISOString());
-        } else {
+        if (!data?.isCompleted) {
           const lastCompleted = data?.application?.lastCompletedSection ?? 0;
           const nextStep = lastCompleted + 1;
           dispatch(setCurrentStep(nextStep));

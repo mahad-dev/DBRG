@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
@@ -232,9 +232,12 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         percentage: "",
         nationality: "",
         address: "",
+        passportId: "",
+        nationalIdNumber: "",
         passportDocument: null,
         nationalIdDocument: null,
         confirmationFile: null,
+        uboConfirmationDocument: null,
       },
     ]);
   };
@@ -245,11 +248,11 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   const setUboField = (
     index: number,
     field: keyof UltimateBeneficialOwner,
-    value: any
+    value: string
   ) => {
     setUbos((prev) => {
       const updated = [...prev];
-      updated[index][field] = value;
+      (updated[index] as any)[field] = value;
       return updated;
     });
   };
@@ -1004,6 +1007,32 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                 value={u.nationality}
                 onChange={(e) =>
                   setUboField(index, "nationality", e.target.value)
+                }
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mt-4">
+            <div>
+              <Label>Passport ID</Label>
+              <Input
+                type="text"
+                value={u.passportId}
+                onChange={(e) =>
+                  setUboField(index, "passportId", e.target.value)
+                }
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
+              />
+            </div>
+
+            <div>
+              <Label>National ID Number</Label>
+              <Input
+                type="text"
+                value={u.nationalIdNumber}
+                onChange={(e) =>
+                  setUboField(index, "nationalIdNumber", e.target.value)
                 }
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
               />
