@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Filter, Map, MoreVertical } from "lucide-react";
 import ApprovedDialog from "./ApproveModal";
-import apiClient from "@/services/apiClient";
 import RejectDialog from "./RejectModal";
+import apiClient from "@/services/apiClient";
 
 /* ================= TYPES ================= */
 type Applicant = {
@@ -39,6 +39,7 @@ const PAGE_SIZE = 6;
 export default function ApplicantsTable() {
   const [data, setData] = useState<Applicant[]>([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -48,8 +49,9 @@ export default function ApplicantsTable() {
   const [selectedApplicant, setSelectedApplicant] =
     useState<Applicant | null>(null);
 
-  /* ================= FETCH FROM API ================= */
+  /* ================= FETCH ================= */
   const fetchApplicants = async () => {
+    setLoading(true);
     try {
       const res = await apiClient.get(
         "/UploadDetails/GetApplications",
@@ -66,18 +68,19 @@ export default function ApplicantsTable() {
       setTotalCount(res.data.data.totalCount);
     } catch (error) {
       console.error("Fetch Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchApplicants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  /* ================= HANDLERS ================= */
+  /* ================= ACTIONS ================= */
   const handleApprove = async () => {
     if (!selectedApplicant) return;
     try {
@@ -159,27 +162,44 @@ export default function ApplicantsTable() {
                 </TableHeader>
 
                 <TableBody>
-                  {data.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.company}</TableCell>
-                      <TableCell>
-                        {item.country ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <ActionMenu
-                          onApprove={() => {
-                            setSelectedApplicant(item);
-                            setApproveModal(true);
-                          }}
-                          onReject={() => {
-                            setSelectedApplicant(item);
-                            setRejectModal(true);
-                          }}
-                        />
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4}>
+                        <div className="flex justify-center items-center min-h-[300px]">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : data.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-10 text-white/60"
+                      >
+                        No applications found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.company}</TableCell>
+                        <TableCell>{item.country ?? "—"}</TableCell>
+                        <TableCell>
+                          <ActionMenu
+                            onApprove={() => {
+                              setSelectedApplicant(item);
+                              setApproveModal(true);
+                            }}
+                            onReject={() => {
+                              setSelectedApplicant(item);
+                              setRejectModal(true);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </ScrollArea>

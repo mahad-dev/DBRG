@@ -150,25 +150,38 @@ export default function SpecialConsiderationTable() {
           {/* ===== TABLE ===== */}
           <div className="border border-white rounded-lg overflow-hidden relative">
             <ScrollArea className="max-h-[520px]">
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <span className="text-white animate-spin">⏳ Loading...</span>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-white/5">
-                      <TableHead>Name</TableHead>
-                      <TableHead>Company Name</TableHead>
-                      <TableHead>Membership Category</TableHead>
-                      <TableHead>Country</TableHead>
-                      <TableHead>Message</TableHead>
-                      <TableHead>Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-white/5">
+                    <TableHead>Name</TableHead>
+                    <TableHead>Company Name</TableHead>
+                    <TableHead>Membership Category</TableHead>
+                    <TableHead>Country</TableHead>
+                    <TableHead>Message</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
 
-                  <TableBody>
-                    {data.map((item) => (
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <div className="flex justify-center items-center min-h-[400px]">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : data.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center py-10 text-muted-foreground"
+                      >
+                        No data found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.name}</TableCell>
                         <TableCell>{item.companyName ?? "—"}</TableCell>
@@ -188,14 +201,18 @@ export default function SpecialConsiderationTable() {
                           />
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </ScrollArea>
 
             {/* PAGINATION */}
-            <FooterPagination page={page} total={totalPages} setPage={setPage} />
+            <FooterPagination
+              page={page}
+              total={totalPages}
+              setPage={setPage}
+            />
           </div>
         </div>
       </div>
