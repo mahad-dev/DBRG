@@ -1,0 +1,277 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Search, Filter, Map, MoreVertical } from "lucide-react";
+import ApprovedDialog from "./ApproveModal";
+import RejectDialog from "./RejectModal";
+import apiClient from "@/services/apiClient";
+
+/* ================= TYPES ================= */
+type ConsiderationRequest = {
+  id: number;
+  name: string;
+  companyName: string | null;
+  country: string | null;
+  membershipType: number;
+  message: string;
+  status: number;
+  applicationDate: string;
+  remarks: string | null;
+};
+
+const PAGE_SIZE = 10;
+
+/* ================= COMPONENT ================= */
+export default function SpecialConsiderationTable() {
+  const [data, setData] = useState<ConsiderationRequest[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const [approveModal, setApproveModal] = useState(false);
+  const [rejectModal, setRejectModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] =
+    useState<ConsiderationRequest | null>(null);
+
+  /* ================= FETCH FROM API ================= */
+  const fetchRequests = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get("/SpecialConsideration/GetApplications", {
+        params: {
+          Search: search || undefined,
+          PageNumber: page,
+          PageSize: PAGE_SIZE,
+        },
+      });
+
+      setData(res.data.data.items || []);
+      setTotalRecords(res.data.data.totalRecords || 0);
+    } catch (error) {
+      console.error("Fetch Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, [page, search]);
+
+  const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+
+  /* ================= HANDLERS ================= */
+  const handleApprove = async () => {
+    if (!selectedRequest) return;
+    try {
+      await apiClient.post(
+        `/specialconsideration/${selectedRequest.id}/approve`
+      );
+      setApproveModal(false);
+      fetchRequests();
+    } catch (error) {
+      console.error("Approve Error:", error);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedRequest) return;
+    try {
+      await apiClient.post(
+        `/specialconsideration/${selectedRequest.id}/reject`
+      );
+      setRejectModal(false);
+      fetchRequests();
+    } catch (error) {
+      console.error("Reject Error:", error);
+    }
+  };
+
+  return (
+    <>
+      <div className="min-h-screen text-white">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* ===== HEADER ===== */}
+          <h1 className="text-3xl font-semibold text-[#C6A95F]">
+            Special Consideration Requests
+          </h1>
+
+          {/* ===== SEARCH & FILTER ===== */}
+          <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+            <div className="flex gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-3 h-11 px-3 rounded-lg border border-white/20 bg-white/10 w-full md:w-64">
+                <Input
+                  placeholder="Search"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  className="bg-transparent border-none text-white focus-visible:ring-0"
+                />
+                <Search className="w-4 h-4 text-white" />
+              </div>
+
+              <Button variant="outline" className="border-white/20">
+                <Filter className="w-4 h-4 mr-2" />
+                Status
+              </Button>
+
+              <Button variant="outline" className="border-white/20">
+                <Map className="w-4 h-4 mr-2" />
+                Country
+              </Button>
+            </div>
+
+            <Button className="bg-[#C6A95F] hover:bg-[#bfa14f]">
+              Download Report
+            </Button>
+          </div>
+
+          {/* ===== TABLE ===== */}
+          <div className="border border-white rounded-lg overflow-hidden relative">
+            <ScrollArea className="max-h-[520px]">
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <span className="text-white animate-spin">⏳ Loading...</span>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-white/5">
+                      <TableHead>Name</TableHead>
+                      <TableHead>Company Name</TableHead>
+                      <TableHead>Membership Category</TableHead>
+                      <TableHead>Country</TableHead>
+                      <TableHead>Message</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {data.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.companyName ?? "—"}</TableCell>
+                        <TableCell>{item.membershipType}</TableCell>
+                        <TableCell>{item.country ?? "—"}</TableCell>
+                        <TableCell>{item.message}</TableCell>
+                        <TableCell>
+                          <ActionMenu
+                            onApprove={() => {
+                              setSelectedRequest(item);
+                              setApproveModal(true);
+                            }}
+                            onReject={() => {
+                              setSelectedRequest(item);
+                              setRejectModal(true);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </ScrollArea>
+
+            {/* PAGINATION */}
+            <FooterPagination page={page} total={totalPages} setPage={setPage} />
+          </div>
+        </div>
+      </div>
+
+      {/* ===== MODALS ===== */}
+      <ApprovedDialog
+        open={approveModal}
+        onOpenChange={setApproveModal}
+        onConfirm={handleApprove}
+      />
+
+      <RejectDialog
+        open={rejectModal}
+        onOpenChange={setRejectModal}
+        onConfirm={handleReject}
+      />
+    </>
+  );
+}
+
+/* ================= PAGINATION ================= */
+function FooterPagination({
+  page,
+  total,
+  setPage,
+}: {
+  page: number;
+  total: number;
+  setPage: (v: number) => void;
+}) {
+  return (
+    <div className="flex justify-between items-center px-4 py-4 border-t border-white">
+      <span className="text-sm">
+        Page {page} of {total}
+      </span>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={page === total}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ================= ACTION MENU ================= */
+function ActionMenu({
+  onApprove,
+  onReject,
+}: {
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-white">
+        <DropdownMenuItem onClick={onApprove}>Approve</DropdownMenuItem>
+        <DropdownMenuItem onClick={onReject}>Reject</DropdownMenuItem>
+        <DropdownMenuItem>Ask for more details</DropdownMenuItem>
+        <DropdownMenuItem>View Application</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
