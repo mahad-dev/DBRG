@@ -29,6 +29,7 @@ import PaymentDetails from "@/pages/adminDashboard/PaymentDetails";
 import SpecialConsideration from "@/pages/adminDashboard/SpecialConsideration";
 import Settings from "@/pages/adminDashboard/Settings";
 import AdminDashboard from "@/pages/adminDashboard";
+import Applications from "@/pages/adminDashboard/Applications";
 
 // Route configuration type
 export interface RouteConfig {
@@ -88,6 +89,7 @@ const adminDashboardRoutes: RouteConfig[] = [
   { path: "payment-details", element: <PaymentDetails />, name: "PaymentDetails" },
   { path: "special-consideration", element: <SpecialConsideration />, name: "SpecialConsideration" },
   { path: "settings", element: <Settings />, name: "Settings" },
+  { path: "applications", element: <Applications />, name: "Applications" },
 ];
 
 /* ---------------------------------------------------------
