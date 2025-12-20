@@ -1,5 +1,4 @@
 "use client";
-import { useEffect } from "react";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
@@ -38,6 +37,8 @@ export default function Step1Applicability() {
     anyAMLNotices,
     signedAMLFile,
     evidenceFile,
+    existingSignedAMLPath,
+    existingEvidencePath,
     signedRef,
     evidenceRef,
     setMembership,
@@ -52,26 +53,11 @@ export default function Step1Applicability() {
     setEvidenceFile,
     removeSignedAMLFile,
     removeEvidenceFile,
-  } = useStep1Applicability();
+  } = useStep1Applicability(formData.applicability);
 
-  // Pre-fill data if available
-  useEffect(() => {
-    if (formData.applicability) {
-      const app = formData.applicability;
-      if (app.principalMember) {
-        setMembership("principal");
-        // Pre-fill services, category, answers, etc.
-      } else if (app.memberBank) {
-        setMembership("member_bank");
-      } else if (app.contributingMember) {
-        setMembership("contributing");
-      } else if (app.affiliateMember) {
-        setMembership("affiliate");
-      }
-    }
-  }, [formData.applicability, setMembership]);
 
-  // Check if this step is completed
+
+  
 
   const serviceOptions = [
     { id: "trading", label: "Trading in precious metals products" },
@@ -338,6 +324,15 @@ export default function Step1Applicability() {
               id="evidence-upload"
               onRemove={removeEvidenceFile}
             />
+            {existingEvidencePath && !evidenceFile && (
+              <a
+                href={existingEvidencePath}
+                target="_blank"
+                className="text-[#C6A95F] underline mt-2 block"
+              >
+                View previously uploaded evidence
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -371,6 +366,15 @@ export default function Step1Applicability() {
             id="signed-aml-upload"
             onRemove={removeSignedAMLFile}
           />
+          {existingSignedAMLPath && !signedAMLFile && (
+            <a
+              href={existingSignedAMLPath}
+              target="_blank"
+              className="text-[#C6A95F] underline mt-2 block"
+            >
+              View previously uploaded AML Declaration
+            </a>
+          )}
         </div>
       </div>
 

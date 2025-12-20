@@ -29,6 +29,7 @@ export default function UploadDetails() {
     if (userId) {
       dispatch(getUploadDetails(userId)).then((res: any) => {
         const data = res.payload?.data;
+        console.log("first..",data)
 
         if (!data?.isCompleted) {
           const lastCompleted = data?.application?.lastCompletedSection ?? 0;

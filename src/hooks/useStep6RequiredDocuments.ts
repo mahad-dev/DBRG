@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+import type { MemberRequiredDocuments } from "../types/uploadDetails";
 
 /** Types */
 export type DocItem = {
@@ -13,23 +14,26 @@ export type OtherForm = {
   file: File | null;
 };
 
-export function useStep6RequiredDocuments(initialItems?: DocItem[]) {
-  const defaultItems: DocItem[] =
-    initialItems ??
-    [
-      { id: "trade_license", label: "Valid UAE Trade License, Memorandum of Association" },
-      { id: "ownership_structure", label: "Completed ownership structure on the entity letterhead, signed by entity's authorised signatory" },
-      { id: "certified_true_copy", label: "Certified true copy by compliance officer" },
-      { id: "assurance_report", label: "Latest Assurance report Issued for Compliance with Regulation for Responsible Sourcing of gold" },
-      { id: "banking_evidence", label: "Banking Relationship Evidence (24+ months)" },
-      { id: "audited_fs", label: "Audited Financial Statements" },
-      { id: "net_worth", label: "Net Worth Certificate" },
-      { id: "aml_policy", label: "AML/CFT Policy" },
-      { id: "supply_chain", label: "Supply Chain Compliance Policy" },
-      { id: "declaration_aml", label: "Declaration of No Unresolved AML Notices" },
-      { id: "accreditation", label: "Copy of valid accreditation certificate(s)" },
-      { id: "board_resolution", label: "Copy of Board Resolution" },
-    ];
+export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequiredDocuments) {
+  const defaultItems: DocItem[] = [
+    { id: "trade_license", label: "Valid UAE Trade License, Memorandum of Association" },
+    { id: "banking_evidence", label: "Banking Relationship Evidence (24+ months)" },
+    { id: "audited_fs", label: "Audited Financial Statements" },
+    { id: "net_worth", label: "Net Worth Certificate" },
+    { id: "aml_policy", label: "AML/CFT Policy" },
+    { id: "supply_chain", label: "Supply Chain Compliance Policy" },
+    { id: "amlCftAndSupplyChainPolicies", label: "AML/CFT and Supply Chain Policies" },
+    { id: "declaration_aml", label: "Declaration of No Unresolved AML Notices" },
+    { id: "noUnresolvedAmlNoticesDeclaration", label: "No Unresolved AML Notices Declaration" },
+    { id: "accreditation", label: "Copy of valid accreditation certificate(s)" },
+    { id: "board_resolution", label: "Copy of Board Resolution" },
+    { id: "ownership_structure", label: "Completed ownership structure on the entity letterhead, signed by entity's authorised signatory" },
+    { id: "certified_true_copy", label: "Certified true copy by compliance officer" },
+    { id: "assurance_report", label: "Latest Assurance report Issued for Compliance with Regulation for Responsible Sourcing of gold" },
+    { id: "responsibleSourcingAssuranceReport", label: "Responsible Sourcing Assurance Report" },
+    { id: "uboProofDocuments", label: "UBO Proof Documents" },
+    { id: "certifiedIds", label: "Certified IDs" },
+  ];
 
   const [items] = useState<DocItem[]>(defaultItems);
 
@@ -60,6 +64,48 @@ export function useStep6RequiredDocuments(initialItems?: DocItem[]) {
   }, []);
 
   const [otherForms, setOtherForms] = useState<OtherForm[]>([]);
+
+  // Prefill logic
+  useEffect(() => {
+    console.log("useStep6RequiredDocuments useEffect triggered with:", memberRequiredDocuments);
+    if (!memberRequiredDocuments) {
+      console.log("No memberRequiredDocuments data, returning");
+      return;
+    }
+
+    console.log("Setting checked states from memberRequiredDocuments data");
+    // Set checked states based on API data
+    setChecked({
+      trade_license: memberRequiredDocuments.isChecked_TradeLicenseAndMoa ?? false,
+      banking_evidence: memberRequiredDocuments.isChecked_BankingRelationshipEvidence ?? false,
+      audited_fs: memberRequiredDocuments.isChecked_AuditedFinancialStatements ?? false,
+      net_worth: memberRequiredDocuments.isChecked_NetWorthCertificate ?? false,
+      aml_policy: memberRequiredDocuments.isChecked_AmlCftPolicy ?? false,
+      supply_chain: memberRequiredDocuments.isChecked_SupplyChainCompliancePolicy ?? false,
+      amlCftAndSupplyChainPolicies: memberRequiredDocuments.isChecked_AmlCftAndSupplyChainPolicies ?? false,
+      declaration_aml: memberRequiredDocuments.isChecked_DeclarationNoUnresolvedAmlNotices ?? false,
+      noUnresolvedAmlNoticesDeclaration: memberRequiredDocuments.isChecked_NoUnresolvedAmlNoticesDeclaration ?? false,
+      accreditation: memberRequiredDocuments.isChecked_AccreditationCertificates ?? false,
+      board_resolution: memberRequiredDocuments.isChecked_BoardResolution ?? false,
+      ownership_structure: memberRequiredDocuments.isChecked_OwnershipStructure ?? false,
+      certified_true_copy: memberRequiredDocuments.isChecked_CertifiedTrueCopy ?? false,
+      assurance_report: memberRequiredDocuments.isChecked_LatestAssuranceReport ?? false,
+      responsibleSourcingAssuranceReport: memberRequiredDocuments.isChecked_ResponsibleSourcingAssuranceReport ?? false,
+      uboProofDocuments: memberRequiredDocuments.isChecked_UboProofDocuments ?? false,
+      certifiedIds: memberRequiredDocuments.isChecked_CertifiedIds ?? false,
+    });
+
+    // Handle other forms if they exist
+    if (memberRequiredDocuments.otherForms && memberRequiredDocuments.otherForms.length > 0) {
+      console.log("Setting other forms:", memberRequiredDocuments.otherForms);
+      const otherFormsData = memberRequiredDocuments.otherForms.map((form, index) => ({
+        id: `other_${index}`,
+        name: form.otherFormName || "",
+        file: null, // Files are not prefilled, only the names
+      }));
+      setOtherForms(otherFormsData);
+    }
+  }, [memberRequiredDocuments]);
 
   const addOtherForm = useCallback((name = "") => {
     setOtherForms((o) => [...o, { id: `other_${Date.now()}`, name, file: null }]);

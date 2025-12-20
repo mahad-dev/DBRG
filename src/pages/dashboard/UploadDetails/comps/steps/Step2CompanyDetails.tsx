@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,10 +24,10 @@ import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
-import { selectFormData, selectIsSaving, updateFormData, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
-import type { Shareholder, UltimateBeneficialOwner, Director, CompanyDetails } from '../../../../../types/uploadDetails';
+import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
 import { MemberApplicationSection } from '../../../../../types/uploadDetails';
 import { toast } from 'react-toastify';
+import { useStep2CompanyDetails } from '../../../../../hooks/useStep2CompanyDetails';
 
 interface StepProps {
   onNext?: () => void;
@@ -38,301 +38,189 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
 
-  // Extract current step data
-  const defaultCompanyDetails: CompanyDetails = {
-    legalEntityName: '',
-    entityType: '',
-    tradeLicenseNo: '',
-    licensingAuthority: '',
-    dateIssued: '',
-    dateExpiry: '',
-    country: '',
-    dateIncorp: '',
-    passportId: '',
-    nationalId: '',
-    vatNumber: '',
-    taxRegNumber: '',
-    website: '',
-    emailOfficial: '',
-    phoneNumber: '',
-    primaryContactName: '',
-    primaryContactDesignation: '',
-    primaryContactEmail: '',
-    registeredOfficeAddress: '',
-    anyShareholderDirectorUBOPEP: false,
-    pepShareholders: false,
-    pepBeneficialOwners: false,
-    pepCustomers: false,
-    shareholdingType: 1,
-    shareholders: [],
-    ultimateBeneficialOwners: [],
-    directors: [],
-    tradeAssociationName: '',
-    tradeAssociationMember: '',
-    tradeAssociationDate: '',
-    refineryAccreditations: [],
-    accreditationOther: false,
-    accreditationOtherName: '',
-    tradeLicenseDocument: null,
-    certificateOfIncorporation: null,
-    taxRegistrationDocument: null,
-    vatDocument: null,
-    addressProofDocument: null,
-    accreditationCertificate: null,
-    shareholdingProof: null,
-    uboConfirmationDocument: null,
-    entityLegalType: "",
-    tradeLicenseNumber: "",
-    isRegisteredForCorporateTax: false,
-    taxRegistrationNumber: "",
-    isRegisteredForVAT: false,
-    officialEmail: "",
-    countryOfIncorporation: "",
-    dateOfIncorporation: "",
-    anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: false,
-    hasCustomerPEPChecks: false,
-    nameOfMember: "",
-    dateOfAppointment: "",
-    otherAccreditation: "",
-    lbma: false,
-    dmccDgd: false,
-    dmccMdb: false,
-    rjc: false,
-    iages: false
-  };
+  // Use the hook with prefill data
+  const {
+    form,
+    setField,
+    uploadBoxes,
+    fileRefs,
+    handleSelectFile,
+    handleDropFile,
+    removeFile,
+    shareholders,
+    shareholderRefs,
+    addShareholder,
+    removeShareholder,
+    setShareholderField,
+    handleShareholderFile,
+    ubos,
+    uboRefs,
+    addUbo,
+    removeUbo,
+    setUboField,
+    handleUboFile,
+    directors,
+    addDirector,
+    removeDirector,
+    setDirectorField,
+  } = useStep2CompanyDetails(formData, 2);
 
-  const companyDetails = { ...defaultCompanyDetails, ...formData.companyDetails };
-
-  // Local state for dynamic arrays and files
-  const [shareholders, setShareholders] = useState<Shareholder[]>(companyDetails.shareholders || []);
-  const [ubos, setUbos] = useState<UltimateBeneficialOwner[]>(companyDetails.ultimateBeneficialOwners || []);
-  const [directors, setDirectors] = useState<Director[]>(companyDetails.directors || []);
-
-  const [uploadBoxes, setUploadBoxes] = useState({
-    tradeLicense: null as File | null,
-    coi: null as File | null,
-    passport: null as File | null,
-    nationalId: null as File | null,
-    vatDoc: null as File | null,
-    taxRegDoc: null as File | null,
-    addressProof: null as File | null,
-    tradeAssociationCertificate: null as File | null,
-  });
-
-  // Date picker states
-  const [dateIssued, setDateIssued] = useState<Date | undefined>();
-  const [dateExpiry, setDateExpiry] = useState<Date | undefined>();
-  const [dateIncorp, setDateIncorp] = useState<Date | undefined>();
+  // Date picker states for calendar components
+  const [dateOfIssuance, setDateOfIssuance] = useState<Date | undefined>();
+  const [dateOfExpiry, setDateOfExpiry] = useState<Date | undefined>();
+  const [dateOfIncorporation, setDateOfIncorporation] = useState<Date | undefined>();
   const [shareholderAppointmentDates, setShareholderAppointmentDates] = useState<(Date | undefined)[]>(
-    companyDetails.shareholders?.map(s => s.dateOfAppointment ? new Date(s.dateOfAppointment) : undefined) || []
+    shareholders.map(s => s.dateOfAppointment ? new Date(s.dateOfAppointment) : undefined)
   );
   const [directorAppointmentDates, setDirectorAppointmentDates] = useState<(Date | undefined)[]>(
-    companyDetails.directors?.map(d => d.dateOfAppointment ? new Date(d.dateOfAppointment) : undefined) || []
+    directors.map(d => d.dateOfAppointment ? new Date(d.dateOfAppointment) : undefined)
+  );
+  const [dateOfAppointment, setDateOfAppointment] = useState<Date | undefined>(
+    form.dateOfAppointment ? new Date(form.dateOfAppointment) : undefined
   );
 
-  const [tradeAssociationDate, setTradeAssociationDate] = useState<Date | undefined>(
-    companyDetails.tradeAssociationDate ? new Date(companyDetails.tradeAssociationDate) : undefined
-  );
+  // Prefill date states from form data
+  useEffect(() => {
+    if (form.dateOfIssuance) setDateOfIssuance(new Date(form.dateOfIssuance));
+    if (form.dateOfExpiry) setDateOfExpiry(new Date(form.dateOfExpiry));
+    if (form.dateOfIncorporation) setDateOfIncorporation(new Date(form.dateOfIncorporation));
+    if (form.dateOfAppointment) setDateOfAppointment(new Date(form.dateOfAppointment));
+  }, [form.dateOfIssuance, form.dateOfExpiry, form.dateOfIncorporation, form.dateOfAppointment]);
 
-  const fileRefs = {
-    licenseRef: useRef<HTMLInputElement>(null),
-    coiRef: useRef<HTMLInputElement>(null),
-    passportRef: useRef<HTMLInputElement>(null),
-    nationalIdRef: useRef<HTMLInputElement>(null),
-    vatRef: useRef<HTMLInputElement>(null),
-    taxRegRef: useRef<HTMLInputElement>(null),
-    addressProofRef: useRef<HTMLInputElement>(null),
-    accreditationRef: useRef<HTMLInputElement>(null),
-  };
+  // Prefill shareholder and director dates
+  useEffect(() => {
+    setShareholderAppointmentDates(shareholders.map(s => s.dateOfAppointment ? new Date(s.dateOfAppointment) : undefined));
+  }, [shareholders]);
 
-  const shareholderRefs = useRef(new Map<number, HTMLInputElement>());
-  const uboRefs = useRef(new Map<number, HTMLInputElement>());
-
-  const setField = useCallback((field: string, value: any) => {
-    dispatch(updateFormData({
-      companyDetails: {
-        ...companyDetails,
-        [field]: value
-      }
-    }));
-  }, [dispatch, companyDetails]);
-
-  const handleSelectFile = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof uploadBoxes) => {
-      const file = e.target.files?.[0] ?? null;
-      setUploadBoxes((prev) => ({ ...prev, [key]: file }));
-    },
-    []
-  );
-
-  const handleDropFile = useCallback(
-    (e: React.DragEvent, key: keyof typeof uploadBoxes) => {
-      e.preventDefault();
-      const file = e.dataTransfer?.files?.[0] ?? null;
-      setUploadBoxes((prev) => ({ ...prev, [key]: file }));
-    },
-    []
-  );
-
-  const removeFile = (key: keyof typeof uploadBoxes) =>
-    setUploadBoxes((prev) => ({ ...prev, [key]: null }));
-
-  const addShareholder = () => {
-    setShareholders((prev:any) => [
-      ...prev,
-      {
-        fullName: "",
-        passportId: "",
-        nationalIdNumber: "",
-        shareholdingPercentage: 0,
-        nationality: "",
-        dateOfAppointment: "",
-        address: "",
-        passportDocument: null,
-        nationalIdDocument: null,
-        proofFile: null,
-      },
-    ]);
-    setShareholderAppointmentDates((prev) => [...prev, undefined]);
-  };
-
-  const removeShareholder = (index: number) => {
-    setShareholders((prev) => prev.filter((_, i) => i !== index));
-    setShareholderAppointmentDates((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const setShareholderField = <K extends keyof Shareholder>(
-    index: number,
-    field: K,
-    value: Shareholder[K]
-  ) => {
-    setShareholders((prev) => {
-      const updated = [...prev];
-      updated[index][field] = value;
-      return updated;
-    });
-  };
-
-  const handleShareholderFile = (
-    index: number,
-    file: File | null
-  ) => {
-    setShareholders((prev) => {
-      const updated = [...prev];
-      updated[index].proofFile = file;
-      return updated;
-    });
-  };
-
-  const addUbo = () => {
-    setUbos((prev) => [
-      ...prev,
-      {
-        fullName: "",
-        percentage: "",
-        nationality: "",
-        address: "",
-        passportId: "",
-        nationalIdNumber: "",
-        passportDocument: null,
-        nationalIdDocument: null,
-        confirmationFile: null,
-        uboConfirmationDocument: null,
-      },
-    ]);
-  };
-
-  const removeUbo = (index: number) =>
-    setUbos((prev) => prev.filter((_, i) => i !== index));
-
-  const setUboField = (
-    index: number,
-    field: keyof UltimateBeneficialOwner,
-    value: string
-  ) => {
-    setUbos((prev) => {
-      const updated = [...prev];
-      (updated[index] as any)[field] = value;
-      return updated;
-    });
-  };
-
-  const handleUboFile = (index: number, file: File | null) => {
-    setUbos((prev) => {
-      const updated = [...prev];
-      updated[index].confirmationFile = file;
-      return updated;
-    });
-  };
-
-  const addDirector = () => {
-    setDirectors((prev) => [
-      ...prev,
-      {
-        fullName: "",
-        dateOfAppointment: "",
-        nationality: "",
-        address: "",
-        phoneNumber: "",
-      },
-    ]);
-  };
-
-  const removeDirector = (index: number) =>
-    setDirectors((prev) => prev.filter((_, i) => i !== index));
-
-  const setDirectorField = (
-    index: number,
-    field: keyof Director,
-    value: any
-  ) => {
-    setDirectors((prev) => {
-      const updated = [...prev];
-      updated[index][field] = value;
-      return updated;
-    });
-  };
+  useEffect(() => {
+    setDirectorAppointmentDates(directors.map(d => d.dateOfAppointment ? new Date(d.dateOfAppointment) : undefined));
+  }, [directors]);
 
   const handleSave = async () => {
     try {
-      // Upload files first
-      const fileUploads = [];
+      // Upload main company files first
+      let tradeLicenseDocumentId: number | null = null;
+      let coiDocumentId: number | null = null;
+      let passportDocumentId: number | null = null;
+      let nationalIdDocumentId: number | null = null;
+      let vatDocDocumentId: number | null = null;
+      let taxRegDocDocumentId: number | null = null;
+      let addressProofDocumentId: number | null = null;
+      let tradeAssociationCertificateDocumentId: number | null = null;
+
       if (uploadBoxes.tradeLicense) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.tradeLicense)));
+        tradeLicenseDocumentId = await dispatch(uploadDocument(uploadBoxes.tradeLicense)).unwrap();
       }
       if (uploadBoxes.coi) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.coi)));
+        coiDocumentId = await dispatch(uploadDocument(uploadBoxes.coi)).unwrap();
       }
       if (uploadBoxes.passport) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.passport)));
+        passportDocumentId = await dispatch(uploadDocument(uploadBoxes.passport)).unwrap();
       }
       if (uploadBoxes.nationalId) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.nationalId)));
+        nationalIdDocumentId = await dispatch(uploadDocument(uploadBoxes.nationalId)).unwrap();
       }
       if (uploadBoxes.vatDoc) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.vatDoc)));
+        vatDocDocumentId = await dispatch(uploadDocument(uploadBoxes.vatDoc)).unwrap();
       }
       if (uploadBoxes.taxRegDoc) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.taxRegDoc)));
+        taxRegDocDocumentId = await dispatch(uploadDocument(uploadBoxes.taxRegDoc)).unwrap();
       }
       if (uploadBoxes.addressProof) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.addressProof)));
+        addressProofDocumentId = await dispatch(uploadDocument(uploadBoxes.addressProof)).unwrap();
       }
       if (uploadBoxes.tradeAssociationCertificate) {
-        fileUploads.push(dispatch(uploadDocument(uploadBoxes.tradeAssociationCertificate)));
+        tradeAssociationCertificateDocumentId = await dispatch(uploadDocument(uploadBoxes.tradeAssociationCertificate)).unwrap();
       }
 
-      // Wait for all file uploads to complete
-      await Promise.all(fileUploads);
+      // Upload shareholder files and update shareholder data
+      const updatedShareholders = await Promise.all(
+        shareholders.map(async (shareholder) => {
+          let proofDocId: number | null = null;
+
+          // Upload shareholding proof document if exists
+          if (shareholder.proofFile) {
+            proofDocId = await dispatch(uploadDocument(shareholder.proofFile)).unwrap();
+          }
+
+          return {
+            ...shareholder,
+            passportDocument: passportDocumentId, // Use company passport document
+            nationalIdDocument: nationalIdDocumentId, // Use company national ID document
+            shareholdingDocumentId: proofDocId,
+            proofFile: null, // Remove file object from payload
+          };
+        })
+      );
+
+      // Upload UBO files and update UBO data
+      const updatedUbos = await Promise.all(
+        ubos.map(async (ubo) => {
+          let confirmationDocId: number | null = null;
+
+          // Upload UBO confirmation document if exists
+          if (ubo.confirmationFile) {
+            confirmationDocId = await dispatch(uploadDocument(ubo.confirmationFile)).unwrap();
+          }
+
+          return {
+            ...ubo,
+            ownershipPercentage: ubo.ownershipPercentage, // Already a number
+            passportDocument: passportDocumentId, // Use company passport document
+            nationalIdDocument: nationalIdDocumentId, // Use company national ID document
+            uboConfirmationDocument: confirmationDocId,
+            confirmationFile: null, // Remove file object from payload
+          };
+        })
+      );
 
       // Save form data
       await dispatch(saveUploadDetails({
         payload: {
           ...formData,
           companyDetails: {
-            ...companyDetails,
-            shareholders,
-            ultimateBeneficialOwners: ubos,
+            legalEntityName: form.legalEntityName,
+            entityLegalType: form.entityLegalType,
+            tradeLicenseNumber: form.tradeLicenseNumber,
+            licensingAuthority: form.licensingAuthority,
+            dateOfIssuance: form.dateOfIssuance,
+            dateOfExpiry: form.dateOfExpiry,
+            countryOfIncorporation: form.countryOfIncorporation,
+            dateOfIncorporation: form.dateOfIncorporation,
+            passportId: form.passportId,
+            nationalId: form.nationalId,
+            vatNumber: form.vatNumber,
+            taxRegistrationNumber: form.taxRegistrationNumber,
+            website: form.website,
+            officialEmail: form.officialEmail,
+            phoneNumber: form.phoneNumber,
+            primaryContactName: form.primaryContactName,
+            primaryContactDesignation: form.primaryContactDesignation,
+            primaryContactEmail: form.primaryContactEmail,
+            registeredOfficeAddress: form.registeredOfficeAddress,
+            anyShareholderDirectorUBOPEP: form.anyShareholderDirectorUBOPEP ?? false,
+            anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP ?? false,
+            hasCustomerPEPChecks: form.hasCustomerPEPChecks ?? false,
+            tradeAssociationName: form.tradeAssociationName,
+            nameOfMember: form.nameOfMember,
+            dateOfAppointment: form.dateOfAppointment,
+            lbma: form.lbma,
+            dmccDgd: form.dmccDgd,
+            dmccMdb: form.dmccMdb,
+            rjc: form.rjc,
+            iages: form.iages,
+            accreditationOther: form.accreditationOther,
+            otherAccreditation: form.otherAccreditation,
+            tradeLicenseDocument: tradeLicenseDocumentId,
+            certificateOfIncorporation: coiDocumentId,
+            taxRegistrationDocument: taxRegDocDocumentId,
+            vatDocument: vatDocDocumentId,
+            addressProofDocument: addressProofDocumentId,
+            accreditationCertificate: tradeAssociationCertificateDocumentId,
+            shareholdingProof: tradeLicenseDocumentId, // Using trade license as shareholding proof
+            uboConfirmationDocument: coiDocumentId, // Using COI as UBO confirmation
+            shareholders: updatedShareholders,
+            ultimateBeneficialOwners: updatedUbos,
             directors,
           }
         },
@@ -360,7 +248,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Legal Entity Name</Label>
           <Input
             type="text"
-            value={companyDetails.legalEntityName}
+            value={form.legalEntityName}
             onChange={(e) => setField("legalEntityName", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Legal Entity Name"
@@ -370,8 +258,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         <div>
           <Label>Entity Legal Type</Label>
           <Select
-            value={companyDetails.entityType}
-            onValueChange={(value) => setField("entityType", value)}
+            value={form.entityLegalType}
+            onValueChange={(value) => setField("entityLegalType", value)}
           >
             <SelectTrigger className="w-full mt-2 bg-white h-[42px] text-black border-gray-300 focus:ring-0 focus:ring-offset-0">
               <SelectValue placeholder="Entity Legal Type" />
@@ -392,8 +280,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Trade License / Registration No</Label>
           <Input
             type="text"
-            value={companyDetails.tradeLicenseNo}
-            onChange={(e) => setField("tradeLicenseNo", e.target.value)}
+            value={form.tradeLicenseNumber}
+            onChange={(e) => setField("tradeLicenseNumber", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Trade License/Registration No"
           />
@@ -403,7 +291,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Licensing Authority</Label>
           <Input
             type="text"
-            value={companyDetails.licensingAuthority}
+            value={form.licensingAuthority}
             onChange={(e) => setField("licensingAuthority", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Licensing Authority"
@@ -447,16 +335,16 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateIssued ? format(dateIssued, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+                {dateOfIssuance ? format(dateOfIssuance, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-white">
               <Calendar
                 mode="single"
-                selected={dateIssued}
+                selected={dateOfIssuance}
                 onSelect={(date) => {
-                  setDateIssued(date);
-                  setField("dateIssued", date ? date.toISOString() : "");
+                  setDateOfIssuance(date);
+                  setField("dateOfIssuance", date ? date.toISOString() : "");
                 }}
               />
             </PopoverContent>
@@ -472,16 +360,16 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateExpiry ? format(dateExpiry, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+                {dateOfExpiry ? format(dateOfExpiry, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-white">
               <Calendar
                 mode="single"
-                selected={dateExpiry}
+                selected={dateOfExpiry}
                 onSelect={(date) => {
-                  setDateExpiry(date);
-                  setField("dateExpiry", date ? date.toISOString() : "");
+                  setDateOfExpiry(date);
+                  setField("dateOfExpiry", date ? date.toISOString() : "");
                 }}
               />
             </PopoverContent>
@@ -497,8 +385,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Country of Incorporation</Label>
           <Input
             type="text"
-            value={companyDetails.country}
-            onChange={(e) => setField("country", e.target.value)}
+            value={form.countryOfIncorporation}
+            onChange={(e) => setField("countryOfIncorporation", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Dubai"
           />
@@ -513,16 +401,16 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateIncorp ? format(dateIncorp, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+                {dateOfIncorporation ? format(dateOfIncorporation, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-white">
               <Calendar
                 mode="single"
-                selected={dateIncorp}
+                selected={dateOfIncorporation}
                 onSelect={(date) => {
-                  setDateIncorp(date);
-                  setField("dateIncorp", date ? date.toISOString() : "");
+                  setDateOfIncorporation(date);
+                  setField("dateOfIncorporation", date ? date.toISOString() : "");
                 }}
               />
             </PopoverContent>
@@ -560,7 +448,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         <Label>Passport ID</Label>
         <Input
           type="text"
-          value={companyDetails.passportId}
+          value={form.passportId}
           onChange={(e) => setField("passportId", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Enter Passport ID"
@@ -594,7 +482,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         <Label>National ID Number</Label>
         <Input
           type="text"
-          value={companyDetails.nationalId}
+          value={form.nationalId}
           onChange={(e) => setField("nationalId", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="National ID Number"
@@ -628,7 +516,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         <Label>VAT Number</Label>
         <Input
           type="text"
-          value={companyDetails.vatNumber}
+          value={form.vatNumber}
           onChange={(e) => setField("vatNumber", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="VAT Number"
@@ -662,8 +550,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         <Label>Tax Registration Number</Label>
         <Input
           type="text"
-          value={companyDetails.taxRegNumber}
-          onChange={(e) => setField("taxRegNumber", e.target.value)}
+          value={form.taxRegistrationNumber}
+          onChange={(e) => setField("taxRegistrationNumber", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Tax Registration Number"
         />
@@ -697,7 +585,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Website</Label>
           <Input
             type="text"
-            value={companyDetails.website}
+            value={form.website}
             onChange={(e) => setField("website", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Website"
@@ -708,8 +596,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Email (Official)</Label>
           <Input
             type="text"
-            value={companyDetails.emailOfficial}
-            onChange={(e) => setField("emailOfficial", e.target.value)}
+            value={form.officialEmail}
+            onChange={(e) => setField("officialEmail", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Email"
           />
@@ -719,7 +607,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Phone Number</Label>
           <Input
             type="text"
-            value={companyDetails.phoneNumber}
+            value={form.phoneNumber}
             onChange={(e) => setField("phoneNumber", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Phone Number"
@@ -735,7 +623,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Primary Contact – Name</Label>
           <Input
             type="text"
-            value={companyDetails.primaryContactName}
+            value={form.primaryContactName}
             onChange={(e) => setField("primaryContactName", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Primary Contact – Name"
@@ -746,7 +634,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Primary Contact – Designation</Label>
           <Input
             type="text"
-            value={companyDetails.primaryContactDesignation}
+            value={form.primaryContactDesignation}
             onChange={(e) => setField("primaryContactDesignation", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
             placeholder="Primary Contact – Designation"
@@ -758,7 +646,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         <Label>Primary Contact – Email</Label>
         <Input
           type="text"
-          value={companyDetails.primaryContactEmail}
+          value={form.primaryContactEmail}
           onChange={(e) => setField("primaryContactEmail", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Primary Contact – Email"
@@ -772,7 +660,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         <Label>Registered Office Address in UAE</Label>
         <Input
           type="text"
-          value={companyDetails.registeredOfficeAddress}
+          value={form.registeredOfficeAddress}
           onChange={(e) => setField("registeredOfficeAddress", e.target.value)}
           className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
           placeholder="Registered Office Address in UAE"
@@ -818,7 +706,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               <Label>Full Name</Label>
               <Input
                 type="text"
-                value={s.fullName}
+                value={s.fullName || ""}
                 onChange={(e) =>
                   setShareholderField(index, "fullName", e.target.value)
                 }
@@ -991,10 +879,10 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             <div>
               <Label>Shareholding (%)</Label>
               <Input
-                type="text"
-                value={u.percentage}
+                type="number"
+                value={u.ownershipPercentage}
                 onChange={(e) =>
-                  setUboField(index, "percentage", e.target.value)
+                  setUboField(index, "ownershipPercentage", parseFloat(e.target.value) || 0)
                 }
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
               />
@@ -1191,24 +1079,24 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         d. Is any shareholder, director, UBO a Politically Exposed Person?
       </h4>
       <YesNoGroup
-        value={companyDetails.pepShareholders}
-        onChange={(v) => setField("pepShareholders", v)}
+        value={form.anyShareholderDirectorUBOPEP}
+        onChange={(v) => setField("anyShareholderDirectorUBOPEP", v)}
       />
 
       <h4 className="font-bold text-[20px] mt-10 mb-3 text-white">
         e. Is any shareholder / beneficial owner / key managerial person related to a PEP?
       </h4>
       <YesNoGroup
-        value={companyDetails.pepBeneficialOwners}
-        onChange={(v) => setField("pepBeneficialOwners", v)}
+        value={form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP}
+        onChange={(v) => setField("anyShareholderBeneficialOwnerKeyPersonRelatedToPEP", v)}
       />
 
       <h4 className="font-bold text-[20px] mt-10 mb-3 text-white">
         f. Does your establishment check to identify PEP customers?
       </h4>
       <YesNoGroup
-        value={companyDetails.pepCustomers}
-        onChange={(v) => setField("pepCustomers", v)}
+        value={form.hasCustomerPEPChecks}
+        onChange={(v) => setField("hasCustomerPEPChecks", v)}
       />
 
       {/* -------------------------------------- */}
@@ -1223,7 +1111,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Name of Trade Association</Label>
           <Input
             type="text"
-            value={companyDetails.tradeAssociationName}
+            value={form.tradeAssociationName}
             onChange={(e) => setField("tradeAssociationName", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
           />
@@ -1233,8 +1121,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <Label>Name of Member</Label>
           <Input
             type="text"
-            value={companyDetails.tradeAssociationMember}
-            onChange={(e) => setField("tradeAssociationMember", e.target.value)}
+            value={form.nameOfMember}
+            onChange={(e) => setField("nameOfMember", e.target.value)}
             className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black"
           />
         </div>
@@ -1248,16 +1136,16 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {tradeAssociationDate ? format(tradeAssociationDate, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
+                {dateOfAppointment ? format(dateOfAppointment, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-white">
               <Calendar
                 mode="single"
-                selected={tradeAssociationDate}
+                selected={dateOfAppointment}
                 onSelect={(date) => {
-                  setTradeAssociationDate(date);
-                  setField("tradeAssociationDate", date ? date.toISOString() : "");
+                  setDateOfAppointment(date);
+                  setField("dateOfAppointment", date ? date.toISOString() : "");
                 }}
               />
             </PopoverContent>
@@ -1283,23 +1171,23 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           <ServiceCheckbox
             key={key}
             label={label}
-            checked={(companyDetails as any)[key]}
-            onChange={() => setField(key as any, !(companyDetails as any)[key])}
+            checked={(form as any)[key]}
+            onChange={() => setField(key as any, !(form as any)[key])}
           />
         ))}
 
         {/* Other */}
         <ServiceCheckbox
           label="Other (please specify)"
-          checked={companyDetails.accreditationOther}
-          onChange={() => setField("accreditationOther", !companyDetails.accreditationOther)}
+          checked={form.accreditationOther}
+          onChange={() => setField("accreditationOther", !form.accreditationOther)}
         />
 
-        {companyDetails.accreditationOther && (
+        {form.accreditationOther && (
           <Input
             type="text"
-            value={companyDetails.accreditationOtherName}
-            onChange={(e) => setField("accreditationOtherName", e.target.value)}
+            value={form.otherAccreditation}
+            onChange={(e) => setField("otherAccreditation", e.target.value)}
             className="w-full bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] mt-2 text-black placeholder:text-black/50"
             placeholder="Specify other accreditation"
           />

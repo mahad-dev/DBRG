@@ -13,6 +13,8 @@ export default function Step6RequiredDocumentChecklist() {
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
 
+  console.log("Step6RequiredDocumentChecklist formData?.memberRequiredDocuments:", formData?.memberRequiredDocuments);
+
   const {
     items,
     checked,
@@ -27,7 +29,7 @@ export default function Step6RequiredDocumentChecklist() {
     setOtherFormFile,
     handleSelectFile,
     handleDropFile,
-  } = useStep6RequiredDocuments();
+  } = useStep6RequiredDocuments(formData?.memberRequiredDocuments);
 
   const [selectedDocType, setSelectedDocType] = useState<string>(""); // radio toggle state
   const otherRefs = useRef<Record<string, HTMLInputElement | null>>({}); // refs for other forms
@@ -63,41 +65,41 @@ export default function Step6RequiredDocumentChecklist() {
         payload: {
           ...formData,
           memberRequiredDocuments: {
-            tradeLicenseAndMoaFileId: fileIds.trade_license || 0,
+            tradeLicenseAndMoaFileId: fileIds.trade_license || null,
             isChecked_TradeLicenseAndMoa: checked.trade_license,
-            bankingRelationshipEvidenceFileId: fileIds.banking_evidence || 0,
+            bankingRelationshipEvidenceFileId: fileIds.banking_evidence || null,
             isChecked_BankingRelationshipEvidence: checked.banking_evidence,
-            auditedFinancialStatementsFileId: fileIds.audited_fs || 0,
+            auditedFinancialStatementsFileId: fileIds.audited_fs || null,
             isChecked_AuditedFinancialStatements: checked.audited_fs,
-            netWorthCertificateFileId: fileIds.net_worth || 0,
+            netWorthCertificateFileId: fileIds.net_worth || null,
             isChecked_NetWorthCertificate: checked.net_worth,
-            amlCftPolicyFileId: fileIds.aml_policy || 0,
+            amlCftPolicyFileId: fileIds.aml_policy || null,
             isChecked_AmlCftPolicy: checked.aml_policy,
-            supplyChainCompliancePolicyFileId: fileIds.supply_chain || 0,
+            supplyChainCompliancePolicyFileId: fileIds.supply_chain || null,
             isChecked_SupplyChainCompliancePolicy: checked.supply_chain,
-            amlCftAndSupplyChainPoliciesFileId: fileIds.amlCftAndSupplyChainPolicies || 0,
-            isChecked_AmlCftAndSupplyChainPolicies: checked.amlCftAndSupplyChainPolicies,
-            declarationNoUnresolvedAmlNoticesFileId: fileIds.declaration_aml || 0,
+            amlCftAndSupplyChainPoliciesFileId: fileIds.amlCftAndSupplyChainPolicies || null,
+            isChecked_AmlCftAndSupplyChainPolicies: checked.amlCftAndSupplyChainPolicies || false,
+            declarationNoUnresolvedAmlNoticesFileId: fileIds.declaration_aml || null,
             isChecked_DeclarationNoUnresolvedAmlNotices: checked.declaration_aml,
-            noUnresolvedAmlNoticesDeclarationFileId: fileIds.noUnresolvedAmlNoticesDeclaration || 0,
-            isChecked_NoUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration,
-            accreditationCertificatesFileId: fileIds.accreditation || 0,
+            noUnresolvedAmlNoticesDeclarationFileId: fileIds.noUnresolvedAmlNoticesDeclaration || null,
+            isChecked_NoUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration || false,
+            accreditationCertificatesFileId: fileIds.accreditation || null,
             isChecked_AccreditationCertificates: checked.accreditation,
-            boardResolutionFileId: fileIds.board_resolution || 0,
+            boardResolutionFileId: fileIds.board_resolution || null,
             isChecked_BoardResolution: checked.board_resolution,
-            ownershipStructureFileId: fileIds.ownership_structure || 0,
+            ownershipStructureFileId: fileIds.ownership_structure || null,
             isChecked_OwnershipStructure: checked.ownership_structure,
-            certifiedTrueCopyFileId: fileIds.certified_true_copy || 0,
+            certifiedTrueCopyFileId: fileIds.certified_true_copy || null,
             isChecked_CertifiedTrueCopy: checked.certified_true_copy,
-            latestAssuranceReportFileId: fileIds.assurance_report || 0,
+            latestAssuranceReportFileId: fileIds.assurance_report || null,
             isChecked_LatestAssuranceReport: checked.assurance_report,
-            responsibleSourcingAssuranceReportFileId: fileIds.responsibleSourcingAssuranceReport || 0,
-            isChecked_ResponsibleSourcingAssuranceReport: checked.responsibleSourcingAssuranceReport,
-            uboProofDocumentsFileId: fileIds.uboProofDocuments || 0,
-            isChecked_UboProofDocuments: checked.uboProofDocuments,
-            certifiedIdsFileId: fileIds.certifiedIds || 0,
-            isChecked_CertifiedIds: checked.certifiedIds,
-            otherForms: otherForms.map(of => ({ otherFormName: of.name, otherFormFileId: otherFormIds[of.id] || 0 }))
+            responsibleSourcingAssuranceReportFileId: fileIds.responsibleSourcingAssuranceReport || null,
+            isChecked_ResponsibleSourcingAssuranceReport: checked.responsibleSourcingAssuranceReport || false,
+            uboProofDocumentsFileId: fileIds.uboProofDocuments || null,
+            isChecked_UboProofDocuments: checked.uboProofDocuments || false,
+            certifiedIdsFileId: fileIds.certifiedIds || null,
+            isChecked_CertifiedIds: checked.certifiedIds || false,
+            otherForms: otherForms.map(of => ({ otherFormName: of.name, otherFormFileId: otherFormIds[of.id] || null }))
           }
         },
         sectionNumber: MemberApplicationSection.RequiredDocs

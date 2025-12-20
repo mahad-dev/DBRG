@@ -167,7 +167,20 @@ const uploadDetailsSlice = createSlice({
       })
       .addCase(getUploadDetails.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.data = action.payload.data;
+
+        // Map API response to state structure
+        const apiData = action.payload.data as any; // Cast to any to access API-specific properties
+        console.log("API Response data:", apiData);
+        console.log("API regulatoryCompliance field:", apiData.regulatoryCompliance);
+        console.log("API regulatorCompliance field:", apiData.regulatorCompliance);
+        state.data = {
+          ...apiData,
+          financialThresholds: apiData.financialThreshold, // Map financialThreshold to financialThresholds
+          bankRelationshipRequirement: apiData.bankRelationReq, // Map bankRelationReq to bankRelationshipRequirement
+          regulatoryCompliance: apiData.regulatoryCompliance || apiData.regulatorCompliance, // Try both field names
+          memberRequiredDocuments: apiData.requiredDocs, // Map requiredDocs to memberRequiredDocuments
+        };
+
         state.userId = action.payload.userId;
         state.completedSteps = [];
 
@@ -197,7 +210,7 @@ const uploadDetailsSlice = createSlice({
 
         for (const section of sections) {
           const key = sectionKeys[section];
-          if (action.payload.data[key]) {
+          if (state.data[key]) {
             addUniqueStep(state.completedSteps, section);
           }
         }

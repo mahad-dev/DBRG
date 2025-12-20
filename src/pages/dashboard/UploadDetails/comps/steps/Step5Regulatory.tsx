@@ -13,7 +13,8 @@ export default function Step5Regulatory() {
   const dispatch = useAppDispatch();
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
-  const hook = useStep5Regulatory();
+  console.log("Step5Regulatory formData.regulatoryCompliance:", formData.regulatoryCompliance);
+  const hook = useStep5Regulatory(formData.regulatoryCompliance);
 
   const handleSave = async () => {
     try {
@@ -67,7 +68,7 @@ export default function Step5Regulatory() {
             complianceOfficerContactNumber: hook.officerContact,
             complianceOfficerEmail: hook.officerEmail,
             hasOngoingCases: hook.ongoingCases ?? false,
-            ongoingCasesDetails: '',
+            ongoingCasesDetails: hook.ongoingCasesDetails,
             anyOnSanctionsList: hook.sanctionsListed ?? false,
             hasDocumentedAmlPolicies: hook.policiesPrepared ?? false,
             amlCftPolicyDocumentFileId,
@@ -77,11 +78,11 @@ export default function Step5Regulatory() {
             supplyChainCompliant: hook.supplyChainCompliant ?? false,
             hasResponsibleSourcingAuditEvidence: hook.responsibleSourcingAudit ?? false,
             hadRegulatoryPenalties: hook.penalties ?? false,
-            penaltyExplanation: '',
+            penaltyExplanation: hook.penaltyExplanation,
             declarationNoPenaltyFileId,
             hasSupplyChainPolicy: hook.preciousPolicy ?? false,
             supplyChainPolicyDocumentFileId,
-            responsibleSourcingAuditEvidence2: false,
+            responsibleSourcingAuditEvidence2: hook.responsibleSourcingAudit ?? false,
             assuranceReportFileId,
           }
         },
@@ -211,27 +212,38 @@ export default function Step5Regulatory() {
             onChange={hook.setOngoingCases}
           />
 
-          {/* conditional details upload */}
+          {/* conditional details input and upload */}
           {hook.ongoingCases && (
-            <div className="mt-3 max-w-md">
-              <input
-                ref={hook.ongoingRef}
-                type="file"
-                className="hidden"
-                onChange={(e) =>
-                  hook.handleSelectFile(e, hook.setOngoingDetailsFile)
-                }
-                accept="image/*,application/pdf"
-              />
-              <UploadBox
-                title="If yes, please provide details:"
-                file={hook.ongoingDetailsFile}
-                onClick={() => hook.ongoingRef.current?.click()}
-                onDrop={(e) =>
-                  hook.handleDropFile(e, hook.setOngoingDetailsFile)
-                }
-                onRemove={() => hook.removeFile(hook.setOngoingDetailsFile)}
-              />
+            <div className="mt-3 space-y-3">
+              <div>
+                <Label className="text-white text-sm mb-2 block">Please provide details:</Label>
+                <textarea
+                  value={hook.ongoingCasesDetails}
+                  onChange={(e) => hook.setOngoingCasesDetails(e.target.value)}
+                  placeholder="Enter details about ongoing cases..."
+                  className="w-full bg-white text-black placeholder-gray-400 font-inter border-none p-3 rounded-md min-h-[80px] resize-vertical"
+                />
+              </div>
+              <div className="max-w-md">
+                <input
+                  ref={hook.ongoingRef}
+                  type="file"
+                  className="hidden"
+                  onChange={(e) =>
+                    hook.handleSelectFile(e, hook.setOngoingDetailsFile)
+                  }
+                  accept="image/*,application/pdf"
+                />
+                <UploadBox
+                  title="Upload supporting documents:"
+                  file={hook.ongoingDetailsFile}
+                  onClick={() => hook.ongoingRef.current?.click()}
+                  onDrop={(e) =>
+                    hook.handleDropFile(e, hook.setOngoingDetailsFile)
+                  }
+                  onRemove={() => hook.removeFile(hook.setOngoingDetailsFile)}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -384,23 +396,34 @@ export default function Step5Regulatory() {
           </Label>
           <YesNoGroup value={hook.penalties} onChange={hook.setPenalties} />
           {hook.penalties && (
-            <div className="mt-3 max-w-md">
-              <input
-                ref={hook.declarationRef}
-                type="file"
-                className="hidden"
-                onChange={(e) =>
-                  hook.handleSelectFile(e, hook.setDeclarationFile)
-                }
-                accept="application/pdf,image/*"
-              />
-              <UploadBox
-                title="If yes, explain: Upload: Declaration of no penalty/AML notice"
-                file={hook.declarationFile}
-                onClick={() => hook.declarationRef.current?.click()}
-                onDrop={(e) => hook.handleDropFile(e, hook.setDeclarationFile)}
-                onRemove={() => hook.removeFile(hook.setDeclarationFile)}
-              />
+            <div className="mt-3 space-y-3">
+              <div>
+                <Label className="text-white text-sm mb-2 block">Please explain the penalties:</Label>
+                <textarea
+                  value={hook.penaltyExplanation}
+                  onChange={(e) => hook.setPenaltyExplanation(e.target.value)}
+                  placeholder="Enter details about the penalties..."
+                  className="w-full bg-white text-black placeholder-gray-400 font-inter border-none p-3 rounded-md min-h-[80px] resize-vertical"
+                />
+              </div>
+              <div className="max-w-md">
+                <input
+                  ref={hook.declarationRef}
+                  type="file"
+                  className="hidden"
+                  onChange={(e) =>
+                    hook.handleSelectFile(e, hook.setDeclarationFile)
+                  }
+                  accept="application/pdf,image/*"
+                />
+                <UploadBox
+                  title="Upload: Declaration of no penalty/AML notice"
+                  file={hook.declarationFile}
+                  onClick={() => hook.declarationRef.current?.click()}
+                  onDrop={(e) => hook.handleDropFile(e, hook.setDeclarationFile)}
+                  onRemove={() => hook.removeFile(hook.setDeclarationFile)}
+                />
+              </div>
             </div>
           )}
         </div>

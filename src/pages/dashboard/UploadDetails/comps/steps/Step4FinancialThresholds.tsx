@@ -20,7 +20,9 @@ export default function Step4FinancialThresholds() {
     paidUpCapital,
     annualTurnover,
     bullionTurnover,
+    bullionTurnoverProofFileId,
     netWorth,
+    netWorthProofFileId,
     bullionFile,
     netWorthFile,
     bullionRef,
@@ -38,40 +40,40 @@ export default function Step4FinancialThresholds() {
   const handleSave = async () => {
     try {
       // Upload files if present and collect document IDs
-      let bullionTurnoverProofFileId: number | null = null;
-      let netWorthProofFileId: number | null = null;
+      let bullionFileId = bullionTurnoverProofFileId;
+      let netWorthFileId = netWorthProofFileId;
 
       if (bullionFile) {
-        const result = await dispatch(uploadDocument(bullionFile));
-        if (uploadDocument.fulfilled.match(result)) {
-          bullionTurnoverProofFileId = result.payload;
-        }
+        const result = await dispatch(uploadDocument(bullionFile)).unwrap();
+        bullionFileId = result;
       }
 
       if (netWorthFile) {
-        const result = await dispatch(uploadDocument(netWorthFile));
-        if (uploadDocument.fulfilled.match(result)) {
-          netWorthProofFileId = result.payload;
-        }
+        const result = await dispatch(uploadDocument(netWorthFile)).unwrap();
+        netWorthFileId = result;
       }
 
       // Save form data
+      const parsedPaidUpCapital = paidUpCapital ? parseFloat(paidUpCapital) : null;
+      const parsedAnnualTurnover = annualTurnover ? parseFloat(annualTurnover) : null;
+
       await dispatch(saveUploadDetails({
         payload: {
           ...formData,
           financialThresholds: {
-            paidUpCapital: parseFloat(paidUpCapital) || 0,
-            annualTurnoverValue: parseFloat(annualTurnover) || 0,
+            paidUpCapital: parsedPaidUpCapital === 0 ? null : parsedPaidUpCapital,
+            annualTurnoverValue: parsedAnnualTurnover === 0 ? null : parsedAnnualTurnover,
             hasRequiredBullionTurnover: bullionTurnover || false,
-            bullionTurnoverProofFileId,
+            bullionTurnoverProofFileId: bullionFileId,
             hasRequiredNetWorth: netWorth || false,
-            netWorthProofFileId,
+            netWorthProofFileId: netWorthFileId,
           }
         },
         sectionNumber: MemberApplicationSection.FinancialThreshold
       }));
 
       toast.success('Financial thresholds saved successfully!');
+      dispatch(setCurrentStep(5));
     } catch (error) {
       toast.error('Failed to save financial thresholds. Please try again.');
     }

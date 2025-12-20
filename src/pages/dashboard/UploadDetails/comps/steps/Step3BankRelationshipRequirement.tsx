@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
 import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
 import {
@@ -28,6 +30,17 @@ export default function Step3BankRelationshipRequirement() {
   const dispatch = useAppDispatch();
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
+
+  // Map API data to hook format
+  const mappedData = formData.bankRelationReq ? {
+    isClientOfDBRGMemberBank24Months: formData.bankRelationReq.isClientOfDBRGMemberBank24Months,
+    bankReferenceLetterFileId: formData.bankRelationReq.bankReferenceLetterFileId,
+    bankName: formData.bankRelationReq.bankName,
+    accountNumber: formData.bankRelationReq.accountNumber,
+    accountType: formData.bankRelationReq.accountType,
+    bankingRelationSince: formData.bankRelationReq.bankingRelationSince,
+    bankAddress: formData.bankRelationReq.bankAddress,
+  } : undefined;
 
   const {
     isClient24Months,
@@ -49,7 +62,7 @@ export default function Step3BankRelationshipRequirement() {
     setAccountType,
     setBankingSince,
     setAddress,
-  } = useStep3BankRelationshipRequirement();
+  } = useStep3BankRelationshipRequirement(mappedData);
 
   // Track selected date as Date object for Calendar
   // Track selected date as Date object for Calendar
@@ -62,6 +75,18 @@ export default function Step3BankRelationshipRequirement() {
     }
     return undefined;
   });
+
+  // Sync selectedDate with bankingSince from hook
+  useEffect(() => {
+    if (bankingSince) {
+      const [day, month, year] = bankingSince.split("/");
+      if (day && month && year) {
+        setSelectedDate(new Date(Number(year), Number(month) - 1, Number(day)));
+      }
+    } else {
+      setSelectedDate(undefined);
+    }
+  }, [bankingSince]);
 
   const handleSave = async () => {
     try {
@@ -102,7 +127,7 @@ export default function Step3BankRelationshipRequirement() {
         saveUploadDetails({
           payload: {
             ...formData,
-            bankRelationshipRequirement: {
+            bankRelationReq: {
               isClientOfDBRGMemberBank24Months: isClient24Months,
               bankReferenceLetterFileId: fileId,
               bankName,
@@ -216,18 +241,13 @@ export default function Step3BankRelationshipRequirement() {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full mt-2 text-left border-white bg-white text-black h-[47px] rounded-[10px]"
+                  className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
                 >
-                  {selectedDate
-                    ? `${selectedDate.getDate().toString().padStart(2, "0")}/${(
-                        selectedDate.getMonth() + 1
-                      )
-                        .toString()
-                        .padStart(2, "0")}/${selectedDate.getFullYear()}`
-                    : "Select date"}
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0 bg-white">
                 <Calendar
                   mode="single"
                   selected={selectedDate}

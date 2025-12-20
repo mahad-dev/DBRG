@@ -2,11 +2,13 @@
 
 
 "use client";
-import { useRef, useState, useCallback } from "react";
-
+import { useRef, useState, useCallback, useEffect } from "react";
+import { useAppSelector } from '../store/hooks';
+import { selectFormData } from '../store/uploadDetailsSlice';
 
 /** --- HOOK: useStep4FinancialThresholds --- */
 export function useStep4FinancialThresholds() {
+  const financialThresholds = useAppSelector(selectFormData).financialThresholds;
 // 1 & 2: Inputs
 const [paidUpCapital, setPaidUpCapital] = useState("");
 const [annualTurnover, setAnnualTurnover] = useState("");
@@ -15,6 +17,8 @@ const [annualTurnover, setAnnualTurnover] = useState("");
 // 3: Bullion turnover Yes/No
 const [bullionTurnover, setBullionTurnover] = useState<boolean | null>(null);
 
+// Bullion file ID
+const [bullionTurnoverProofFileId, setBullionTurnoverProofFileId] = useState<number>(0);
 
 // Bullion file
 const [bullionFile, setBullionFile] = useState<File | null>(null);
@@ -24,10 +28,24 @@ const bullionRef = useRef<HTMLInputElement | null>(null);
 // 4: Net worth Yes/No
 const [netWorth, setNetWorth] = useState<boolean | null>(null);
 
+// Net worth file ID
+const [netWorthProofFileId, setNetWorthProofFileId] = useState<number>(0);
 
 // Net worth file
 const [netWorthFile, setNetWorthFile] = useState<File | null>(null);
 const netWorthRef = useRef<HTMLInputElement | null>(null);
+
+// Prefill logic
+useEffect(() => {
+  if (!financialThresholds) return;
+  console.log("financialThresholds", financialThresholds);
+  setPaidUpCapital(financialThresholds.paidUpCapital?.toString() || "");
+  setAnnualTurnover(financialThresholds.annualTurnoverValue?.toString() || "");
+  setBullionTurnover(financialThresholds.hasRequiredBullionTurnover ?? null);
+  setBullionTurnoverProofFileId(financialThresholds.bullionTurnoverProofFileId ?? 0);
+  setNetWorth(financialThresholds.hasRequiredNetWorth ?? null);
+  setNetWorthProofFileId(financialThresholds.netWorthProofFileId ?? 0);
+}, [financialThresholds]);
 
 
 // File Handlers
@@ -49,8 +67,10 @@ return {
 paidUpCapital,
 annualTurnover,
 bullionTurnover,
+bullionTurnoverProofFileId,
 bullionFile,
 netWorth,
+netWorthProofFileId,
 netWorthFile,
 bullionRef,
 netWorthRef,

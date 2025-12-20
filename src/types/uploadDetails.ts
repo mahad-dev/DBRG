@@ -133,12 +133,13 @@ export interface Shareholder {
   address: string;
   passportDocument: number | null;
   nationalIdDocument: number | null;
+  shareholdingDocumentId: number | null;
   proofFile: File | null;
 }
 
 export interface UltimateBeneficialOwner {
   fullName: string;
-  percentage: string;
+  ownershipPercentage: number;
   nationality: string;
   address: string;
   passportId: string;
@@ -160,55 +161,36 @@ export interface Director {
 export interface CompanyDetails {
   legalEntityName: string;
   entityLegalType: string;
-  entityType: string;
   tradeLicenseNumber: string;
-  tradeLicenseNo: string;
   licensingAuthority: string;
-  isRegisteredForCorporateTax: boolean;
-  taxRegistrationNumber: string;
-  taxRegNumber: string;
-  isRegisteredForVAT: boolean;
+  dateOfIssuance: string;
+  dateOfExpiry: string;
+  countryOfIncorporation: string;
+  dateOfIncorporation: string;
+  passportId: string;
+  nationalId: string;
   vatNumber: string;
+  taxRegistrationNumber: string;
   website: string;
+  officialEmail: string;
+  phoneNumber: string;
   primaryContactName: string;
   primaryContactDesignation: string;
   primaryContactEmail: string;
-  officialEmail: string;
-  emailOfficial: string;
-  phoneNumber: string;
   registeredOfficeAddress: string;
-  countryOfIncorporation: string;
-  country: string;
-  dateOfIncorporation: string;
-  dateIncorp: string;
-  dateIssued: string;
-  dateExpiry: string;
-  passportId: string;
-  nationalId: string;
   anyShareholderDirectorUBOPEP: boolean;
   anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: boolean;
   hasCustomerPEPChecks: boolean;
-  shareholdingType: typeof ShareholdingType[keyof typeof ShareholdingType];
-  shareholders: Shareholder[];
-  ultimateBeneficialOwners: UltimateBeneficialOwner[];
-  directors: Director[];
   tradeAssociationName: string;
   nameOfMember: string;
-  tradeAssociationMember: string;
   dateOfAppointment: string;
-  tradeAssociationDate: string;
-  refineryAccreditations: number[];
-  otherAccreditation: string;
-  accreditationOther: boolean;
-  accreditationOtherName: string;
   lbma: boolean;
   dmccDgd: boolean;
   dmccMdb: boolean;
   rjc: boolean;
   iages: boolean;
-  pepShareholders: boolean;
-  pepBeneficialOwners: boolean;
-  pepCustomers: boolean;
+  accreditationOther: boolean;
+  otherAccreditation: string;
   tradeLicenseDocument: number | null;
   certificateOfIncorporation: number | null;
   taxRegistrationDocument: number | null;
@@ -217,6 +199,9 @@ export interface CompanyDetails {
   accreditationCertificate: number | null;
   shareholdingProof: number | null;
   uboConfirmationDocument: number | null;
+  shareholders: Shareholder[];
+  ultimateBeneficialOwners: UltimateBeneficialOwner[];
+  directors: Director[];
 }
 
 export interface BankRelationshipRequirement {
@@ -230,8 +215,8 @@ export interface BankRelationshipRequirement {
 }
 
 export interface FinancialThresholds {
-  paidUpCapital: number;
-  annualTurnoverValue: number;
+  paidUpCapital: number | null;
+  annualTurnoverValue: number | null;
   hasRequiredBullionTurnover: boolean;
   bullionTurnoverProofFileId: number | null;
   hasRequiredNetWorth: boolean;
@@ -264,43 +249,43 @@ export interface RegulatoryCompliance {
 }
 
 export interface MemberRequiredDocuments {
-  tradeLicenseAndMoaFileId: number;
+  tradeLicenseAndMoaFileId: number | null;
   isChecked_TradeLicenseAndMoa: boolean;
-  bankingRelationshipEvidenceFileId: number;
+  bankingRelationshipEvidenceFileId: number | null;
   isChecked_BankingRelationshipEvidence: boolean;
-  auditedFinancialStatementsFileId: number;
+  auditedFinancialStatementsFileId: number | null;
   isChecked_AuditedFinancialStatements: boolean;
-  netWorthCertificateFileId: number;
+  netWorthCertificateFileId: number | null;
   isChecked_NetWorthCertificate: boolean;
-  amlCftPolicyFileId: number;
+  amlCftPolicyFileId: number | null;
   isChecked_AmlCftPolicy: boolean;
-  supplyChainCompliancePolicyFileId: number;
+  supplyChainCompliancePolicyFileId: number | null;
   isChecked_SupplyChainCompliancePolicy: boolean;
-  amlCftAndSupplyChainPoliciesFileId: number;
+  amlCftAndSupplyChainPoliciesFileId: number | null;
   isChecked_AmlCftAndSupplyChainPolicies: boolean;
-  declarationNoUnresolvedAmlNoticesFileId: number;
+  declarationNoUnresolvedAmlNoticesFileId: number | null;
   isChecked_DeclarationNoUnresolvedAmlNotices: boolean;
-  noUnresolvedAmlNoticesDeclarationFileId: number;
+  noUnresolvedAmlNoticesDeclarationFileId: number | null;
   isChecked_NoUnresolvedAmlNoticesDeclaration: boolean;
-  accreditationCertificatesFileId: number;
+  accreditationCertificatesFileId: number | null;
   isChecked_AccreditationCertificates: boolean;
-  boardResolutionFileId: number;
+  boardResolutionFileId: number | null;
   isChecked_BoardResolution: boolean;
-  ownershipStructureFileId: number;
+  ownershipStructureFileId: number | null;
   isChecked_OwnershipStructure: boolean;
-  certifiedTrueCopyFileId: number;
+  certifiedTrueCopyFileId: number | null;
   isChecked_CertifiedTrueCopy: boolean;
-  latestAssuranceReportFileId: number;
+  latestAssuranceReportFileId: number | null;
   isChecked_LatestAssuranceReport: boolean;
-  responsibleSourcingAssuranceReportFileId: number;
+  responsibleSourcingAssuranceReportFileId: number | null;
   isChecked_ResponsibleSourcingAssuranceReport: boolean;
-  uboProofDocumentsFileId: number;
+  uboProofDocumentsFileId: number | null;
   isChecked_UboProofDocuments: boolean;
-  certifiedIdsFileId: number;
+  certifiedIdsFileId: number | null;
   isChecked_CertifiedIds: boolean;
   otherForms: {
     otherFormName: string;
-    otherFormFileId: number;
+    otherFormFileId: number | null;
   }[];
 }
 
@@ -325,6 +310,7 @@ export interface UploadDetailsPayload {
   applicability?: Applicability;
   companyDetails?: CompanyDetails;
   bankRelationshipRequirement?: BankRelationshipRequirement;
+  bankRelationReq?: BankRelationshipRequirement;
   financialThresholds?: FinancialThresholds;
   regulatoryCompliance?: RegulatoryCompliance;
   memberRequiredDocuments?: MemberRequiredDocuments;
