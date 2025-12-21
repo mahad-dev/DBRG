@@ -15,6 +15,8 @@ import SignaturePad from "react-signature-canvas";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
 import {
   selectFormData,
@@ -25,6 +27,7 @@ import {
 } from "../../../../../store/uploadDetailsSlice";
 import { MemberApplicationSection } from "../../../../../types/uploadDetails";
 import { toast } from "react-toastify";
+import { useStep8DeclarationConsent } from "../../../../../hooks/useStep8DeclarationConsent";
 
 export default function Step8Agreement() {
   const dispatch = useAppDispatch();
@@ -33,19 +36,27 @@ export default function Step8Agreement() {
 
   const sigPadRef = useRef<SignaturePad>(null);
 
-  const [signatureURL, setSignatureURL] = useState<string>("");
   const [openSigPad, setOpenSigPad] = useState(false);
 
-  // Checkbox states
-  const [consentData, setConsentData] = useState(false);
-  const [acknowledgeRetention, setAcknowledgeRetention] = useState(false);
-  const [agreeCode, setAgreeCode] = useState(false);
-
-  // Inputs
-  const [applicantName, setApplicantName] = useState("");
-  const [signatoryName, setSignatoryName] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  // Use the hook for prefilling
+  const {
+    consentData,
+    acknowledgeRetention,
+    agreeCode,
+    applicantName,
+    signatoryName,
+    designation,
+    selectedDate,
+    signatureURL,
+    setConsentData,
+    setAcknowledgeRetention,
+    setAgreeCode,
+    setApplicantName,
+    setSignatoryName,
+    setDesignation,
+    setSelectedDate,
+    setSignatureURL,
+  } = useStep8DeclarationConsent(formData.declarationConsent);
 
   // Signature functions
   const saveSignature = () => {
@@ -153,7 +164,7 @@ export default function Step8Agreement() {
                 value={applicantName}
                 onChange={(e) => setApplicantName(e.target.value)}
                 placeholder="Name of the Applicant"
-                className="bg-white text-black rounded-md"
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
               />
             </div>
 
@@ -163,7 +174,7 @@ export default function Step8Agreement() {
                 value={signatoryName}
                 onChange={(e) => setSignatoryName(e.target.value)}
                 placeholder="Name of Authorised Signatory"
-                className="bg-white text-black rounded-md"
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
               />
             </div>
 
@@ -173,14 +184,14 @@ export default function Step8Agreement() {
                 value={designation}
                 onChange={(e) => setDesignation(e.target.value)}
                 placeholder="Designation"
-                className="bg-white text-black rounded-md"
+                className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
               />
             </div>
 
             {/* Signature */}
             <div className="space-y-1 text-white">
               <label className="text-sm font-gilory font-normal">Signature</label>
-              <div className="relative w-full bg-white rounded-md h-9 flex items-center justify-center">
+              <div className="relative w-full mt-2 bg-white rounded-md h-9 flex items-center px-4">
                 {signatureURL ? (
                   <img src={signatureURL} alt="Signature" className="h-full object-contain py-1" />
                 ) : (
@@ -203,16 +214,13 @@ export default function Step8Agreement() {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full mt-2 text-left border-white bg-white text-black h-[47px] rounded-md"
+                  className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
                 >
-                  {selectedDate
-                    ? `${selectedDate.getDate().toString().padStart(2, "0")}/${
-                        (selectedDate.getMonth() + 1).toString().padStart(2, "0")
-                      }/${selectedDate.getFullYear()}`
-                    : "Select date"}
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0 bg-white">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
