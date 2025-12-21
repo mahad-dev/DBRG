@@ -93,13 +93,22 @@ export default function Step3BankRelationshipRequirement() {
 
   const handleSave = async () => {
     try {
-      let fileId = bankReferenceLetterFileId;
+      let fileId: number | null = bankReferenceLetterFileId;
 
-      // Upload file if present
+      // Extract ID from S3 path
+      const extractIdFromPath = (path: string | null): number | null => {
+        if (!path) return null;
+        const match = path.match(/\/(\d+)_/);
+        return match ? parseInt(match[1], 10) : null;
+      };
+
+      // Upload file if present, or use existing ID from path
       if (bankFile) {
         const result = await dispatch(uploadDocument(bankFile)).unwrap();
         fileId = result;
         setBankReferenceLetterFileId(fileId);
+      } else if (formData.bankRelationReq?.bankReferenceLetterFilePath) {
+        fileId = extractIdFromPath(formData.bankRelationReq.bankReferenceLetterFilePath);
       }
 
       // Convert selectedDate to ISO for backend
@@ -129,8 +138,8 @@ export default function Step3BankRelationshipRequirement() {
       await dispatch(
         saveUploadDetails({
           payload: {
-            ...formData,
-            bankRelationReq: {
+            membershipType: formData.application.membershipType,
+            bankRelationshipRequirement: {
               isClientOfDBRGMemberBank24Months: isClient24Months,
               bankReferenceLetterFileId: fileId,
               bankName,
@@ -194,6 +203,15 @@ export default function Step3BankRelationshipRequirement() {
           id="bank-upload"
           onRemove={() => setBankFile(null)}
         />
+        {formData.bankRelationReq?.bankReferenceLetterFilePath && !bankFile && (
+          <a
+            href={formData.bankRelationReq.bankReferenceLetterFilePath}
+            target="_blank"
+            className="text-[#C6A95F] underline mt-2 block"
+          >
+            View previously uploaded bank reference letter
+          </a>
+        )}
       </div>
 
       {/* Provide Details */}

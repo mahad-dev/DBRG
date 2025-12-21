@@ -1,12 +1,13 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
+import { MembershipType } from "../types/uploadDetails";
 
 /** Types */
 export type ServicesState = Record<"trading" | "refining" | "logistics" | "financial", boolean>;
 export type AnswersState = Record<string, boolean | null>;
 
-export function useStep1Applicability(applicability?: any) {
+export function useStep1Applicability(applicability?: any, application?: any) {
   // Membership
   const [membership, setMembership] = useState<string | null>(null);
 
@@ -29,7 +30,15 @@ export function useStep1Applicability(applicability?: any) {
   });
 
   const toggleCategory = useCallback((key: "refiner" | "trading") => {
-    setCategory((c) => ({ ...c, [key]: !c[key] }));
+    setCategory((c) => {
+      if (c[key]) {
+        // If already checked, uncheck it
+        return { ...c, [key]: false };
+      } else {
+        // If not checked, check it and uncheck the other
+        return key === "refiner" ? { refiner: true, trading: false } : { refiner: false, trading: true };
+      }
+    });
   }, []);
 
   // Answers
@@ -64,6 +73,8 @@ export function useStep1Applicability(applicability?: any) {
   const [existingSignedAMLPath, setExistingSignedAMLPath] = useState<string | null>(null);
   const [existingEvidencePath, setExistingEvidencePath] = useState<string | null>(null);
 
+  // Existing IDs extracted from paths (not used in this hook, but available for future use)
+
   const signedRef = useRef<HTMLInputElement | null>(null);
   const evidenceRef = useRef<HTMLInputElement | null>(null);
 
@@ -88,13 +99,13 @@ export function useStep1Applicability(applicability?: any) {
     if (!applicability) return;
 
     // Membership
-    if (applicability.principalMember) {
+    if (application?.membershipType === MembershipType.PrincipalMember) {
       setMembership("principal");
-    } else if (applicability.memberBank) {
+    } else if (application?.membershipType === MembershipType.MemberBank) {
       setMembership("member_bank");
-    } else if (applicability.contributingMember) {
+    } else if (application?.membershipType === MembershipType.ContributingMember) {
       setMembership("contributing");
-    } else if (applicability.affiliateMember) {
+    } else if (application?.membershipType === MembershipType.AffiliateMember) {
       setMembership("affiliate");
     }
 

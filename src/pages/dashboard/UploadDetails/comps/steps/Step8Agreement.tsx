@@ -21,6 +21,7 @@ import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
 import {
   selectFormData,
   selectIsSaving,
+  updateFormData,
   saveUploadDetails,
   uploadDocument,
   setCurrentStep,
@@ -48,6 +49,7 @@ export default function Step8Agreement() {
     designation,
     selectedDate,
     signatureURL,
+    existingSignaturePath,
     setConsentData,
     setAcknowledgeRetention,
     setAgreeCode,
@@ -68,6 +70,13 @@ export default function Step8Agreement() {
   };
 
   const clearSignature = () => sigPadRef.current?.clear();
+
+  // Extract ID from S3 path
+  const extractIdFromPath = (path: string | null): number | null => {
+    if (!path) return null;
+    const match = path.match(/\/(\d+)_/);
+    return match ? parseInt(match[1], 10) : null;
+  };
 
   const handleSave = async () => {
     // Validate required fields
@@ -105,15 +114,18 @@ export default function Step8Agreement() {
         authorisedSignatoryName: signatoryName,
         designation,
         date: selectedDate.toISOString(),
-        digitalSignatureFileId: signatureDocumentId,
+        digitalSignatureFileId: signatureDocumentId || extractIdFromPath(existingSignaturePath),
       };
 
+      const payload = {
+        membershipType: formData.application.membershipType,
+        declarationConsent: declarationConsentData,
+      };
+
+      dispatch(updateFormData(payload));
       await dispatch(
         saveUploadDetails({
-          payload: {
-            ...formData,
-            declarationConsent: declarationConsentData,
-          },
+          payload,
           sectionNumber: MemberApplicationSection.DeclarationConsent,
         })
       ).unwrap();
@@ -204,6 +216,15 @@ export default function Step8Agreement() {
               >
                 Upload Digital Signature
               </Button>
+              {existingSignaturePath && !signatureURL && (
+                <a
+                  href={existingSignaturePath}
+                  target="_blank"
+                  className="text-[#C6A95F] underline mt-2 block"
+                >
+                  View previously uploaded signature
+                </a>
+              )}
             </div>
           </div>
 

@@ -18,7 +18,7 @@ const [annualTurnover, setAnnualTurnover] = useState("");
 const [bullionTurnover, setBullionTurnover] = useState<boolean | null>(null);
 
 // Bullion file ID
-const [bullionTurnoverProofFileId, setBullionTurnoverProofFileId] = useState<number>(0);
+const [bullionTurnoverProofFileId, setBullionTurnoverProofFileId] = useState<number | null>(null);
 
 // Bullion file
 const [bullionFile, setBullionFile] = useState<File | null>(null);
@@ -29,7 +29,7 @@ const bullionRef = useRef<HTMLInputElement | null>(null);
 const [netWorth, setNetWorth] = useState<boolean | null>(null);
 
 // Net worth file ID
-const [netWorthProofFileId, setNetWorthProofFileId] = useState<number>(0);
+const [netWorthProofFileId, setNetWorthProofFileId] = useState<number | null>(null);
 
 // Net worth file
 const [netWorthFile, setNetWorthFile] = useState<File | null>(null);
@@ -42,9 +42,9 @@ useEffect(() => {
   setPaidUpCapital(financialThresholds.paidUpCapital?.toString() || "");
   setAnnualTurnover(financialThresholds.annualTurnoverValue?.toString() || "");
   setBullionTurnover(financialThresholds.hasRequiredBullionTurnover ?? null);
-  setBullionTurnoverProofFileId(financialThresholds.bullionTurnoverProofFileId ?? 0);
+  setBullionTurnoverProofFileId(financialThresholds.bullionTurnoverProofFileId ?? null);
   setNetWorth(financialThresholds.hasRequiredNetWorth ?? null);
-  setNetWorthProofFileId(financialThresholds.netWorthProofFileId ?? 0);
+  setNetWorthProofFileId(financialThresholds.netWorthProofFileId ?? null);
 }, [financialThresholds]);
 
 

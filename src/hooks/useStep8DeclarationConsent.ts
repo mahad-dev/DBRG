@@ -34,8 +34,8 @@ export function useStep8DeclarationConsent(declarationConsent?: DeclarationConse
       setSelectedDate(new Date(declarationConsent.date));
     }
 
-    // Note: signatureURL and existingSignaturePath would need to be handled
-    // when the signature file path is available from the API
+    // Set existing signature path
+    setExistingSignaturePath(declarationConsent.digitalSignatureFilePath ?? null);
   }, [declarationConsent]);
 
   return {

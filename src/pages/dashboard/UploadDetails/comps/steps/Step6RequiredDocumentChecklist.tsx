@@ -8,7 +8,7 @@ import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setC
 import { MemberApplicationSection } from '../../../../../types/uploadDetails';
 import { toast } from 'react-toastify';
 
-export default function Step6RequiredDocumentChecklist() {
+export default function Step6RequiredDocumentChecklist(): React.ReactElement {
   const dispatch = useAppDispatch();
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
@@ -34,8 +34,35 @@ export default function Step6RequiredDocumentChecklist() {
   const [selectedDocType, setSelectedDocType] = useState<string>(""); // radio toggle state
   const otherRefs = useRef<Record<string, HTMLInputElement | null>>({}); // refs for other forms
 
+  const pathMap: Record<string, string> = {
+    trade_license: 'tradeLicenseAndMoaPath',
+    banking_evidence: 'bankingRelationshipEvidencePath',
+    audited_fs: 'auditedFinancialStatementsPath',
+    net_worth: 'netWorthCertificatePath',
+    aml_policy: 'amlCftPolicyPath',
+    supply_chain: 'supplyChainCompliancePolicyPath',
+    amlCftAndSupplyChainPolicies: 'amlCftAndSupplyChainPoliciesPath',
+    declaration_aml: 'declarationNoUnresolvedAmlNoticesPath',
+    noUnresolvedAmlNoticesDeclaration: 'noUnresolvedAmlNoticesDeclarationPath',
+    accreditation: 'accreditationCertificatesPath',
+    board_resolution: 'boardResolutionPath',
+    ownership_structure: 'ownershipStructurePath',
+    certified_true_copy: 'certifiedTrueCopyPath',
+    assurance_report: 'latestAssuranceReportPath',
+    responsibleSourcingAssuranceReport: 'responsibleSourcingAssuranceReportPath',
+    uboProofDocuments: 'uboProofDocumentsPath',
+    certifiedIds: 'certifiedIdsPath',
+  };
+
   const handleSave = async () => {
     try {
+      // Extract ID from S3 path
+      const extractIdFromPath = (path: string | null): number | null => {
+        if (!path) return null;
+        const match = path.match(/\/(\d+)_/);
+        return match ? parseInt(match[1], 10) : null;
+      };
+
       // Upload files if present and collect document IDs
       const fileIds: Record<string, number> = {};
       const otherFormIds: Record<string, number> = {};
@@ -63,41 +90,41 @@ export default function Step6RequiredDocumentChecklist() {
       // Save form data
       await dispatch(saveUploadDetails({
         payload: {
-          ...formData,
+          membershipType: formData.application.membershipType,
           memberRequiredDocuments: {
-            tradeLicenseAndMoaFileId: fileIds.trade_license || null,
+            tradeLicenseAndMoaFileId: fileIds.trade_license || extractIdFromPath((formData.memberRequiredDocuments as any)?.tradeLicenseAndMoaPath) || null,
             isChecked_TradeLicenseAndMoa: checked.trade_license,
-            bankingRelationshipEvidenceFileId: fileIds.banking_evidence || null,
+            bankingRelationshipEvidenceFileId: fileIds.banking_evidence || extractIdFromPath((formData.memberRequiredDocuments as any)?.bankingRelationshipEvidencePath) || null,
             isChecked_BankingRelationshipEvidence: checked.banking_evidence,
-            auditedFinancialStatementsFileId: fileIds.audited_fs || null,
+            auditedFinancialStatementsFileId: fileIds.audited_fs || extractIdFromPath((formData.memberRequiredDocuments as any)?.auditedFinancialStatementsPath) || null,
             isChecked_AuditedFinancialStatements: checked.audited_fs,
-            netWorthCertificateFileId: fileIds.net_worth || null,
+            netWorthCertificateFileId: fileIds.net_worth || extractIdFromPath((formData.memberRequiredDocuments as any)?.netWorthCertificatePath) || null,
             isChecked_NetWorthCertificate: checked.net_worth,
-            amlCftPolicyFileId: fileIds.aml_policy || null,
+            amlCftPolicyFileId: fileIds.aml_policy || extractIdFromPath((formData.memberRequiredDocuments as any)?.amlCftPolicyPath) || null,
             isChecked_AmlCftPolicy: checked.aml_policy,
-            supplyChainCompliancePolicyFileId: fileIds.supply_chain || null,
+            supplyChainCompliancePolicyFileId: fileIds.supply_chain || extractIdFromPath((formData.memberRequiredDocuments as any)?.supplyChainCompliancePolicyPath) || null,
             isChecked_SupplyChainCompliancePolicy: checked.supply_chain,
-            amlCftAndSupplyChainPoliciesFileId: fileIds.amlCftAndSupplyChainPolicies || null,
+            amlCftAndSupplyChainPoliciesFileId: fileIds.amlCftAndSupplyChainPolicies || extractIdFromPath((formData.memberRequiredDocuments as any)?.amlCftAndSupplyChainPoliciesPath) || null,
             isChecked_AmlCftAndSupplyChainPolicies: checked.amlCftAndSupplyChainPolicies || false,
-            declarationNoUnresolvedAmlNoticesFileId: fileIds.declaration_aml || null,
+            declarationNoUnresolvedAmlNoticesFileId: fileIds.declaration_aml || extractIdFromPath((formData.memberRequiredDocuments as any)?.declarationNoUnresolvedAmlNoticesPath) || null,
             isChecked_DeclarationNoUnresolvedAmlNotices: checked.declaration_aml,
-            noUnresolvedAmlNoticesDeclarationFileId: fileIds.noUnresolvedAmlNoticesDeclaration || null,
+            noUnresolvedAmlNoticesDeclarationFileId: fileIds.noUnresolvedAmlNoticesDeclaration || extractIdFromPath((formData.memberRequiredDocuments as any)?.noUnresolvedAmlNoticesDeclarationPath) || null,
             isChecked_NoUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration || false,
-            accreditationCertificatesFileId: fileIds.accreditation || null,
+            accreditationCertificatesFileId: fileIds.accreditation || extractIdFromPath((formData.memberRequiredDocuments as any)?.accreditationCertificatesPath) || null,
             isChecked_AccreditationCertificates: checked.accreditation,
-            boardResolutionFileId: fileIds.board_resolution || null,
+            boardResolutionFileId: fileIds.board_resolution || extractIdFromPath((formData.memberRequiredDocuments as any)?.boardResolutionPath) || null,
             isChecked_BoardResolution: checked.board_resolution,
-            ownershipStructureFileId: fileIds.ownership_structure || null,
+            ownershipStructureFileId: fileIds.ownership_structure || extractIdFromPath((formData.memberRequiredDocuments as any)?.ownershipStructurePath) || null,
             isChecked_OwnershipStructure: checked.ownership_structure,
-            certifiedTrueCopyFileId: fileIds.certified_true_copy || null,
+            certifiedTrueCopyFileId: fileIds.certified_true_copy || extractIdFromPath((formData.memberRequiredDocuments as any)?.certifiedTrueCopyPath) || null,
             isChecked_CertifiedTrueCopy: checked.certified_true_copy,
-            latestAssuranceReportFileId: fileIds.assurance_report || null,
+            latestAssuranceReportFileId: fileIds.assurance_report || extractIdFromPath((formData.memberRequiredDocuments as any)?.latestAssuranceReportPath) || null,
             isChecked_LatestAssuranceReport: checked.assurance_report,
-            responsibleSourcingAssuranceReportFileId: fileIds.responsibleSourcingAssuranceReport || null,
+            responsibleSourcingAssuranceReportFileId: fileIds.responsibleSourcingAssuranceReport || extractIdFromPath((formData.memberRequiredDocuments as any)?.responsibleSourcingAssuranceReportPath) || null,
             isChecked_ResponsibleSourcingAssuranceReport: checked.responsibleSourcingAssuranceReport || false,
-            uboProofDocumentsFileId: fileIds.uboProofDocuments || null,
+            uboProofDocumentsFileId: fileIds.uboProofDocuments || extractIdFromPath((formData.memberRequiredDocuments as any)?.uboProofDocumentsPath) || null,
             isChecked_UboProofDocuments: checked.uboProofDocuments || false,
-            certifiedIdsFileId: fileIds.certifiedIds || null,
+            certifiedIdsFileId: fileIds.certifiedIds || extractIdFromPath((formData.memberRequiredDocuments as any)?.certifiedIdsPath) || null,
             isChecked_CertifiedIds: checked.certifiedIds || false,
             otherForms: otherForms.map(of => ({ otherFormName: of.name, otherFormFileId: otherFormIds[of.id] || null }))
           }
@@ -148,6 +175,15 @@ export default function Step6RequiredDocumentChecklist() {
                   }
                   onRemove={() => removeItemFile(it.id)}
                 />
+                {(formData.memberRequiredDocuments as any)?.[pathMap[it.id]] && !files[it.id] && (
+                  <a
+                    href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
+                    target="_blank"
+                    className="text-[#C6A95F] underline mt-2 block"
+                  >
+                    View previously uploaded {it.label}
+                  </a>
+                )}
               </div>
             </div>
           </div>

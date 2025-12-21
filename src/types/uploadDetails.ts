@@ -134,6 +134,7 @@ export interface Shareholder {
   passportDocument: number | null;
   nationalIdDocument: number | null;
   shareholdingDocumentId: number | null;
+  shareholdingDocumentPath?: string;
   proofFile: File | null;
 }
 
@@ -148,6 +149,7 @@ export interface UltimateBeneficialOwner {
   nationalIdDocument: number | null;
   confirmationFile: File | null;
   uboConfirmationDocument: number | null;
+  uboConfirmationDocumentPath?: string;
 }
 
 export interface Director {
@@ -192,11 +194,17 @@ export interface CompanyDetails {
   accreditationOther: boolean;
   otherAccreditation: string;
   tradeLicenseDocument: number | null;
+  tradeLicensePath?: string;
   certificateOfIncorporation: number | null;
+  certificateOfIncorporationPath?: string;
   taxRegistrationDocument: number | null;
+  taxRegistrationDocumentPath?: string;
   vatDocument: number | null;
+  vatDocumentPath?: string;
   addressProofDocument: number | null;
+  addressProofDocumentPath?: string;
   accreditationCertificate: number | null;
+  accreditationCertificatePath?: string;
   shareholdingProof: number | null;
   uboConfirmationDocument: number | null;
   shareholders: Shareholder[];
@@ -207,6 +215,7 @@ export interface CompanyDetails {
 export interface BankRelationshipRequirement {
   isClientOfDBRGMemberBank24Months: boolean | null;
   bankReferenceLetterFileId: number | null;
+  bankReferenceLetterFilePath?: string;
   bankName: string;
   accountNumber: string;
   accountType: string;
@@ -219,8 +228,10 @@ export interface FinancialThresholds {
   annualTurnoverValue: number | null;
   hasRequiredBullionTurnover: boolean;
   bullionTurnoverProofFileId: number | null;
+  bullionTurnoverProofFileIdPath?: string;
   hasRequiredNetWorth: boolean;
   netWorthProofFileId: number | null;
+  netWorthProofPath?: string;
 }
 
 export interface RegulatoryCompliance {
@@ -234,6 +245,7 @@ export interface RegulatoryCompliance {
   anyOnSanctionsList: boolean;
   hasDocumentedAmlPolicies: boolean;
   amlCftPolicyDocumentFileId: number | null;
+  amlCftPolicyDocumentFilePath?: string;
   conductsRegularAmlTraining: boolean;
   hasCustomerVerificationProcess: boolean;
   hasInternalRiskAssessment: boolean;
@@ -242,10 +254,13 @@ export interface RegulatoryCompliance {
   hadRegulatoryPenalties: boolean;
   penaltyExplanation: string;
   declarationNoPenaltyFileId: number | null;
+  declarationNoPenaltyFilePath?: string;
   hasSupplyChainPolicy: boolean;
   supplyChainPolicyDocumentFileId: number | null;
+  supplyChainPolicyDocumentFilePath?: string;
   responsibleSourcingAuditEvidence2: boolean;
   assuranceReportFileId: number | null;
+  assuranceReportFilePath?: string;
 }
 
 export interface MemberRequiredDocuments {
@@ -302,11 +317,13 @@ export interface DeclarationConsent {
   authorisedSignatoryName: string;
   designation: string;
   digitalSignatureFileId: number | null;
+  digitalSignatureFilePath?: string;
 }
 
 export interface UploadDetailsPayload {
   membershipType: typeof MembershipType[keyof typeof MembershipType];
   sectionNumber: typeof MemberApplicationSection[keyof typeof MemberApplicationSection];
+  application?: any;
   applicability?: Applicability;
   companyDetails?: CompanyDetails;
   bankRelationshipRequirement?: BankRelationshipRequirement;

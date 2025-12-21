@@ -30,6 +30,7 @@ export default function Step1Applicability() {
   const isSaving = useAppSelector(selectIsSaving);
 
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+  const [currentSetValue, setCurrentSetValue] = useState<((value: boolean) => void) | null>(null);
 
   // Use the custom hook
   const {
@@ -57,7 +58,7 @@ export default function Step1Applicability() {
     setEvidenceFile,
     removeSignedAMLFile,
     removeEvidenceFile,
-  } = useStep1Applicability(formData.applicability);
+  } = useStep1Applicability(formData.applicability,formData.application);
 
 
 
@@ -72,21 +73,33 @@ export default function Step1Applicability() {
 
   const handleSave = async () => {
     try {
-      // Upload files if present
-      let signedAMLDocumentId: number | undefined;
-      let evidenceDocumentId: number | undefined;
+      // Upload files if present, or use existing IDs from paths
+      let signedAMLDocumentId: number | null = null;
+      let evidenceDocumentId: number | null = null;
       console.log(" signedAMLFile", signedAMLFile);
       console.log(" evidenceFile", evidenceFile);
+
+      // Extract ID from S3 path
+      const extractIdFromPath = (path: string | null): number | null => {
+        if (!path) return null;
+        const match = path.match(/\/(\d+)_/);
+        return match ? parseInt(match[1], 10) : null;
+      };
+
       if (signedAMLFile) {
         signedAMLDocumentId = await dispatch(
           uploadDocument(signedAMLFile)
         ).unwrap();
+      } else if (existingSignedAMLPath) {
+        signedAMLDocumentId = extractIdFromPath(existingSignedAMLPath);
       }
 
       if (evidenceFile) {
         evidenceDocumentId = await dispatch(
           uploadDocument(evidenceFile)
         ).unwrap();
+      } else if (existingEvidencePath) {
+        evidenceDocumentId = extractIdFromPath(existingEvidencePath);
       }
 
       // Prepare applicability data based on membership type
@@ -271,7 +284,7 @@ export default function Step1Applicability() {
                     value={refinerAnswers[item.id]}
                     onChange={(v) => setRefinerAnswer(item.id, v)}
                     className="w-full"
-                    onNoClick={() => setSpecialConsiderationOpen(true)}
+                    onNoClick={() => { setCurrentSetValue(() => (v: boolean) => setRefinerAnswer(item.id, v)); setSpecialConsiderationOpen(true); }}
                   />
                 </div>
               </div>
@@ -306,7 +319,7 @@ export default function Step1Applicability() {
                   <YesNoGroup
                     value={tradingAnswers[item.id]}
                     onChange={(v) => setTradingAnswer(item.id, v)}
-                    onNoClick={() => setSpecialConsiderationOpen(true)}
+                    onNoClick={() => { setCurrentSetValue(() => (v: boolean) => setTradingAnswer(item.id, v)); setSpecialConsiderationOpen(true); }}
                   />
                 </div>
               </div>
@@ -352,7 +365,7 @@ export default function Step1Applicability() {
           <YesNoGroup
             value={anyAMLNotices}
             onChange={(v) => setAnyAMLNotices(v)}
-            onNoClick={() => setSpecialConsiderationOpen(true)}
+            onNoClick={() => { setCurrentSetValue(() => (v: boolean) => setAnyAMLNotices(v)); setSpecialConsiderationOpen(true); }}
           />
         </div>
 
@@ -400,7 +413,8 @@ export default function Step1Applicability() {
       <SpecialConsiderationDialog
         open={specialConsiderationOpen}
         onOpenChange={setSpecialConsiderationOpen}
-        onSubmit={() => setSpecialConsiderationOpen(false)}
+        onSubmit={() => { if (currentSetValue) currentSetValue(false); setSpecialConsiderationOpen(false); }}
+        onCloseWithoutSubmit={() => { if (currentSetValue) currentSetValue(true); }}
       />
     </div>
   );

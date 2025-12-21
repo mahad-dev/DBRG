@@ -180,7 +180,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       // Save form data
       await dispatch(saveUploadDetails({
         payload: {
-          ...formData,
+          membershipType: formData.application.membershipType,
           companyDetails: {
             legalEntityName: form.legalEntityName,
             entityLegalType: form.entityLegalType,
@@ -323,6 +323,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           onDrop={(e) => handleDropFile(e, "tradeLicense")}
           onRemove={() => removeFile("tradeLicense")}
         />
+        {formData.companyDetails?.tradeLicensePath && !uploadBoxes.tradeLicense && (
+          <a
+            href={formData.companyDetails.tradeLicensePath}
+            target="_blank"
+            className="text-[#C6A95F] underline mt-2 block"
+          >
+            View previously uploaded Trade License
+          </a>
+        )}
       </div>
 
       {/* -------------------------------------- */}
@@ -442,6 +451,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           onDrop={(e) => handleDropFile(e, "coi")}
           onRemove={() => removeFile("coi")}
         />
+        {formData.companyDetails?.certificateOfIncorporationPath && !uploadBoxes.coi && (
+          <a
+            href={formData.companyDetails.certificateOfIncorporationPath}
+            target="_blank"
+            className="text-[#C6A95F] underline mt-2 block"
+          >
+            View previously uploaded Certificate of Incorporation
+          </a>
+        )}
       </div>
 
       {/* -------------------------------------- */}

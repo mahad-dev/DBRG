@@ -23,17 +23,27 @@ export default function Step5Regulatory() {
 
   const handleSave = async () => {
     try {
+      // Extract ID from S3 path
+      const extractIdFromPath = (path: string | null): number | null => {
+        if (!path) return null;
+        const match = path.match(/\/(\d+)_/);
+        return match ? parseInt(match[1], 10) : null;
+      };
+
       // Upload files if present and collect document IDs
       let amlCftPolicyDocumentFileId: number | null = null;
       let declarationNoPenaltyFileId: number | null = null;
       let supplyChainPolicyDocumentFileId: number | null = null;
       let assuranceReportFileId: number | null = null;
 
+      // Upload file if present, or use existing ID from path
       if (hook.amlPolicyFile) {
         const result = await dispatch(uploadDocument(hook.amlPolicyFile));
         if (uploadDocument.fulfilled.match(result)) {
           amlCftPolicyDocumentFileId = result.payload;
         }
+      } else if (formData.regulatoryCompliance?.amlCftPolicyDocumentFilePath) {
+        amlCftPolicyDocumentFileId = extractIdFromPath(formData.regulatoryCompliance.amlCftPolicyDocumentFilePath);
       }
 
       if (hook.declarationFile) {
@@ -41,6 +51,8 @@ export default function Step5Regulatory() {
         if (uploadDocument.fulfilled.match(result)) {
           declarationNoPenaltyFileId = result.payload;
         }
+      } else if (formData.regulatoryCompliance?.declarationNoPenaltyFilePath) {
+        declarationNoPenaltyFileId = extractIdFromPath(formData.regulatoryCompliance.declarationNoPenaltyFilePath);
       }
 
       if (hook.supplyChainDueDiligenceFile) {
@@ -48,6 +60,8 @@ export default function Step5Regulatory() {
         if (uploadDocument.fulfilled.match(result)) {
           supplyChainPolicyDocumentFileId = result.payload;
         }
+      } else if (formData.regulatoryCompliance?.supplyChainPolicyDocumentFilePath) {
+        supplyChainPolicyDocumentFileId = extractIdFromPath(formData.regulatoryCompliance.supplyChainPolicyDocumentFilePath);
       }
 
       if (hook.responsibleSourcingFile) {
@@ -55,6 +69,8 @@ export default function Step5Regulatory() {
         if (uploadDocument.fulfilled.match(result)) {
           assuranceReportFileId = result.payload;
         }
+      } else if (formData.regulatoryCompliance?.assuranceReportFilePath) {
+        assuranceReportFileId = extractIdFromPath(formData.regulatoryCompliance.assuranceReportFilePath);
       }
 
       // Upload ongoing details file if present (though not used in payload)
@@ -65,7 +81,7 @@ export default function Step5Regulatory() {
       // Save form data
       await dispatch(saveUploadDetails({
         payload: {
-          ...formData,
+          membershipType: formData.application.membershipType,
           regulatoryCompliance: {
             compliantWithAmlCft: hook.compliantUAE ?? false,
             complianceOfficerFullName: hook.officerName,
@@ -320,6 +336,15 @@ export default function Step5Regulatory() {
                 onDrop={(e) => hook.handleDropFile(e, hook.setAmlPolicyFile)}
                 onRemove={() => hook.removeFile(hook.setAmlPolicyFile)}
               />
+              {formData.regulatoryCompliance?.amlCftPolicyDocumentFilePath && !hook.amlPolicyFile && (
+                <a
+                  href={formData.regulatoryCompliance.amlCftPolicyDocumentFilePath}
+                  target="_blank"
+                  className="text-[#C6A95F] underline mt-2 block"
+                >
+                  View previously uploaded AML/CFT policy document
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -434,6 +459,15 @@ export default function Step5Regulatory() {
                   onDrop={(e) => hook.handleDropFile(e, hook.setDeclarationFile)}
                   onRemove={() => hook.removeFile(hook.setDeclarationFile)}
                 />
+                {formData.regulatoryCompliance?.declarationNoPenaltyFilePath && !hook.declarationFile && (
+                  <a
+                    href={formData.regulatoryCompliance.declarationNoPenaltyFilePath}
+                    target="_blank"
+                    className="text-[#C6A95F] underline mt-2 block"
+                  >
+                    View previously uploaded declaration document
+                  </a>
+                )}
               </div>
             </div>
           )}
@@ -505,6 +539,15 @@ export default function Step5Regulatory() {
                     hook.removeFile(hook.setSupplyChainDueDiligenceFile)
                   }
                 />
+                {formData.regulatoryCompliance?.supplyChainPolicyDocumentFilePath && !hook.supplyChainDueDiligenceFile && (
+                  <a
+                    href={formData.regulatoryCompliance.supplyChainPolicyDocumentFilePath}
+                    target="_blank"
+                    className="text-[#C6A95F] underline mt-2 block"
+                  >
+                    View previously uploaded supply chain policy document
+                  </a>
+                )}
               </div>
             )}
           </div>
@@ -550,6 +593,15 @@ export default function Step5Regulatory() {
                     hook.removeFile(hook.setResponsibleSourcingFile)
                   }
                 />
+                {formData.regulatoryCompliance?.assuranceReportFilePath && !hook.responsibleSourcingFile && (
+                  <a
+                    href={formData.regulatoryCompliance.assuranceReportFilePath}
+                    target="_blank"
+                    className="text-[#C6A95F] underline mt-2 block"
+                  >
+                    View previously uploaded responsible sourcing audit evidence
+                  </a>
+                )}
               </div>
             )}
           </div>

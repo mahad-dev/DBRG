@@ -43,18 +43,29 @@ export default function Step4FinancialThresholds() {
 
   const handleSave = async () => {
     try {
-      // Upload files if present and collect document IDs
       let bullionFileId = bullionTurnoverProofFileId;
       let netWorthFileId = netWorthProofFileId;
 
+      // Extract ID from S3 path
+      const extractIdFromPath = (path: string | null): number | null => {
+        if (!path) return null;
+        const match = path.match(/\/(\d+)_/);
+        return match ? parseInt(match[1], 10) : null;
+      };
+
+      // Upload file if present, or use existing ID from path
       if (bullionFile) {
         const result = await dispatch(uploadDocument(bullionFile)).unwrap();
         bullionFileId = result;
+      } else if (formData.financialThresholds?.bullionTurnoverProofFileIdPath) {
+        bullionFileId = extractIdFromPath(formData.financialThresholds.bullionTurnoverProofFileIdPath);
       }
 
       if (netWorthFile) {
         const result = await dispatch(uploadDocument(netWorthFile)).unwrap();
         netWorthFileId = result;
+      } else if (formData.financialThresholds?.netWorthProofPath) {
+        netWorthFileId = extractIdFromPath(formData.financialThresholds.netWorthProofPath);
       }
 
       // Save form data
@@ -63,7 +74,7 @@ export default function Step4FinancialThresholds() {
 
       await dispatch(saveUploadDetails({
         payload: {
-          ...formData,
+          membershipType: formData.application.membershipType,
           financialThresholds: {
             paidUpCapital: parsedPaidUpCapital === 0 ? null : parsedPaidUpCapital,
             annualTurnoverValue: parsedAnnualTurnover === 0 ? null : parsedAnnualTurnover,
@@ -158,6 +169,15 @@ export default function Step4FinancialThresholds() {
             id="bullion-upload"
             onRemove={() => setBullionFile(null)}
           />
+          {formData.financialThresholds?.bullionTurnoverProofFileIdPath && !bullionFile && (
+            <a
+              href={formData.financialThresholds.bullionTurnoverProofFileIdPath}
+              target="_blank"
+              className="text-[#C6A95F] underline mt-2 block"
+            >
+              View previously uploaded bullion turnover proof
+            </a>
+          )}
         </div>
       </div>
 
@@ -199,6 +219,15 @@ export default function Step4FinancialThresholds() {
           >
             Download Template
           </Button>
+          {formData.financialThresholds?.netWorthProofPath && !netWorthFile && (
+            <a
+              href={formData.financialThresholds.netWorthProofPath}
+              target="_blank"
+              className="text-[#C6A95F] underline mt-2 block"
+            >
+              View previously uploaded net worth proof
+            </a>
+          )}
         </div>
       </div>
 
