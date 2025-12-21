@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
+import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useStep5Regulatory } from "@/hooks/useStep5Regulatory";
 import { Input } from "@/components/ui/input";
 import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
@@ -14,6 +16,9 @@ export default function Step5Regulatory() {
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
   console.log("Step5Regulatory formData.regulatoryCompliance:", formData.regulatoryCompliance);
+
+  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+
   const hook = useStep5Regulatory(formData.regulatoryCompliance);
 
   const handleSave = async () => {
@@ -144,6 +149,7 @@ export default function Step5Regulatory() {
             <YesNoGroup
               value={hook.compliantUAE}
               onChange={hook.setCompliantUAE}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
             />
           </div>
         </div>
@@ -210,6 +216,7 @@ export default function Step5Regulatory() {
           <YesNoGroup
             value={hook.ongoingCases}
             onChange={hook.setOngoingCases}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
 
           {/* conditional details input and upload */}
@@ -268,6 +275,7 @@ export default function Step5Regulatory() {
           <YesNoGroup
             value={hook.sanctionsListed}
             onChange={hook.setSanctionsListed}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
 
@@ -292,6 +300,7 @@ export default function Step5Regulatory() {
           <YesNoGroup
             value={hook.policiesPrepared}
             onChange={hook.setPoliciesPrepared}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
           {hook.policiesPrepared && (
             <div className="mt-3 max-w-md">
@@ -334,6 +343,7 @@ export default function Step5Regulatory() {
           <YesNoGroup
             value={hook.trainingOngoing}
             onChange={hook.setTrainingOngoing}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
 
@@ -353,7 +363,7 @@ export default function Step5Regulatory() {
             Has your organisation implemented processes for the identification
             and verification of your customers and beneficial owners?
           </Label>
-          <YesNoGroup value={hook.idProcesses} onChange={hook.setIdProcesses} />
+          <YesNoGroup value={hook.idProcesses} onChange={hook.setIdProcesses} onNoClick={() => setSpecialConsiderationOpen(true)} />
         </div>
 
         {/* Risk assessment */}
@@ -375,6 +385,7 @@ export default function Step5Regulatory() {
           <YesNoGroup
             value={hook.riskAssessment}
             onChange={hook.setRiskAssessment}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
 
@@ -394,7 +405,7 @@ export default function Step5Regulatory() {
             Have you had any penalties from Regulatory Authorities in the past
             due to non-compliance in AML/CFT procedures?
           </Label>
-          <YesNoGroup value={hook.penalties} onChange={hook.setPenalties} />
+          <YesNoGroup value={hook.penalties} onChange={hook.setPenalties} onNoClick={() => setSpecialConsiderationOpen(true)} />
           {hook.penalties && (
             <div className="mt-3 space-y-3">
               <div>
@@ -446,6 +457,7 @@ export default function Step5Regulatory() {
           <YesNoGroup
             value={hook.supplyChainCompliant}
             onChange={hook.setSupplyChainCompliant}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
 
           <div className="mt-4">
@@ -466,6 +478,7 @@ export default function Step5Regulatory() {
             <YesNoGroup
               value={hook.preciousPolicy}
               onChange={hook.setPreciousPolicy}
+              onNoClick={() => setSpecialConsiderationOpen(true)}
             />
             {hook.preciousPolicy && (
               <div className="mt-3 max-w-md">
@@ -513,6 +526,7 @@ export default function Step5Regulatory() {
             <YesNoGroup
               value={hook.responsibleSourcingAudit}
               onChange={hook.setResponsibleSourcingAudit}
+              onNoClick={() => setSpecialConsiderationOpen(true)}
             />
             {hook.responsibleSourcingAudit && (
               <div className="mt-3 max-w-md">
@@ -550,7 +564,7 @@ export default function Step5Regulatory() {
                 >
                   Back
                 </Button>
-        
+
         <Button
           onClick={handleSave}
           disabled={isSaving}
@@ -560,6 +574,12 @@ export default function Step5Regulatory() {
           {isSaving ? 'Saving...' : 'Save / Next'}
         </Button>
       </div>
+
+      {/* Special Consideration Dialog */}
+      <SpecialConsiderationDialog
+        open={specialConsiderationOpen}
+        onOpenChange={setSpecialConsiderationOpen}
+      />
     </div>
   );
 }

@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
+import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
 import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
 import { MemberApplicationSection } from '../../../../../types/uploadDetails';
@@ -78,6 +79,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   const [dateOfAppointment, setDateOfAppointment] = useState<Date | undefined>(
     form.dateOfAppointment ? new Date(form.dateOfAppointment) : undefined
   );
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Prefill date states from form data
   useEffect(() => {
@@ -1081,6 +1084,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       <YesNoGroup
         value={form.anyShareholderDirectorUBOPEP}
         onChange={(v) => setField("anyShareholderDirectorUBOPEP", v)}
+        onNoClick={() => setIsDialogOpen(true)}
       />
 
       <h4 className="font-bold text-[20px] mt-10 mb-3 text-white">
@@ -1089,6 +1093,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       <YesNoGroup
         value={form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP}
         onChange={(v) => setField("anyShareholderBeneficialOwnerKeyPersonRelatedToPEP", v)}
+        onNoClick={() => setIsDialogOpen(true)}
       />
 
       <h4 className="font-bold text-[20px] mt-10 mb-3 text-white">
@@ -1097,6 +1102,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       <YesNoGroup
         value={form.hasCustomerPEPChecks}
         onChange={(v) => setField("hasCustomerPEPChecks", v)}
+        onNoClick={() => setIsDialogOpen(true)}
       />
 
       {/* -------------------------------------- */}
@@ -1237,6 +1243,12 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           {isSaving ? 'Saving...' : 'Save / Next'}
         </Button>
       </div>
+
+      {/* Special Consideration Dialog */}
+      <SpecialConsiderationDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </div>
   );
 }

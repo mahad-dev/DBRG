@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
+import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -30,6 +31,8 @@ export default function Step3BankRelationshipRequirement() {
   const dispatch = useAppDispatch();
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
+
+  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
 
   // Map API data to hook format
   const mappedData = formData.bankRelationReq ? {
@@ -163,7 +166,11 @@ export default function Step3BankRelationshipRequirement() {
           1. Client of a DBRG Member Bank for at least 24 months?
         </Label>
         <div className="mt-4 flex gap-10 sm:flex-col sm:gap-3">
-          <YesNoGroup value={isClient24Months} onChange={setIsClient24Months} />
+          <YesNoGroup
+            value={isClient24Months}
+            onChange={setIsClient24Months}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
+          />
         </div>
       </div>
 
@@ -287,6 +294,12 @@ export default function Step3BankRelationshipRequirement() {
           {isSaving ? "Saving..." : "Save / Next"}
         </Button>
       </div>
+
+      <SpecialConsiderationDialog
+        open={specialConsiderationOpen}
+        onOpenChange={setSpecialConsiderationOpen}
+        onSubmit={() => setSpecialConsiderationOpen(false)}
+      />
     </div>
   );
 }

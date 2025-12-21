@@ -2,6 +2,7 @@
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
+import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
@@ -21,11 +22,14 @@ import {
 } from "../../../../../types/uploadDetails";
 import { toast } from "react-toastify";
 import { useStep1Applicability } from "../../../../../hooks/useStep1Applicability";
+import { useState } from "react";
 
 export default function Step1Applicability() {
   const dispatch = useAppDispatch();
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
+
+  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
 
   // Use the custom hook
   const {
@@ -267,6 +271,7 @@ export default function Step1Applicability() {
                     value={refinerAnswers[item.id]}
                     onChange={(v) => setRefinerAnswer(item.id, v)}
                     className="w-full"
+                    onNoClick={() => setSpecialConsiderationOpen(true)}
                   />
                 </div>
               </div>
@@ -301,6 +306,7 @@ export default function Step1Applicability() {
                   <YesNoGroup
                     value={tradingAnswers[item.id]}
                     onChange={(v) => setTradingAnswer(item.id, v)}
+                    onNoClick={() => setSpecialConsiderationOpen(true)}
                   />
                 </div>
               </div>
@@ -346,6 +352,7 @@ export default function Step1Applicability() {
           <YesNoGroup
             value={anyAMLNotices}
             onChange={(v) => setAnyAMLNotices(v)}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
 
@@ -389,6 +396,12 @@ export default function Step1Applicability() {
           {isSaving ? "Saving..." : "Save / Next"}
         </Button>
       </div>
+
+      <SpecialConsiderationDialog
+        open={specialConsiderationOpen}
+        onOpenChange={setSpecialConsiderationOpen}
+        onSubmit={() => setSpecialConsiderationOpen(false)}
+      />
     </div>
   );
 }

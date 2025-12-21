@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
+import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useStep4FinancialThresholds } from "@/hooks/useStep4FinancialThresholds";
 import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
 import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
@@ -15,6 +17,8 @@ export default function Step4FinancialThresholds() {
   const dispatch = useAppDispatch();
   const formData = useAppSelector(selectFormData);
   const isSaving = useAppSelector(selectIsSaving);
+
+  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
 
   const {
     paidUpCapital,
@@ -125,7 +129,11 @@ export default function Step4FinancialThresholds() {
         </Label>
 
         <div className="mt-4">
-          <YesNoGroup value={bullionTurnover} onChange={setBullionTurnover} />
+          <YesNoGroup
+            value={bullionTurnover}
+            onChange={setBullionTurnover}
+            onNoClick={() => setSpecialConsiderationOpen(true)}
+          />
         </div>
 
         {/* Upload */}
@@ -160,7 +168,8 @@ export default function Step4FinancialThresholds() {
         </Label>
 
         <div className="mt-4">
-          <YesNoGroup value={netWorth} onChange={setNetWorth} />
+          <YesNoGroup value={netWorth} onChange={setNetWorth} 
+            onNoClick={() => setSpecialConsiderationOpen(true)}/>
         </div>
 
         {/* Upload Proof */}
@@ -211,6 +220,12 @@ export default function Step4FinancialThresholds() {
           {isSaving ? 'Saving...' : 'Save / Next'}
         </Button>
       </div>
+
+      <SpecialConsiderationDialog
+        open={specialConsiderationOpen}
+        onOpenChange={setSpecialConsiderationOpen}
+        onSubmit={() => setSpecialConsiderationOpen(false)}
+      />
     </div>
   );
 }
