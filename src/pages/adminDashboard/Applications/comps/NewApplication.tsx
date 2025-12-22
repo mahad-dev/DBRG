@@ -22,7 +22,7 @@ import { Search, Filter, Map, MoreVertical } from "lucide-react";
 import ApprovedDialog from "./ApproveModal";
 import RejectDialog from "./RejectModal";
 import apiClient from "@/services/apiClient";
-
+import RemarksDialog from "./ApplicationRemarksModal";
 /* ================= TYPES ================= */
 type Applicant = {
   id: number;
@@ -46,6 +46,7 @@ export default function ApplicantsTable() {
 
   const [approveModal, setApproveModal] = useState(false);
   const [rejectModal, setRejectModal] = useState(false);
+  const [addRemarksModal,setAddRemarksModal]=useState(false);
   const [selectedApplicant, setSelectedApplicant] =
     useState<Applicant | null>(null);
 
@@ -101,6 +102,21 @@ export default function ApplicantsTable() {
         `/applications/${selectedApplicant.id}/reject`
       );
       setRejectModal(false);
+      fetchApplicants();
+    } catch (error) {
+      console.error("Reject Error:", error);
+    }
+  };
+
+  const handleRemarks = async () => {
+    if (!selectedApplicant) return;
+    try {
+      await apiClient.post(
+        `/applications/${selectedApplicant.id}/remark`
+      );
+      setAddRemarksModal(false);
+
+      
       fetchApplicants();
     } catch (error) {
       console.error("Reject Error:", error);
@@ -195,7 +211,11 @@ export default function ApplicantsTable() {
                               setSelectedApplicant(item);
                               setRejectModal(true);
                             }}
+                            onRemark={()=>{
+                              setAddRemarksModal(true);
+                            }}
                           />
+
                         </TableCell>
                       </TableRow>
                     ))
@@ -224,6 +244,12 @@ export default function ApplicantsTable() {
         open={rejectModal}
         onOpenChange={setRejectModal}
         onConfirm={handleReject}
+      />
+
+      <RemarksDialog
+        open={addRemarksModal}
+        onOpenChange={setAddRemarksModal}
+        onConfirm={handleRemarks}
       />
     </>
   );
@@ -270,9 +296,11 @@ function FooterPagination({
 function ActionMenu({
   onApprove,
   onReject,
+  onRemark,
 }: {
   onApprove: () => void;
   onReject: () => void;
+  onRemark: () => void;
 }) {
   return (
     <DropdownMenu>
@@ -288,6 +316,8 @@ function ActionMenu({
         </DropdownMenuItem>
         <DropdownMenuItem>Ask for more details</DropdownMenuItem>
         <DropdownMenuItem>View Application</DropdownMenuItem>
+        <DropdownMenuItem onClick={onRemark}>Add Remarks</DropdownMenuItem>
+
       </DropdownMenuContent>
     </DropdownMenu>
   );
