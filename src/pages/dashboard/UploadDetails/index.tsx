@@ -69,7 +69,7 @@ export default function UploadDetails() {
   const specialConsideration = formData?.applicability?.specialConsideration;
   const isSpecialConsiderationPending = specialConsideration?.status === 1;
   const isSpecialConsiderationRejected = specialConsideration?.status === 3;
-
+ 
   if (isSpecialConsiderationPending || isSpecialConsiderationRejected) {
     return (
       <div className="flex items-center justify-center p-4">
