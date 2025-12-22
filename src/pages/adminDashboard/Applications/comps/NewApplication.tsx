@@ -82,12 +82,14 @@ export default function ApplicantsTable() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   /* ================= ACTIONS ================= */
-  const handleApprove = async () => {
+  const handleApprove = async (comment: string) => {
     if (!selectedApplicant) return;
     try {
-      await apiClient.post(
-        `/applications/${selectedApplicant.id}/approve`
-      );
+      await apiClient.put('/UploadDetails/ChangeApplicationStatus', {
+        status: 2, // Accepted
+        applicationId: selectedApplicant.id,
+        comment,
+      });
       setApproveModal(false);
       fetchApplicants();
     } catch (error) {
@@ -95,12 +97,14 @@ export default function ApplicantsTable() {
     }
   };
 
-  const handleReject = async () => {
+  const handleReject = async (comment: string) => {
     if (!selectedApplicant) return;
     try {
-      await apiClient.post(
-        `/applications/${selectedApplicant.id}/reject`
-      );
+      await apiClient.put('/UploadDetails/ChangeApplicationStatus', {
+        status: 3, // Rejected
+        applicationId: selectedApplicant.id,
+        comment,
+      });
       setRejectModal(false);
       fetchApplicants();
     } catch (error) {
