@@ -21,6 +21,7 @@ import {
 import { Search, Filter, Map, MoreVertical } from "lucide-react";
 import ApprovedDialog from "./ApproveModal";
 import RejectDialog from "./RejectModal";
+import RemarksDialog from "./RemarksModal";
 import apiClient from "@/services/apiClient";
 
 /* ================= TYPES ================= */
@@ -34,6 +35,30 @@ type ConsiderationRequest = {
   status: number;
   applicationDate: string;
   remarks: string | null;
+  statusChangedDate?: string | null;
+};
+
+/* ================= UTILITY FUNCTIONS ================= */
+const getStatusText = (status: number): string => {
+  switch (status) {
+    case 1:
+      return "Pending";
+    case 2:
+      return "Accepted";
+    case 3:
+      return "Rejected";
+    default:
+      return "Unknown";
+  }
+};
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const PAGE_SIZE = 10;
@@ -49,6 +74,7 @@ export default function SpecialConsiderationTable() {
 
   const [approveModal, setApproveModal] = useState(false);
   const [rejectModal, setRejectModal] = useState(false);
+  const [remarksModal, setRemarksModal] = useState(false);
   const [selectedRequest, setSelectedRequest] =
     useState<ConsiderationRequest | null>(null);
 
@@ -83,9 +109,10 @@ export default function SpecialConsiderationTable() {
   const handleApprove = async () => {
     if (!selectedRequest) return;
     try {
-      await apiClient.post(
-        `/specialconsideration/${selectedRequest.id}/approve`
-      );
+      await apiClient.put("/SpecialConsideration/ChangeApplicationStatus", {
+        id: selectedRequest.id,
+        status: 2,
+      });
       setApproveModal(false);
       fetchRequests();
     } catch (error) {
@@ -96,13 +123,28 @@ export default function SpecialConsiderationTable() {
   const handleReject = async () => {
     if (!selectedRequest) return;
     try {
-      await apiClient.post(
-        `/specialconsideration/${selectedRequest.id}/reject`
-      );
+      await apiClient.put("/SpecialConsideration/ChangeApplicationStatus", {
+        id: selectedRequest.id,
+        status: 3,
+      });
       setRejectModal(false);
       fetchRequests();
     } catch (error) {
       console.error("Reject Error:", error);
+    }
+  };
+
+  const handleAddRemarks = async (remarks: string) => {
+    if (!selectedRequest) return;
+    try {
+      await apiClient.put("/SpecialConsideration/AddRemarks", {
+        applicationId: selectedRequest.id,
+        remarks,
+      });
+      setRemarksModal(false);
+      fetchRequests();
+    } catch (error) {
+      console.error("Add Remarks Error:", error);
     }
   };
 
@@ -198,6 +240,10 @@ export default function SpecialConsiderationTable() {
                               setSelectedRequest(item);
                               setRejectModal(true);
                             }}
+                            onAddRemarks={() => {
+                              setSelectedRequest(item);
+                              setRemarksModal(true);
+                            }}
                           />
                         </TableCell>
                       </TableRow>
@@ -228,6 +274,20 @@ export default function SpecialConsiderationTable() {
         open={rejectModal}
         onOpenChange={setRejectModal}
         onConfirm={handleReject}
+      />
+
+      <RemarksDialog
+        open={remarksModal}
+        onOpenChange={setRemarksModal}
+        onConfirm={handleAddRemarks}
+        userName={selectedRequest?.name}
+        companyName={selectedRequest?.companyName ?? undefined}
+        status={getStatusText(selectedRequest?.status || 0)}
+        approvalOrRejectionDate={selectedRequest?.statusChangedDate ? formatDate(selectedRequest.statusChangedDate) : undefined}
+        applicationDate={formatDate(selectedRequest?.applicationDate || "")}
+        membershipCategory={selectedRequest?.membershipType?.toString()}
+        requestMessage={selectedRequest?.message}
+        remarks={selectedRequest?.remarks ?? undefined}
       />
     </>
   );
@@ -274,9 +334,11 @@ function FooterPagination({
 function ActionMenu({
   onApprove,
   onReject,
+  onAddRemarks,
 }: {
   onApprove: () => void;
   onReject: () => void;
+  onAddRemarks: () => void;
 }) {
   return (
     <DropdownMenu>
@@ -288,6 +350,7 @@ function ActionMenu({
         <DropdownMenuItem onClick={onReject}>Reject</DropdownMenuItem>
         <DropdownMenuItem>Ask for more details</DropdownMenuItem>
         <DropdownMenuItem>View Application</DropdownMenuItem>
+        <DropdownMenuItem onClick={onAddRemarks}>Add Remarks</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -11,19 +11,20 @@ import { cn } from "@/lib/utils";
 interface RemarksDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (remarks: string) => void;
   userName?: string;
   companyName?: string;
   status?: string;
   applicationDate?: string;
-  approvalDate?: string;
+  approvalOrRejectionDate?: string;
   membershipCategory?: string;
   requestMessage?: string;
+  remarks?: string;
 }
 
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
+const InfoRow = ({ label, value }: { label: string; value: string | undefined }) => (
   <p className="text-white text-xs">
-    {label} : <span className="font-medium">{value}</span>
+    {label} : <span className="font-medium">{value || "—"}</span>
   </p>
 );
 
@@ -31,14 +32,21 @@ export default function RemarksDialog({
   open,
   onOpenChange,
   onConfirm,
-  userName = "Sanjana Shah",
-  companyName = "Company Name",
-  status = "Pending",
-  applicationDate = "09/11/2024",
-  approvalDate = "N/A",
-  membershipCategory = "Principle Member",
-  requestMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
+  userName,
+  companyName,
+  status,
+  applicationDate,
+  approvalOrRejectionDate,
+  membershipCategory,
+  requestMessage,
+  remarks
 }: RemarksDialogProps) {
+  const handleSubmit = () => {
+    const textarea = document.querySelector('textarea[placeholder="Add Remarks"]') as HTMLTextAreaElement;
+    const remarks = textarea?.value || '';
+    onConfirm(remarks);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-black text-white border-[#C6A95F] p-6 rounded-lg max-w-lg font-inter">
@@ -59,13 +67,13 @@ export default function RemarksDialog({
           <div className="text-right space-y-1 text-xs">
             <InfoRow label="Status" value={status} />
             <InfoRow label="Date of Application" value={applicationDate} />
-            <InfoRow label="Date of Approval/Rejection" value={approvalDate} />
+            <InfoRow label="Date of Approval/Rejection" value={approvalOrRejectionDate} />
           </div>
         </DialogHeader>
 
-        {/* Membership Category */}
+        {/* Membership Type */}
         <div className="mb-4 border-none">
-          <p className="text-sm mb-1">Membership Category</p>
+          <p className="text-sm mb-1">Membership Type</p>
           <div
             className={cn(
               "w-40 h-8 rounded-lg px-2 py-1 text-sm flex items-center",
@@ -95,6 +103,7 @@ export default function RemarksDialog({
           <div className="flex gap-3">
             <textarea
               placeholder="Add Remarks"
+              defaultValue={remarks}
               className={cn(
                 "w-full min-h-[100px] rounded-lg border border-white px-3 py-2 text-xs text-white placeholder:text-white",
                 "outline-none transition-all duration-200 focus:border-white focus:ring-1 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -102,7 +111,7 @@ export default function RemarksDialog({
             />
             <Button
               className="self-start mt-16"
-              onClick={onConfirm}
+              onClick={handleSubmit}
               variant="site_btn"
             >
               Submit
