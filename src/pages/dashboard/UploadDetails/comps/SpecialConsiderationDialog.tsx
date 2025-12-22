@@ -15,7 +15,7 @@ import { useState } from "react";
 interface SpecialConsiderationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: () => void;
+  onSubmit?: (message: string) => Promise<void>;
   onCloseWithoutSubmit?: () => void;
 }
 
@@ -26,17 +26,21 @@ export default function SpecialConsiderationDialog({
   onCloseWithoutSubmit,
 }: SpecialConsiderationDialogProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = () => {
-    setHasSubmitted(true);
-    if (onSubmit) onSubmit();
-    onOpenChange(false);
+  const handleSubmit = async () => {
+    if (message.trim()) {
+      setHasSubmitted(true);
+      if (onSubmit) await onSubmit(message);
+      onOpenChange(false);
+    }
   };
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       if (!hasSubmitted && onCloseWithoutSubmit) onCloseWithoutSubmit();
       setHasSubmitted(false);
+      setMessage("");
     }
     onOpenChange(open);
   };
@@ -75,6 +79,8 @@ export default function SpecialConsiderationDialog({
 
           {/* Textarea */}
           <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             className="
               min-h-[160px]
               bg-white

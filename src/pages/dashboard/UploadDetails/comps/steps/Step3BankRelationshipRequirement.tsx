@@ -316,7 +316,6 @@ export default function Step3BankRelationshipRequirement() {
       <SpecialConsiderationDialog
         open={specialConsiderationOpen}
         onOpenChange={setSpecialConsiderationOpen}
-        onSubmit={() => setSpecialConsiderationOpen(false)}
       />
     </div>
   );

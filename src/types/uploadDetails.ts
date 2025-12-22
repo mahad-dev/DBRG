@@ -116,11 +116,17 @@ export interface AffiliateMember {
   signedAMLDeclaration: number;
 }
 
+export interface SpecialConsideration {
+  message: string;
+  status?: number; // 1: Pending, 2: Approved, 3: Rejected
+}
+
 export interface Applicability {
   principalMember?: PrincipalMember;
   memberBank?: MemberBank;
   contributingMember?: ContributingMember;
   affiliateMember?: AffiliateMember;
+  specialConsideration?: SpecialConsideration;
 }
 
 export interface Shareholder {

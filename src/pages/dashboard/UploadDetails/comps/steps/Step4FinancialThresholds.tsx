@@ -253,7 +253,6 @@ export default function Step4FinancialThresholds() {
       <SpecialConsiderationDialog
         open={specialConsiderationOpen}
         onOpenChange={setSpecialConsiderationOpen}
-        onSubmit={() => setSpecialConsiderationOpen(false)}
       />
     </div>
   );

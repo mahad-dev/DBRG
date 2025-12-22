@@ -141,6 +141,11 @@ export default function Step1Applicability() {
         };
       }
 
+      // Include special consideration if it exists
+      if (formData.applicability?.specialConsideration) {
+        applicabilityData.specialConsideration = formData.applicability.specialConsideration;
+      }
+
       // Similar logic for other membership types...
 
       const payload = {
@@ -413,7 +418,30 @@ export default function Step1Applicability() {
       <SpecialConsiderationDialog
         open={specialConsiderationOpen}
         onOpenChange={setSpecialConsiderationOpen}
-        onSubmit={() => { if (currentSetValue) currentSetValue(false); setSpecialConsiderationOpen(false); }}
+        onSubmit={async (message: string) => {
+          try {
+            // Update form data with special consideration
+            const applicabilityData = {
+              ...formData.applicability,
+              specialConsideration: { message } // 1 = Pending
+            };
+            dispatch(updateFormData({ applicability: applicabilityData }));
+
+            // Save to API
+            await dispatch(saveUploadDetails({
+              payload: {
+                membershipType: formData.application.membershipType,
+                applicability: applicabilityData,
+              },
+              sectionNumber: MemberApplicationSection.Applicability
+            }));
+
+            toast.success("Special consideration request submitted successfully. You can continue after admin approval.");
+            if (currentSetValue) currentSetValue(false);
+          } catch (error) {
+            toast.error("Failed to submit special consideration request. Please try again.");
+          }
+        }}
         onCloseWithoutSubmit={() => { if (currentSetValue) currentSetValue(true); }}
       />
     </div>
