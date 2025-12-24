@@ -4,17 +4,16 @@ import './index.css'
 import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { Provider } from 'react-redux'
-import { store } from './store/store'
+import { UploadDetailsProvider } from './context/UploadDetailsContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Provider store={store}>
-      <BrowserRouter>
-        <AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <UploadDetailsProvider>
           <App />
-        </AuthProvider>
-      </BrowserRouter>
-    </Provider>
+        </UploadDetailsProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </StrictMode>,
 )

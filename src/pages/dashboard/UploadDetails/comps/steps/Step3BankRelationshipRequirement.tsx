@@ -15,85 +15,65 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
-import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
-import {
-  selectFormData,
-  selectIsSaving,
-  saveUploadDetails,
-  uploadDocument,
-  setCurrentStep,
-} from "../../../../../store/uploadDetailsSlice";
-import { MemberApplicationSection } from "../../../../../types/uploadDetails";
+import { useUploadDetails } from '@/context/UploadDetailsContext';
+import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
+import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
 
 export default function Step3BankRelationshipRequirement() {
-  const dispatch = useAppDispatch();
-  const formData = useAppSelector(selectFormData);
-  const isSaving = useAppSelector(selectIsSaving);
-
+  const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
+  const formData = state.data;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
-
-  // Map API data to hook format
-  const mappedData = formData.bankRelationReq ? {
-    isClientOfDBRGMemberBank24Months: formData.bankRelationReq.isClientOfDBRGMemberBank24Months,
-    bankReferenceLetterFileId: formData.bankRelationReq.bankReferenceLetterFileId,
-    bankName: formData.bankRelationReq.bankName,
-    accountNumber: formData.bankRelationReq.accountNumber,
-    accountType: formData.bankRelationReq.accountType,
-    bankingRelationSince: formData.bankRelationReq.bankingRelationSince,
-    bankAddress: formData.bankRelationReq.bankAddress,
-  } : undefined;
 
   const {
     isClient24Months,
-    bankFile,
-    bankRef,
-    bankReferenceLetterFileId,
-    bankName,
-    accountNumber,
-    accountType,
-    bankingSince,
-    address,
     setIsClient24Months,
+    bankFile,
     setBankFile,
-    setBankReferenceLetterFileId,
+    bankRef,
+    bankName,
+    setBankName,
+    accountNumber,
+    setAccountNumber,
+    accountType,
+    setAccountType,
+    bankingSince,
+    setBankingSince,
+    address,
+    setAddress,
     handleSelectFile,
     handleDropFile,
-    setBankName,
-    setAccountNumber,
-    setAccountType,
-    setBankingSince,
-    setAddress,
-  } = useStep3BankRelationshipRequirement(mappedData);
+  } = useStep3BankRelationshipRequirement(formData.bankRelationReq);
 
   // Track selected date as Date object for Calendar
-  // Track selected date as Date object for Calendar
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
-    if (bankingSince) {
-      const [day, month, year] = bankingSince.split("/");
-      if (day && month && year) {
-        return new Date(Number(year), Number(month) - 1, Number(day));
-      }
-    }
-    return undefined;
-  });
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  // Sync selectedDate with bankingSince from hook
+  // Update selectedDate when bankingSince changes
   useEffect(() => {
     if (bankingSince) {
-      const [day, month, year] = bankingSince.split("/");
-      if (day && month && year) {
-        setSelectedDate(new Date(Number(year), Number(month) - 1, Number(day)));
-      }
+      const [day, month, year] = bankingSince.split('/');
+      setSelectedDate(new Date(parseInt(year), parseInt(month) - 1, parseInt(day)));
     } else {
       setSelectedDate(undefined);
     }
   }, [bankingSince]);
 
+  // Update bankingSince when selectedDate changes
+  useEffect(() => {
+    if (selectedDate) {
+      const day = selectedDate.getDate().toString().padStart(2, "0");
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, "0");
+      const year = selectedDate.getFullYear();
+      setBankingSince(`${day}/${month}/${year}`);
+    } else {
+      setBankingSince("");
+    }
+  }, [selectedDate, setBankingSince]);
+
   const handleSave = async () => {
+    dispatch({ type: 'SET_SAVING', payload: true });
     try {
-      let fileId: number | null = bankReferenceLetterFileId;
+      let bankFileId = null;
 
       // Extract ID from S3 path
       const extractIdFromPath = (path: string | null): number | null => {
@@ -104,62 +84,31 @@ export default function Step3BankRelationshipRequirement() {
 
       // Upload file if present, or use existing ID from path
       if (bankFile) {
-        const result = await dispatch(uploadDocument(bankFile)).unwrap();
-        fileId = result;
-        setBankReferenceLetterFileId(fileId);
+        bankFileId = await uploadDocument(bankFile);
       } else if (formData.bankRelationReq?.bankReferenceLetterFilePath) {
-        fileId = extractIdFromPath(formData.bankRelationReq.bankReferenceLetterFilePath);
-      }
-
-      // Convert selectedDate to ISO for backend
-      let bankingSinceISO: string | null = null;
-      if (selectedDate) {
-        bankingSinceISO = selectedDate.toISOString();
-        // Save in DD/MM/YYYY for local state
-        const day = selectedDate.getDate().toString().padStart(2, "0");
-        const month = (selectedDate.getMonth() + 1).toString().padStart(2, "0");
-        const year = selectedDate.getFullYear();
-        setBankingSince(`${day}/${month}/${year}`);
-      }
-
-      // Validate required fields
-      if (
-        !bankName ||
-        !accountNumber ||
-        !accountType ||
-        !bankingSinceISO ||
-        !address
-      ) {
-        toast.error("Please fill in all required fields.");
-        return;
+        bankFileId = extractIdFromPath(formData.bankRelationReq.bankReferenceLetterFilePath);
       }
 
       // Save form data
-      await dispatch(
-        saveUploadDetails({
-          payload: {
-            membershipType: formData.application.membershipType,
-            bankRelationshipRequirement: {
-              isClientOfDBRGMemberBank24Months: isClient24Months,
-              bankReferenceLetterFileId: fileId,
-              bankName,
-              accountNumber,
-              accountType,
-              bankingRelationSince: bankingSinceISO,
-              bankAddress: address,
-            },
-          },
-          sectionNumber: MemberApplicationSection.BankRelationReq,
-        })
-      );
+      await saveUploadDetails({
+        membershipType: formData.membershipType,
+        bankRelationshipRequirement: {
+          isClientOfDBRGMemberBank24Months: isClient24Months,
+          bankReferenceLetterFileId: bankFileId,
+          bankName: bankName,
+          accountNumber: accountNumber,
+          accountType: accountType,
+          bankingRelationSince: selectedDate ? selectedDate.toISOString() : "",
+          bankAddress: address,
+        }
+      }, MemberApplicationSection.BankRelationReq);
 
-      toast.success("Bank relationship details saved successfully!");
-      dispatch(setCurrentStep(4));
+      toast.success('Bank relationship details saved successfully!');
+      setCurrentStep(4);
+      dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error) {
-      console.error(error);
-      toast.error(
-        "Failed to save bank relationship details. Please try again."
-      );
+      toast.error('Failed to save bank relationship details. Please try again.');
+      dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
 
@@ -203,7 +152,7 @@ export default function Step3BankRelationshipRequirement() {
           id="bank-upload"
           onRemove={() => setBankFile(null)}
         />
-        {formData.bankRelationReq?.bankReferenceLetterFilePath && !bankFile && (
+        {formData.bankRelationReq?.bankReferenceLetterFilePath  && (
           <a
             href={formData.bankRelationReq.bankReferenceLetterFilePath}
             target="_blank"
@@ -297,7 +246,7 @@ export default function Step3BankRelationshipRequirement() {
       {/* Navigation */}
       <div className="mt-10 flex justify-start gap-4">
         <Button
-          onClick={() => dispatch(setCurrentStep(2))}
+          onClick={() => {setCurrentStep(2);}}
           className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white font-gilroySemiBold"
         >
           Back
@@ -305,11 +254,11 @@ export default function Step3BankRelationshipRequirement() {
 
         <Button
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={state.isSaving}
           variant="site_btn"
           className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
         >
-          {isSaving ? "Saving..." : "Save / Next"}
+          {state.isSaving ? 'Saving...' : 'Save'}
         </Button>
       </div>
 

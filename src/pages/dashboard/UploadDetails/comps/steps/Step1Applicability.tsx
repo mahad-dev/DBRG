@@ -5,30 +5,23 @@ import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
-import {
-  selectFormData,
-  selectIsSaving,
-  updateFormData,
-  saveUploadDetails,
-  uploadDocument,
-  setCurrentStep,
-} from "../../../../../store/uploadDetailsSlice";
+import { useUploadDetails } from '@/context/UploadDetailsContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   MemberApplicationSection,
   MembershipType,
   ServiceType,
   RefiningOrTradingType,
-} from "../../../../../types/uploadDetails";
+} from '@/types/uploadDetails';
 import { toast } from "react-toastify";
-import { useStep1Applicability } from "../../../../../hooks/useStep1Applicability";
+import { useStep1Applicability } from '@/hooks/useStep1Applicability';
 import { useState } from "react";
 
 export default function Step1Applicability() {
-  const dispatch = useAppDispatch();
-  const formData = useAppSelector(selectFormData);
-  const isSaving = useAppSelector(selectIsSaving);
-
+  const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, getUploadDetails } = useUploadDetails();
+  const { user } = useAuth();
+  const formData = state.data;
+  const isSaving = state.isSaving;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const [currentSetValue, setCurrentSetValue] = useState<((value: boolean) => void) | null>(null);
 
@@ -72,6 +65,13 @@ export default function Step1Applicability() {
   ] as const;
 
   const handleSave = async () => {
+    // Prevent saving if special consideration is already pending
+    if (formData.applicability?.specialConsideration) {
+      toast.info("You have a pending special consideration request. Please wait for admin approval.");
+      return;
+    }
+
+    dispatch({ type: 'SET_SAVING', payload: true });
     try {
       // Upload files if present, or use existing IDs from paths
       let signedAMLDocumentId: number | null = null;
@@ -87,17 +87,13 @@ export default function Step1Applicability() {
       };
 
       if (signedAMLFile) {
-        signedAMLDocumentId = await dispatch(
-          uploadDocument(signedAMLFile)
-        ).unwrap();
+        signedAMLDocumentId = await uploadDocument(signedAMLFile);
       } else if (existingSignedAMLPath) {
         signedAMLDocumentId = extractIdFromPath(existingSignedAMLPath);
       }
 
       if (evidenceFile) {
-        evidenceDocumentId = await dispatch(
-          uploadDocument(evidenceFile)
-        ).unwrap();
+        evidenceDocumentId = await uploadDocument(evidenceFile);
       } else if (existingEvidencePath) {
         evidenceDocumentId = extractIdFromPath(existingEvidencePath);
       }
@@ -162,19 +158,25 @@ export default function Step1Applicability() {
       console.log("first...", payload);
       console.log("seconfd...", MemberApplicationSection.Applicability);
 
-      dispatch(updateFormData(payload));
-      await dispatch(
-        saveUploadDetails({
-          payload,
-          sectionNumber: MemberApplicationSection.Applicability,
-        })
-      ).unwrap();
+      updateFormData(payload);
+      await saveUploadDetails(payload, MemberApplicationSection.Applicability);
 
-      toast.success("Applicability saved successfully!");
-      // Move to next step after successful save
-      dispatch(setCurrentStep(2));
+      // Fetch updated data to check special consideration status
+      const updatedData = await getUploadDetails(user?.userId || '');
+
+      // Check if special consideration is present
+      if (updatedData.applicability?.specialConsideration) {
+        toast.success("Applicability saved successfully. You can continue after admin approval.");
+      } else {
+        toast.success("Applicability saved successfully!");
+        // Move to next step after successful save
+        setCurrentStep(2);
+      }
+
+      dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error) {
       toast.error("Failed to save applicability. Please try again.");
+      dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
 
@@ -420,25 +422,87 @@ export default function Step1Applicability() {
         onOpenChange={setSpecialConsiderationOpen}
         onSubmit={async (message: string) => {
           try {
-            // Update form data with special consideration
-            const applicabilityData = {
-              ...formData.applicability,
-              specialConsideration: { message } // 1 = Pending
+            // Extract ID from S3 path
+            const extractIdFromPath = (path: string | null): number | null => {
+              if (!path) return null;
+              const match = path.match(/\/(\d+)_/);
+              return match ? parseInt(match[1], 10) : null;
             };
-            dispatch(updateFormData({ applicability: applicabilityData }));
 
-            // Save to API
-            await dispatch(saveUploadDetails({
-              payload: {
-                membershipType: formData.application.membershipType,
-                applicability: applicabilityData,
-              },
-              sectionNumber: MemberApplicationSection.Applicability
-            }));
+            let signedAMLDocumentId = extractIdFromPath(existingSignedAMLPath);
+            let evidenceDocumentId = extractIdFromPath(existingEvidencePath);
 
-            toast.success("Special consideration request submitted successfully. You can continue after admin approval.");
+            // Prepare applicability data based on membership type
+            let applicabilityData: any = {};
+
+            if (membership === "principal") {
+              applicabilityData.principalMember = {
+                hasOfficeInUAE: true, // Assuming based on context
+                services: Object.keys(services)
+                  .filter((key) => services[key as keyof typeof services])
+                  .map((key) => {
+                    switch (key) {
+                      case "trading":
+                        return ServiceType.TradingInPreciousMetals;
+                      case "refining":
+                        return ServiceType.GoldRefining;
+                      case "logistics":
+                        return ServiceType.LogisticsAndVaulting;
+                      case "financial":
+                        return ServiceType.FinancialServicesInUAE;
+                      default:
+                        return ServiceType.TradingInPreciousMetals;
+                    }
+                  }),
+                refiningOrTradingCategory: category.refiner
+                  ? RefiningOrTradingType.Refiner
+                  : RefiningOrTradingType.TradingCompany,
+                isAccreditedRefinery: refinerAnswers.accredited || false,
+                operatedUnderUAEML5Years: refinerAnswers.aml5yrs || false,
+                refiningOutputOver10Tons: refinerAnswers.output10tons || false,
+                ratedCompliantByMinistry: refinerAnswers.ratedCompliant || false,
+                involvedInWholesaleBullionTrading:
+                  tradingAnswers.wholesaleBullion || false,
+                hasBankingRelationships3Years:
+                  tradingAnswers.bankRelationships || false,
+                hasUnresolvedAMLNotices: anyAMLNotices || false,
+                bankingRelationshipEvidence: evidenceDocumentId,
+                signedAMLDeclaration: signedAMLDocumentId,
+              };
+            }
+
+            // Add special consideration
+            applicabilityData.specialConsideration = { message };
+
+            const payload = {
+              membershipType:
+                membership === "principal"
+                  ? MembershipType.PrincipalMember
+                  : membership === "member_bank"
+                  ? MembershipType.MemberBank
+                  : membership === "contributing"
+                  ? MembershipType.ContributingMember
+                  : MembershipType.AffiliateMember,
+              applicability: applicabilityData,
+            };
+
+            updateFormData(payload);
+            await saveUploadDetails(payload, MemberApplicationSection.Applicability);
+
+            // Fetch updated data to check special consideration status
+            const updatedData = await getUploadDetails(user?.userId || '');
+
+            // Update the form data with the fetched data to prefill fields
+            updateFormData(updatedData);
+
+            // Check if special consideration is present
+            if (updatedData.applicability?.specialConsideration) {
+              toast.success("Special consideration request submitted successfully. You can continue after admin approval.");
+            }
+
             if (currentSetValue) currentSetValue(false);
           } catch (error) {
+            console.log("error", error);
             toast.error("Failed to submit special consideration request. Please try again.");
           }
         }}

@@ -2,32 +2,32 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
-import { selectFormData, selectIsSaving, saveUploadDetails, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
-import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { useUploadDetails } from '@/context/UploadDetailsContext';
+import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
 
 export default function Step7DataProtection() {
-  const dispatch = useAppDispatch();
-  const formData = useAppSelector(selectFormData);
-  const isSaving = useAppSelector(selectIsSaving);
+  const { state, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
+  const formData = state.data;
+  const isSaving = state.isSaving;
 
   const handleSave = async () => {
+    dispatch({ type: 'SET_SAVING', payload: true });
     try {
       // Save form data
-      await dispatch(saveUploadDetails({
-        payload: {
-          ...formData,
-          dataProtectionPrivacy: {
-            acknowledge: true
-          }
-        },
-        sectionNumber: MemberApplicationSection.DataProtectionPrivacy
-      }));
+      await saveUploadDetails({
+        membershipType: formData.application.membershipType,
+        dataProtectionPrivacy: {
+          acknowledge: true
+        }
+      }, MemberApplicationSection.DataProtectionPrivacy);
 
       toast.success('Data protection consent saved successfully!');
+      setCurrentStep(8);
+      dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error) {
       toast.error('Failed to save data protection consent. Please try again.');
+      dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
 
@@ -112,7 +112,7 @@ export default function Step7DataProtection() {
         {/* Buttons */}
         <div className="mt-10 flex justify-start gap-4">
                   <Button
-                    onClick={() => dispatch(setCurrentStep(6))}
+                    onClick={() => setCurrentStep(6)}
                     className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
                   >
                     Back

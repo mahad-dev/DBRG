@@ -27,12 +27,20 @@ export default function SpecialConsiderationDialog({
 }: SpecialConsiderationDialogProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    if (message.trim()) {
-      setHasSubmitted(true);
-      if (onSubmit) await onSubmit(message);
-      onOpenChange(false);
+    if (message.trim() && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        if (onSubmit) await onSubmit(message);
+        setHasSubmitted(true);
+        onOpenChange(false);
+      } catch (error) {
+        // Handle error if needed
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -114,6 +122,7 @@ export default function SpecialConsiderationDialog({
           </DialogClose>
           <Button
             onClick={handleSubmit}
+            disabled={isSubmitting}
             className="
               bg-[#C6A95F]
               text-black
@@ -122,9 +131,11 @@ export default function SpecialConsiderationDialog({
               h-11
               rounded-xl
               font-medium
+              disabled:opacity-50
+              disabled:cursor-not-allowed
             "
           >
-            Submit
+            {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </div>
       </DialogContent>

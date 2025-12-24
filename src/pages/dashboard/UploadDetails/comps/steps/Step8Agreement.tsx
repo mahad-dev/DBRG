@@ -17,23 +17,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { useAppSelector, useAppDispatch } from "../../../../../store/hooks";
-import {
-  selectFormData,
-  selectIsSaving,
-  updateFormData,
-  saveUploadDetails,
-  uploadDocument,
-  setCurrentStep,
-} from "../../../../../store/uploadDetailsSlice";
-import { MemberApplicationSection } from "../../../../../types/uploadDetails";
+import { useUploadDetails } from '@/context/UploadDetailsContext';
+import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
-import { useStep8DeclarationConsent } from "../../../../../hooks/useStep8DeclarationConsent";
+import { useStep8DeclarationConsent } from '@/hooks/useStep8DeclarationConsent';
 
 export default function Step8Agreement() {
-  const dispatch = useAppDispatch();
-  const formData = useAppSelector(selectFormData);
-  const isSaving = useAppSelector(selectIsSaving);
+  const { state, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, dispatch } = useUploadDetails();
+  const formData = state.data;
+  const isSaving = state.isSaving;
 
   const sigPadRef = useRef<SignaturePad>(null);
 
@@ -79,21 +71,23 @@ export default function Step8Agreement() {
   };
 
   const handleSave = async () => {
+    dispatch({ type: 'SET_SAVING', payload: true });
     // Validate required fields
     if (!consentData || !acknowledgeRetention || !agreeCode) {
       toast.error("Please check all required consent checkboxes.");
+      dispatch({ type: 'SET_SAVING', payload: false });
+
       return;
     }
 
     if (!applicantName || !signatoryName || !designation || !selectedDate) {
       toast.error("Please fill in all required fields.");
+      dispatch({ type: 'SET_SAVING', payload: false });
+
       return;
     }
 
-    if (!signatureURL) {
-      toast.error("Please provide a digital signature.");
-      return;
-    }
+
 
     try {
       // Upload signature if it's a data URL
@@ -102,8 +96,7 @@ export default function Step8Agreement() {
         const response = await fetch(signatureURL);
         const blob = await response.blob();
         const signatureFile = new File([blob], "signature.png", { type: "image/png" });
-        const result = await dispatch(uploadDocument(signatureFile)).unwrap();
-        signatureDocumentId = result;
+        signatureDocumentId = await uploadDocument(signatureFile);
       }
 
       const declarationConsentData = {
@@ -122,18 +115,15 @@ export default function Step8Agreement() {
         declarationConsent: declarationConsentData,
       };
 
-      dispatch(updateFormData(payload));
-      await dispatch(
-        saveUploadDetails({
-          payload,
-          sectionNumber: MemberApplicationSection.DeclarationConsent,
-        })
-      ).unwrap();
+      updateFormData(payload);
+      await saveUploadDetails(payload, MemberApplicationSection.DeclarationConsent);
 
       toast.success("Declaration & Consent saved successfully! Application completed.");
+      dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error) {
       console.error(error);
       toast.error("Failed to save declaration & consent. Please try again.");
+      dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
 
@@ -254,7 +244,7 @@ export default function Step8Agreement() {
           {/* Buttons */}
           <div className="mt-10 flex justify-start gap-4">
                     <Button
-                      onClick={() => dispatch(setCurrentStep(7))}
+                      onClick={() => setCurrentStep(7)}
                       className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
                     >
                       Back

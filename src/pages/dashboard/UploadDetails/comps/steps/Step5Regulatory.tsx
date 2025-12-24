@@ -6,22 +6,23 @@ import UploadBox from "@/components/custom/ui/UploadBox";
 import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useStep5Regulatory } from "@/hooks/useStep5Regulatory";
 import { Input } from "@/components/ui/input";
-import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
-import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
-import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { useUploadDetails } from '@/context/UploadDetailsContext';
+import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
 
 export default function Step5Regulatory() {
-  const dispatch = useAppDispatch();
-  const formData = useAppSelector(selectFormData);
-  const isSaving = useAppSelector(selectIsSaving);
-  console.log("Step5Regulatory formData.regulatoryCompliance:", formData.regulatoryCompliance);
+  const { state,dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
+  const formData = state.data;
+  const isSaving = state.isSaving;
+  console.log("Step5Regulatory formData.regulatorCompliance:", formData.regulatorCompliance);
 
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
 
-  const hook = useStep5Regulatory(formData.regulatoryCompliance);
+  const hook = useStep5Regulatory(formData.regulatorCompliance);
 
   const handleSave = async () => {
+      dispatch({ type: 'SET_SAVING', payload: true });
+
     try {
       // Extract ID from S3 path
       const extractIdFromPath = (path: string | null): number | null => {
@@ -38,81 +39,70 @@ export default function Step5Regulatory() {
 
       // Upload file if present, or use existing ID from path
       if (hook.amlPolicyFile) {
-        const result = await dispatch(uploadDocument(hook.amlPolicyFile));
-        if (uploadDocument.fulfilled.match(result)) {
-          amlCftPolicyDocumentFileId = result.payload;
-        }
-      } else if (formData.regulatoryCompliance?.amlCftPolicyDocumentFilePath) {
-        amlCftPolicyDocumentFileId = extractIdFromPath(formData.regulatoryCompliance.amlCftPolicyDocumentFilePath);
+        amlCftPolicyDocumentFileId = await uploadDocument(hook.amlPolicyFile);
+      } else if (formData.regulatorCompliance?.amlCftPolicyDocumentFilePath) {
+        amlCftPolicyDocumentFileId = extractIdFromPath(formData.regulatorCompliance.amlCftPolicyDocumentFilePath);
       }
 
       if (hook.declarationFile) {
-        const result = await dispatch(uploadDocument(hook.declarationFile));
-        if (uploadDocument.fulfilled.match(result)) {
-          declarationNoPenaltyFileId = result.payload;
-        }
-      } else if (formData.regulatoryCompliance?.declarationNoPenaltyFilePath) {
-        declarationNoPenaltyFileId = extractIdFromPath(formData.regulatoryCompliance.declarationNoPenaltyFilePath);
+        declarationNoPenaltyFileId = await uploadDocument(hook.declarationFile);
+      } else if (formData.regulatorCompliance?.declarationNoPenaltyFilePath) {
+        declarationNoPenaltyFileId = extractIdFromPath(formData.regulatorCompliance.declarationNoPenaltyFilePath);
       }
 
       if (hook.supplyChainDueDiligenceFile) {
-        const result = await dispatch(uploadDocument(hook.supplyChainDueDiligenceFile));
-        if (uploadDocument.fulfilled.match(result)) {
-          supplyChainPolicyDocumentFileId = result.payload;
-        }
-      } else if (formData.regulatoryCompliance?.supplyChainPolicyDocumentFilePath) {
-        supplyChainPolicyDocumentFileId = extractIdFromPath(formData.regulatoryCompliance.supplyChainPolicyDocumentFilePath);
+        supplyChainPolicyDocumentFileId = await uploadDocument(hook.supplyChainDueDiligenceFile);
+      } else if (formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath) {
+        supplyChainPolicyDocumentFileId = extractIdFromPath(formData.regulatorCompliance.supplyChainPolicyDocumentFilePath);
       }
 
       if (hook.responsibleSourcingFile) {
-        const result = await dispatch(uploadDocument(hook.responsibleSourcingFile));
-        if (uploadDocument.fulfilled.match(result)) {
-          assuranceReportFileId = result.payload;
-        }
-      } else if (formData.regulatoryCompliance?.assuranceReportFilePath) {
-        assuranceReportFileId = extractIdFromPath(formData.regulatoryCompliance.assuranceReportFilePath);
+        assuranceReportFileId = await uploadDocument(hook.responsibleSourcingFile);
+      } else if (formData.regulatorCompliance?.assuranceReportFilePath) {
+        assuranceReportFileId = extractIdFromPath(formData.regulatorCompliance.assuranceReportFilePath);
       }
 
       // Upload ongoing details file if present (though not used in payload)
       if (hook.ongoingDetailsFile) {
-        await dispatch(uploadDocument(hook.ongoingDetailsFile));
+        await uploadDocument(hook.ongoingDetailsFile);
       }
 
       // Save form data
-      await dispatch(saveUploadDetails({
-        payload: {
-          membershipType: formData.application.membershipType,
-          regulatoryCompliance: {
-            compliantWithAmlCft: hook.compliantUAE ?? false,
-            complianceOfficerFullName: hook.officerName,
-            complianceOfficerDesignation: hook.officerDesignation,
-            complianceOfficerContactNumber: hook.officerContact,
-            complianceOfficerEmail: hook.officerEmail,
-            hasOngoingCases: hook.ongoingCases ?? false,
-            ongoingCasesDetails: hook.ongoingCasesDetails,
-            anyOnSanctionsList: hook.sanctionsListed ?? false,
-            hasDocumentedAmlPolicies: hook.policiesPrepared ?? false,
-            amlCftPolicyDocumentFileId,
-            conductsRegularAmlTraining: hook.trainingOngoing ?? false,
-            hasCustomerVerificationProcess: hook.idProcesses ?? false,
-            hasInternalRiskAssessment: hook.riskAssessment ?? false,
-            supplyChainCompliant: hook.supplyChainCompliant ?? false,
-            hasResponsibleSourcingAuditEvidence: hook.responsibleSourcingAudit ?? false,
-            hadRegulatoryPenalties: hook.penalties ?? false,
-            penaltyExplanation: hook.penaltyExplanation,
-            declarationNoPenaltyFileId,
-            hasSupplyChainPolicy: hook.preciousPolicy ?? false,
-            supplyChainPolicyDocumentFileId,
-            responsibleSourcingAuditEvidence2: hook.responsibleSourcingAudit ?? false,
-            assuranceReportFileId,
-          }
-        },
-        sectionNumber: MemberApplicationSection.RegulatorCompliance
-      }));
+      await saveUploadDetails({
+        membershipType: formData.application.membershipType,
+        regulatoryCompliance: {
+          compliantWithAmlCft: hook.compliantUAE ?? false,
+          complianceOfficerFullName: hook.officerName,
+          complianceOfficerDesignation: hook.officerDesignation,
+          complianceOfficerContactNumber: hook.officerContact,
+          complianceOfficerEmail: hook.officerEmail,
+          hasOngoingCases: hook.ongoingCases ?? false,
+          ongoingCasesDetails: hook.ongoingCasesDetails,
+          anyOnSanctionsList: hook.sanctionsListed ?? false,
+          hasDocumentedAmlPolicies: hook.policiesPrepared ?? false,
+          amlCftPolicyDocumentFileId,
+          conductsRegularAmlTraining: hook.trainingOngoing ?? false,
+          hasCustomerVerificationProcess: hook.idProcesses ?? false,
+          hasInternalRiskAssessment: hook.riskAssessment ?? false,
+          supplyChainCompliant: hook.supplyChainCompliant ?? false,
+          hasResponsibleSourcingAuditEvidence: hook.responsibleSourcingAudit ?? false,
+          hadRegulatoryPenalties: hook.penalties ?? false,
+          penaltyExplanation: hook.penaltyExplanation,
+          declarationNoPenaltyFileId,
+          hasSupplyChainPolicy: hook.preciousPolicy ?? false,
+          supplyChainPolicyDocumentFileId,
+          responsibleSourcingAuditEvidence2: hook.responsibleSourcingAudit ?? false,
+          assuranceReportFileId,
+        }
+      }, MemberApplicationSection.RegulatorCompliance);
 
       toast.success('Regulatory compliance details saved successfully!');
+      setCurrentStep(6);
+      dispatch({ type: 'SET_SAVING', payload: false });
+
     } catch (error) {
       toast.error('Failed to save regulatory compliance details. Please try again.');
+      dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
 
@@ -336,9 +326,9 @@ export default function Step5Regulatory() {
                 onDrop={(e) => hook.handleDropFile(e, hook.setAmlPolicyFile)}
                 onRemove={() => hook.removeFile(hook.setAmlPolicyFile)}
               />
-              {formData.regulatoryCompliance?.amlCftPolicyDocumentFilePath && !hook.amlPolicyFile && (
+              {formData.regulatorCompliance?.amlCftPolicyDocumentFilePath && !hook.amlPolicyFile && (
                 <a
-                  href={formData.regulatoryCompliance.amlCftPolicyDocumentFilePath}
+                  href={formData.regulatorCompliance.amlCftPolicyDocumentFilePath}
                   target="_blank"
                   className="text-[#C6A95F] underline mt-2 block"
                 >
@@ -459,9 +449,9 @@ export default function Step5Regulatory() {
                   onDrop={(e) => hook.handleDropFile(e, hook.setDeclarationFile)}
                   onRemove={() => hook.removeFile(hook.setDeclarationFile)}
                 />
-                {formData.regulatoryCompliance?.declarationNoPenaltyFilePath && !hook.declarationFile && (
+                {formData.regulatorCompliance?.declarationNoPenaltyFilePath && !hook.declarationFile && (
                   <a
-                    href={formData.regulatoryCompliance.declarationNoPenaltyFilePath}
+                    href={formData.regulatorCompliance.declarationNoPenaltyFilePath}
                     target="_blank"
                     className="text-[#C6A95F] underline mt-2 block"
                   >
@@ -539,9 +529,9 @@ export default function Step5Regulatory() {
                     hook.removeFile(hook.setSupplyChainDueDiligenceFile)
                   }
                 />
-                {formData.regulatoryCompliance?.supplyChainPolicyDocumentFilePath && !hook.supplyChainDueDiligenceFile && (
+                {formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath && !hook.supplyChainDueDiligenceFile && (
                   <a
-                    href={formData.regulatoryCompliance.supplyChainPolicyDocumentFilePath}
+                    href={formData.regulatorCompliance.supplyChainPolicyDocumentFilePath}
                     target="_blank"
                     className="text-[#C6A95F] underline mt-2 block"
                   >
@@ -593,9 +583,9 @@ export default function Step5Regulatory() {
                     hook.removeFile(hook.setResponsibleSourcingFile)
                   }
                 />
-                {formData.regulatoryCompliance?.assuranceReportFilePath && !hook.responsibleSourcingFile && (
+                {formData.regulatorCompliance?.assuranceReportFilePath && !hook.responsibleSourcingFile && (
                   <a
-                    href={formData.regulatoryCompliance.assuranceReportFilePath}
+                    href={formData.regulatorCompliance.assuranceReportFilePath}
                     target="_blank"
                     className="text-[#C6A95F] underline mt-2 block"
                   >
@@ -611,7 +601,7 @@ export default function Step5Regulatory() {
       {/* Buttons */}
       <div className="mt-10 flex justify-start gap-4">
                 <Button
-                  onClick={() => dispatch(setCurrentStep(4))}
+                  onClick={() => setCurrentStep(4)}
                   className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
                 >
                   Back

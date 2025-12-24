@@ -3,12 +3,12 @@
 
 "use client";
 import { useRef, useState, useCallback, useEffect } from "react";
-import { useAppSelector } from '../store/hooks';
-import { selectFormData } from '../store/uploadDetailsSlice';
+import { useUploadDetails } from '@/context/UploadDetailsContext';
 
 /** --- HOOK: useStep4FinancialThresholds --- */
 export function useStep4FinancialThresholds() {
-  const financialThresholds = useAppSelector(selectFormData).financialThresholds;
+  const { state } = useUploadDetails();
+  const financialThresholds = state.data.financialThreshold;
 // 1 & 2: Inputs
 const [paidUpCapital, setPaidUpCapital] = useState("");
 const [annualTurnover, setAnnualTurnover] = useState("");
@@ -20,6 +20,9 @@ const [bullionTurnover, setBullionTurnover] = useState<boolean | null>(null);
 // Bullion file ID
 const [bullionTurnoverProofFileId, setBullionTurnoverProofFileId] = useState<number | null>(null);
 
+// Bullion file path
+const [bullionTurnoverProofFileIdPath, setBullionTurnoverProofFileIdPath] = useState<string | null>(null);
+
 // Bullion file
 const [bullionFile, setBullionFile] = useState<File | null>(null);
 const bullionRef = useRef<HTMLInputElement | null>(null);
@@ -30,6 +33,9 @@ const [netWorth, setNetWorth] = useState<boolean | null>(null);
 
 // Net worth file ID
 const [netWorthProofFileId, setNetWorthProofFileId] = useState<number | null>(null);
+
+// Net worth file path
+const [netWorthProofPath, setNetWorthProofPath] = useState<string | null>(null);
 
 // Net worth file
 const [netWorthFile, setNetWorthFile] = useState<File | null>(null);
@@ -43,8 +49,10 @@ useEffect(() => {
   setAnnualTurnover(financialThresholds.annualTurnoverValue?.toString() || "");
   setBullionTurnover(financialThresholds.hasRequiredBullionTurnover ?? null);
   setBullionTurnoverProofFileId(financialThresholds.bullionTurnoverProofFileId ?? null);
+  setBullionTurnoverProofFileIdPath(financialThresholds.bullionTurnoverProofFileIdPath ?? null);
   setNetWorth(financialThresholds.hasRequiredNetWorth ?? null);
   setNetWorthProofFileId(financialThresholds.netWorthProofFileId ?? null);
+  setNetWorthProofPath(financialThresholds.netWorthProofPath ?? null);
 }, [financialThresholds]);
 
 
@@ -68,9 +76,11 @@ paidUpCapital,
 annualTurnover,
 bullionTurnover,
 bullionTurnoverProofFileId,
+bullionTurnoverProofFileIdPath,
 bullionFile,
 netWorth,
 netWorthProofFileId,
+netWorthProofPath,
 netWorthFile,
 bullionRef,
 netWorthRef,

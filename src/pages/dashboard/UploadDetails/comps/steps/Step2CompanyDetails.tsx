@@ -24,20 +24,19 @@ import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
-import { useAppSelector, useAppDispatch } from '../../../../../store/hooks';
-import { selectFormData, selectIsSaving, saveUploadDetails, uploadDocument, setCurrentStep } from '../../../../../store/uploadDetailsSlice';
-import { MemberApplicationSection } from '../../../../../types/uploadDetails';
+import { useUploadDetails } from '@/context/UploadDetailsContext';
+import { useStep2CompanyDetails } from '@/hooks/useStep2CompanyDetails';
+import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
-import { useStep2CompanyDetails } from '../../../../../hooks/useStep2CompanyDetails';
 
 interface StepProps {
   onNext?: () => void;
 }
 
 export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.Element {
-  const dispatch = useAppDispatch();
-  const formData = useAppSelector(selectFormData);
-  const isSaving = useAppSelector(selectIsSaving);
+  const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
+  const formData = state.data;
+  const isSaving = state.isSaving;
 
   // Use the hook with prefill data
   const {
@@ -100,6 +99,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   }, [directors]);
 
   const handleSave = async () => {
+    dispatch({ type: 'SET_SAVING', payload: true });
     try {
       // Upload main company files first
       let tradeLicenseDocumentId: number | null = null;
@@ -112,28 +112,28 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       let tradeAssociationCertificateDocumentId: number | null = null;
 
       if (uploadBoxes.tradeLicense) {
-        tradeLicenseDocumentId = await dispatch(uploadDocument(uploadBoxes.tradeLicense)).unwrap();
+        tradeLicenseDocumentId = await uploadDocument(uploadBoxes.tradeLicense);
       }
       if (uploadBoxes.coi) {
-        coiDocumentId = await dispatch(uploadDocument(uploadBoxes.coi)).unwrap();
+        coiDocumentId = await uploadDocument(uploadBoxes.coi);
       }
       if (uploadBoxes.passport) {
-        passportDocumentId = await dispatch(uploadDocument(uploadBoxes.passport)).unwrap();
+        passportDocumentId = await uploadDocument(uploadBoxes.passport);
       }
       if (uploadBoxes.nationalId) {
-        nationalIdDocumentId = await dispatch(uploadDocument(uploadBoxes.nationalId)).unwrap();
+        nationalIdDocumentId = await uploadDocument(uploadBoxes.nationalId);
       }
       if (uploadBoxes.vatDoc) {
-        vatDocDocumentId = await dispatch(uploadDocument(uploadBoxes.vatDoc)).unwrap();
+        vatDocDocumentId = await uploadDocument(uploadBoxes.vatDoc);
       }
       if (uploadBoxes.taxRegDoc) {
-        taxRegDocDocumentId = await dispatch(uploadDocument(uploadBoxes.taxRegDoc)).unwrap();
+        taxRegDocDocumentId = await uploadDocument(uploadBoxes.taxRegDoc);
       }
       if (uploadBoxes.addressProof) {
-        addressProofDocumentId = await dispatch(uploadDocument(uploadBoxes.addressProof)).unwrap();
+        addressProofDocumentId = await uploadDocument(uploadBoxes.addressProof);
       }
       if (uploadBoxes.tradeAssociationCertificate) {
-        tradeAssociationCertificateDocumentId = await dispatch(uploadDocument(uploadBoxes.tradeAssociationCertificate)).unwrap();
+        tradeAssociationCertificateDocumentId = await uploadDocument(uploadBoxes.tradeAssociationCertificate);
       }
 
       // Upload shareholder files and update shareholder data
@@ -143,7 +143,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
 
           // Upload shareholding proof document if exists
           if (shareholder.proofFile) {
-            proofDocId = await dispatch(uploadDocument(shareholder.proofFile)).unwrap();
+            proofDocId = await uploadDocument(shareholder.proofFile);
           }
 
           return {
@@ -163,7 +163,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
 
           // Upload UBO confirmation document if exists
           if (ubo.confirmationFile) {
-            confirmationDocId = await dispatch(uploadDocument(ubo.confirmationFile)).unwrap();
+            confirmationDocId = await uploadDocument(ubo.confirmationFile);
           }
 
           return {
@@ -178,62 +178,62 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       );
 
       // Save form data
-      await dispatch(saveUploadDetails({
-        payload: {
-          membershipType: formData.application.membershipType,
-          companyDetails: {
-            legalEntityName: form.legalEntityName,
-            entityLegalType: form.entityLegalType,
-            tradeLicenseNumber: form.tradeLicenseNumber,
-            licensingAuthority: form.licensingAuthority,
-            dateOfIssuance: form.dateOfIssuance,
-            dateOfExpiry: form.dateOfExpiry,
-            countryOfIncorporation: form.countryOfIncorporation,
-            dateOfIncorporation: form.dateOfIncorporation,
-            passportId: form.passportId,
-            nationalId: form.nationalId,
-            vatNumber: form.vatNumber,
-            taxRegistrationNumber: form.taxRegistrationNumber,
-            website: form.website,
-            officialEmail: form.officialEmail,
-            phoneNumber: form.phoneNumber,
-            primaryContactName: form.primaryContactName,
-            primaryContactDesignation: form.primaryContactDesignation,
-            primaryContactEmail: form.primaryContactEmail,
-            registeredOfficeAddress: form.registeredOfficeAddress,
-            anyShareholderDirectorUBOPEP: form.anyShareholderDirectorUBOPEP ?? false,
-            anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP ?? false,
-            hasCustomerPEPChecks: form.hasCustomerPEPChecks ?? false,
-            tradeAssociationName: form.tradeAssociationName,
-            nameOfMember: form.nameOfMember,
-            dateOfAppointment: form.dateOfAppointment,
-            lbma: form.lbma,
-            dmccDgd: form.dmccDgd,
-            dmccMdb: form.dmccMdb,
-            rjc: form.rjc,
-            iages: form.iages,
-            accreditationOther: form.accreditationOther,
-            otherAccreditation: form.otherAccreditation,
-            tradeLicenseDocument: tradeLicenseDocumentId,
-            certificateOfIncorporation: coiDocumentId,
-            taxRegistrationDocument: taxRegDocDocumentId,
-            vatDocument: vatDocDocumentId,
-            addressProofDocument: addressProofDocumentId,
-            accreditationCertificate: tradeAssociationCertificateDocumentId,
-            shareholdingProof: tradeLicenseDocumentId, // Using trade license as shareholding proof
-            uboConfirmationDocument: coiDocumentId, // Using COI as UBO confirmation
-            shareholders: updatedShareholders,
-            ultimateBeneficialOwners: updatedUbos,
-            directors,
-          }
-        },
-        sectionNumber: MemberApplicationSection.CompanyDetails
-      }));
+      await saveUploadDetails({
+        membershipType: formData.membershipType,
+        companyDetails: {
+          legalEntityName: form.legalEntityName,
+          entityLegalType: form.entityLegalType,
+          tradeLicenseNumber: form.tradeLicenseNumber,
+          licensingAuthority: form.licensingAuthority,
+          dateOfIssuance: form.dateOfIssuance,
+          dateOfExpiry: form.dateOfExpiry,
+          countryOfIncorporation: form.countryOfIncorporation,
+          dateOfIncorporation: form.dateOfIncorporation,
+          passportId: form.passportId,
+          nationalId: form.nationalId,
+          vatNumber: form.vatNumber,
+          taxRegistrationNumber: form.taxRegistrationNumber,
+          website: form.website,
+          officialEmail: form.officialEmail,
+          phoneNumber: form.phoneNumber,
+          primaryContactName: form.primaryContactName,
+          primaryContactDesignation: form.primaryContactDesignation,
+          primaryContactEmail: form.primaryContactEmail,
+          registeredOfficeAddress: form.registeredOfficeAddress,
+          anyShareholderDirectorUBOPEP: form.anyShareholderDirectorUBOPEP ?? false,
+          anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP ?? false,
+          hasCustomerPEPChecks: form.hasCustomerPEPChecks ?? false,
+          tradeAssociationName: form.tradeAssociationName,
+          nameOfMember: form.nameOfMember,
+          dateOfAppointment: form.dateOfAppointment,
+          lbma: form.lbma,
+          dmccDgd: form.dmccDgd,
+          dmccMdb: form.dmccMdb,
+          rjc: form.rjc,
+          iages: form.iages,
+          accreditationOther: form.accreditationOther,
+          otherAccreditation: form.otherAccreditation,
+          tradeLicenseDocument: tradeLicenseDocumentId,
+          certificateOfIncorporation: coiDocumentId,
+          taxRegistrationDocument: taxRegDocDocumentId,
+          vatDocument: vatDocDocumentId,
+          addressProofDocument: addressProofDocumentId,
+          accreditationCertificate: tradeAssociationCertificateDocumentId,
+          shareholdingProof: tradeLicenseDocumentId, // Using trade license as shareholding proof
+          uboConfirmationDocument: coiDocumentId, // Using COI as UBO confirmation
+          shareholders: updatedShareholders,
+          ultimateBeneficialOwners: updatedUbos,
+          directors,
+        }
+      }, MemberApplicationSection.CompanyDetails);
 
       toast.success('Company details saved successfully!');
+      setCurrentStep(3);
       onNext?.();
+      dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error) {
       toast.error('Failed to save company details. Please try again.');
+      dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
 
@@ -323,15 +323,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           onDrop={(e) => handleDropFile(e, "tradeLicense")}
           onRemove={() => removeFile("tradeLicense")}
         />
-        {formData.companyDetails?.tradeLicensePath && !uploadBoxes.tradeLicense && (
-          <a
-            href={formData.companyDetails.tradeLicensePath}
-            target="_blank"
-            className="text-[#C6A95F] underline mt-2 block"
-          >
-            View previously uploaded Trade License
-          </a>
-        )}
       </div>
 
       {/* -------------------------------------- */}
@@ -451,15 +442,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           onDrop={(e) => handleDropFile(e, "coi")}
           onRemove={() => removeFile("coi")}
         />
-        {formData.companyDetails?.certificateOfIncorporationPath && !uploadBoxes.coi && (
-          <a
-            href={formData.companyDetails.certificateOfIncorporationPath}
-            target="_blank"
-            className="text-[#C6A95F] underline mt-2 block"
-          >
-            View previously uploaded Certificate of Incorporation
-          </a>
-        )}
       </div>
 
       {/* -------------------------------------- */}
@@ -1246,7 +1228,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       {/* -------------------------------------- */}
       <div className="mt-10 flex justify-start gap-4">
         <Button
-          onClick={() => dispatch(setCurrentStep(1))}
+          onClick={() => setCurrentStep(1)}
           className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
         >
           Back
