@@ -1,13 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAppSelector, useAppDispatch } from "../../../store/hooks";
-import {
-  getUploadDetails,
-  selectCurrentStep,
-  selectIsLoading,
-  setCurrentStep,
-} from "../../../store/uploadDetailsSlice";
+import { useEffect } from "react";
 import UploadStepper from "./comps/UploadStepper";
 import Step1Applicability from "./comps/steps/Step1Applicability";
 import Step2CompanyDetails from "./comps/steps/Step2CompanyDetails";
@@ -17,31 +10,24 @@ import Step5Regulatory from "./comps/steps/Step5Regulatory";
 import Step6RequiredDocumentChecklist from "./comps/steps/Step6RequiredDocumentChecklist";
 import Step7DataProtection from "./comps/steps/Step7DataProtection";
 import Step8Agreement from "./comps/steps/Step8Agreement";
+import { useUploadDetails } from '@/context/UploadDetailsContext';
+import { useAuth } from '@/context/AuthContext';
 export default function UploadDetails() {
-  const dispatch = useAppDispatch();
-  const currentStep = useAppSelector(selectCurrentStep);
-  const isLoadingFromStore = useAppSelector(selectIsLoading);
-
-  const [loading, setLoading] = useState(true);
+  const { state, getUploadDetails, updateFormData } = useUploadDetails();
+  const { user } = useAuth();
+  const currentStep = state.currentStep;
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (userId) {
-      dispatch(getUploadDetails(userId)).then((res: any) => {
-        const data = res.payload?.data;
-
-        if (!data?.isCompleted) {
-          const lastCompleted = data?.application?.lastCompletedSection ?? 0;
-          const nextStep = lastCompleted + 1;
-          dispatch(setCurrentStep(nextStep));
+    if (user?.userId) {
+      getUploadDetails(user.userId).then((data) => {
+        if (data) {
+          updateFormData(data);
         }
-
-        setLoading(false); // <- stop spinner when data is fetched
-      }).catch(() => setLoading(false)); // stop spinner on error too
-    } else {
-      setLoading(false); // no userId, stop loading
+      }).catch((error) => {
+        console.error("Failed to fetch upload details:", error);
+      });
     }
-  }, [dispatch]);
+  }, [currentStep]);
 
   const steps = [
     <Step1Applicability key={1} />,
@@ -54,13 +40,7 @@ export default function UploadDetails() {
     <Step8Agreement key={8} />,
   ];
 
-  if (loading || isLoadingFromStore) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      </div>
-    );
-  }
+  // Special consideration check removed since Redux is not used
 
   // if (isCompleted) {
   //   return (

@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
+import { MembershipType } from "../types/uploadDetails";
 
 /** Types */
 export type ServicesState = Record<"trading" | "refining" | "logistics" | "financial", boolean>;
 export type AnswersState = Record<string, boolean | null>;
 
-export function useStep1Applicability() {
+export function useStep1Applicability(applicability?: any, application?: any) {
   // Membership
   const [membership, setMembership] = useState<string | null>(null);
 
@@ -29,7 +30,15 @@ export function useStep1Applicability() {
   });
 
   const toggleCategory = useCallback((key: "refiner" | "trading") => {
-    setCategory((c) => ({ ...c, [key]: !c[key] }));
+    setCategory((c) => {
+      if (c[key]) {
+        // If already checked, uncheck it
+        return { ...c, [key]: false };
+      } else {
+        // If not checked, check it and uncheck the other
+        return key === "refiner" ? { refiner: true, trading: false } : { refiner: false, trading: true };
+      }
+    });
   }, []);
 
   // Answers
@@ -56,9 +65,20 @@ export function useStep1Applicability() {
   // AML notices
   const [anyAMLNotices, setAnyAMLNotices] = useState<boolean | null>(null);
 
+  // Member Bank specific
+  const [regulatedByCBA, setRegulatedByCBA] = useState<boolean | null>(null);
+  const [hasRelationshipWithUAEGoodDeliveryBrand, setHasRelationshipWithUAEGoodDeliveryBrand] = useState<boolean | null>(null);
+  const [brandName, setBrandName] = useState<string>("");
+
   // File uploads and refs
   const [signedAMLFile, setSignedAMLFile] = useState<File | null>(null);
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+
+  // Existing file paths for display
+  const [existingSignedAMLPath, setExistingSignedAMLPath] = useState<string | null>(null);
+  const [existingEvidencePath, setExistingEvidencePath] = useState<string | null>(null);
+
+  // Existing IDs extracted from paths (not used in this hook, but available for future use)
 
   const signedRef = useRef<HTMLInputElement | null>(null);
   const evidenceRef = useRef<HTMLInputElement | null>(null);
@@ -79,6 +99,63 @@ export function useStep1Applicability() {
   const removeSignedAMLFile = useCallback(() => setSignedAMLFile(null), []);
   const removeEvidenceFile = useCallback(() => setEvidenceFile(null), []);
 
+  // Prefill logic
+  useEffect(() => {
+    if (!applicability) return;
+
+    // Membership
+    if (application?.membershipType === MembershipType.PrincipalMember) {
+      setMembership("principal");
+    } else if (application?.membershipType === MembershipType.MemberBank) {
+      setMembership("member_bank");
+    } else if (application?.membershipType === MembershipType.ContributingMember) {
+      setMembership("contributing");
+    } else if (application?.membershipType === MembershipType.AffiliateMember) {
+      setMembership("affiliate");
+    }
+
+    // Services
+    const serviceIds = applicability.services?.split(",").map(Number) ?? [];
+    setServices({
+      trading: serviceIds.includes(1),
+      refining: serviceIds.includes(2),
+      logistics: serviceIds.includes(3),
+      financial: serviceIds.includes(4),
+    });
+
+    // Category
+    setCategory({
+      refiner: applicability.refiningOrTradingCategory === 1,
+      trading: applicability.refiningOrTradingCategory === 2,
+    });
+
+    // Refiner Answers
+    setRefinerAnswers({
+      accredited: applicability.isAccreditedRefinery ?? null,
+      aml5yrs: applicability.operatedUnderUAEML5Years ?? null,
+      output10tons: applicability.refiningOutputOver10Tons ?? null,
+      ratedCompliant: applicability.ratedCompliantByMinistry ?? null,
+    });
+
+    // Trading Answers
+    setTradingAnswers({
+      wholesaleBullion: applicability.involvedInWholesaleBullionTrading ?? null,
+      bankRelationships: applicability.hasBankingRelationships3Years ?? null,
+    });
+
+    // AML Notices
+    setAnyAMLNotices(applicability.hasUnresolvedAMLNotices ?? null);
+
+    // Member Bank specific
+    setRegulatedByCBA(applicability.isRegulatedByUAEAuthorities ?? null);
+    setHasRelationshipWithUAEGoodDeliveryBrand(applicability.hasRelationshipWithUAEGoodDeliveryBrand ?? null);
+    setBrandName(applicability.brandName ?? "");
+
+    // Existing file paths
+    setExistingSignedAMLPath(applicability.signedAMLDeclarationPath ?? null);
+    setExistingEvidencePath(applicability.bankingRelationshipEvidencePath ?? null);
+  }, [applicability]);
+
   return {
     // state
     membership,
@@ -87,8 +164,13 @@ export function useStep1Applicability() {
     refinerAnswers,
     tradingAnswers,
     anyAMLNotices,
+    regulatedByCBA,
+    hasRelationshipWithUAEGoodDeliveryBrand,
+    brandName,
     signedAMLFile,
     evidenceFile,
+    existingSignedAMLPath,
+    existingEvidencePath,
 
     // refs
     signedRef,
@@ -101,6 +183,9 @@ export function useStep1Applicability() {
     setRefinerAnswer,
     setTradingAnswer,
     setAnyAMLNotices: setAnyAMLNotices,
+    setRegulatedByCBA,
+    setHasRelationshipWithUAEGoodDeliveryBrand,
+    setBrandName,
     handleSelectFile,
     handleDropFile,
     setSignedAMLFile,

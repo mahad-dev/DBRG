@@ -116,11 +116,22 @@ export interface AffiliateMember {
   signedAMLDeclaration: number;
 }
 
+export interface SpecialConsideration {
+  message: string;
+  status?: number; // 1: Pending, 2: Approved, 3: Rejected
+}
+
 export interface Applicability {
+  hasUnresolvedAMLNotices: null;
+  otherServiceDetail: string;
+  servicesProvided: any;
+  yearsOfOperation: null;
+  isUAEBasedEntity: null;
   principalMember?: PrincipalMember;
   memberBank?: MemberBank;
   contributingMember?: ContributingMember;
   affiliateMember?: AffiliateMember;
+  specialConsideration?: SpecialConsideration;
 }
 
 export interface Shareholder {
@@ -133,12 +144,14 @@ export interface Shareholder {
   address: string;
   passportDocument: number | null;
   nationalIdDocument: number | null;
+  shareholdingDocumentId: number | null;
+  shareholdingDocumentPath?: string;
   proofFile: File | null;
 }
 
 export interface UltimateBeneficialOwner {
   fullName: string;
-  percentage: string;
+  ownershipPercentage: number;
   nationality: string;
   address: string;
   passportId: string;
@@ -147,6 +160,7 @@ export interface UltimateBeneficialOwner {
   nationalIdDocument: number | null;
   confirmationFile: File | null;
   uboConfirmationDocument: number | null;
+  uboConfirmationDocumentPath?: string;
 }
 
 export interface Director {
@@ -160,68 +174,59 @@ export interface Director {
 export interface CompanyDetails {
   legalEntityName: string;
   entityLegalType: string;
-  entityType: string;
   tradeLicenseNumber: string;
-  tradeLicenseNo: string;
   licensingAuthority: string;
-  isRegisteredForCorporateTax: boolean;
-  taxRegistrationNumber: string;
-  taxRegNumber: string;
-  isRegisteredForVAT: boolean;
+  dateOfIssuance: string;
+  dateOfExpiry: string;
+  countryOfIncorporation: string;
+  dateOfIncorporation: string;
+  passportId: string;
+  nationalId: string;
   vatNumber: string;
+  taxRegistrationNumber: string;
   website: string;
+  officialEmail: string;
+  phoneNumber: string;
   primaryContactName: string;
   primaryContactDesignation: string;
   primaryContactEmail: string;
-  officialEmail: string;
-  emailOfficial: string;
-  phoneNumber: string;
   registeredOfficeAddress: string;
-  countryOfIncorporation: string;
-  country: string;
-  dateOfIncorporation: string;
-  dateIncorp: string;
-  dateIssued: string;
-  dateExpiry: string;
-  passportId: string;
-  nationalId: string;
   anyShareholderDirectorUBOPEP: boolean;
   anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: boolean;
   hasCustomerPEPChecks: boolean;
-  shareholdingType: typeof ShareholdingType[keyof typeof ShareholdingType];
-  shareholders: Shareholder[];
-  ultimateBeneficialOwners: UltimateBeneficialOwner[];
-  directors: Director[];
   tradeAssociationName: string;
   nameOfMember: string;
-  tradeAssociationMember: string;
   dateOfAppointment: string;
-  tradeAssociationDate: string;
-  refineryAccreditations: number[];
-  otherAccreditation: string;
-  accreditationOther: boolean;
-  accreditationOtherName: string;
   lbma: boolean;
   dmccDgd: boolean;
   dmccMdb: boolean;
   rjc: boolean;
   iages: boolean;
-  pepShareholders: boolean;
-  pepBeneficialOwners: boolean;
-  pepCustomers: boolean;
+  accreditationOther: boolean;
+  otherAccreditation: string;
   tradeLicenseDocument: number | null;
+  tradeLicensePath?: string;
   certificateOfIncorporation: number | null;
+  certificateOfIncorporationPath?: string;
   taxRegistrationDocument: number | null;
+  taxRegistrationDocumentPath?: string;
   vatDocument: number | null;
+  vatDocumentPath?: string;
   addressProofDocument: number | null;
+  addressProofDocumentPath?: string;
   accreditationCertificate: number | null;
+  accreditationCertificatePath?: string;
   shareholdingProof: number | null;
   uboConfirmationDocument: number | null;
+  shareholders: Shareholder[];
+  ultimateBeneficialOwners: UltimateBeneficialOwner[];
+  directors: Director[];
 }
 
 export interface BankRelationshipRequirement {
   isClientOfDBRGMemberBank24Months: boolean | null;
   bankReferenceLetterFileId: number | null;
+  bankReferenceLetterFilePath?: string;
   bankName: string;
   accountNumber: string;
   accountType: string;
@@ -230,16 +235,20 @@ export interface BankRelationshipRequirement {
 }
 
 export interface FinancialThresholds {
-  paidUpCapital: number;
-  annualTurnoverValue: number;
+  paidUpCapital: number | null;
+  annualTurnoverValue: number | null;
   hasRequiredBullionTurnover: boolean;
   bullionTurnoverProofFileId: number | null;
+  bullionTurnoverProofFileIdPath?: string;
   hasRequiredNetWorth: boolean;
   netWorthProofFileId: number | null;
+  netWorthProofPath?: string;
 }
 
 export interface RegulatoryCompliance {
   compliantWithAmlCft: boolean;
+  complianceOfficerPhotoFileId: number | null;
+  complianceOfficerPhotoFilePath?: string;
   complianceOfficerFullName: string;
   complianceOfficerDesignation: string;
   complianceOfficerContactNumber: string;
@@ -249,6 +258,7 @@ export interface RegulatoryCompliance {
   anyOnSanctionsList: boolean;
   hasDocumentedAmlPolicies: boolean;
   amlCftPolicyDocumentFileId: number | null;
+  amlCftPolicyDocumentFilePath?: string;
   conductsRegularAmlTraining: boolean;
   hasCustomerVerificationProcess: boolean;
   hasInternalRiskAssessment: boolean;
@@ -257,50 +267,70 @@ export interface RegulatoryCompliance {
   hadRegulatoryPenalties: boolean;
   penaltyExplanation: string;
   declarationNoPenaltyFileId: number | null;
+  declarationNoPenaltyFilePath?: string;
   hasSupplyChainPolicy: boolean;
   supplyChainPolicyDocumentFileId: number | null;
+  supplyChainPolicyDocumentFilePath?: string;
   responsibleSourcingAuditEvidence2: boolean;
   assuranceReportFileId: number | null;
+  assuranceReportFilePath?: string;
 }
 
 export interface MemberRequiredDocuments {
-  tradeLicenseAndMoaFileId: number;
+  tradeLicenseAndMoaFileId: number | null;
   isChecked_TradeLicenseAndMoa: boolean;
-  bankingRelationshipEvidenceFileId: number;
+  tradeLicenseAndMoaPath?: string;
+  bankingRelationshipEvidenceFileId: number | null;
   isChecked_BankingRelationshipEvidence: boolean;
-  auditedFinancialStatementsFileId: number;
+  bankingRelationshipEvidencePath?: string;
+  auditedFinancialStatementsFileId: number | null;
   isChecked_AuditedFinancialStatements: boolean;
-  netWorthCertificateFileId: number;
+  auditedFinancialStatementsPath?: string;
+  netWorthCertificateFileId: number | null;
   isChecked_NetWorthCertificate: boolean;
-  amlCftPolicyFileId: number;
+  netWorthCertificatePath?: string;
+  amlCftPolicyFileId: number | null;
   isChecked_AmlCftPolicy: boolean;
-  supplyChainCompliancePolicyFileId: number;
+  amlCftPolicyPath?: string;
+  supplyChainCompliancePolicyFileId: number | null;
   isChecked_SupplyChainCompliancePolicy: boolean;
-  amlCftAndSupplyChainPoliciesFileId: number;
+  supplyChainCompliancePolicyPath?: string;
+  amlCftAndSupplyChainPoliciesFileId: number | null;
   isChecked_AmlCftAndSupplyChainPolicies: boolean;
-  declarationNoUnresolvedAmlNoticesFileId: number;
+  amlCftAndSupplyChainPoliciesPath?: string;
+  declarationNoUnresolvedAmlNoticesFileId: number | null;
   isChecked_DeclarationNoUnresolvedAmlNotices: boolean;
-  noUnresolvedAmlNoticesDeclarationFileId: number;
+  declarationNoUnresolvedAmlNoticesPath?: string;
+  noUnresolvedAmlNoticesDeclarationFileId: number | null;
   isChecked_NoUnresolvedAmlNoticesDeclaration: boolean;
-  accreditationCertificatesFileId: number;
+  noUnresolvedAmlNoticesDeclarationPath?: string;
+  accreditationCertificatesFileId: number | null;
   isChecked_AccreditationCertificates: boolean;
-  boardResolutionFileId: number;
+  accreditationCertificatesPath?: string;
+  boardResolutionFileId: number | null;
   isChecked_BoardResolution: boolean;
-  ownershipStructureFileId: number;
+  boardResolutionPath?: string;
+  ownershipStructureFileId: number | null;
   isChecked_OwnershipStructure: boolean;
-  certifiedTrueCopyFileId: number;
+  ownershipStructurePath?: string;
+  certifiedTrueCopyFileId: number | null;
   isChecked_CertifiedTrueCopy: boolean;
-  latestAssuranceReportFileId: number;
+  certifiedTrueCopyPath?: string;
+  latestAssuranceReportFileId: number | null;
   isChecked_LatestAssuranceReport: boolean;
-  responsibleSourcingAssuranceReportFileId: number;
+  latestAssuranceReportPath?: string;
+  responsibleSourcingAssuranceReportFileId: number | null;
   isChecked_ResponsibleSourcingAssuranceReport: boolean;
-  uboProofDocumentsFileId: number;
+  responsibleSourcingAssuranceReportPath?: string;
+  uboProofDocumentsFileId: number | null;
   isChecked_UboProofDocuments: boolean;
-  certifiedIdsFileId: number;
+  uboProofDocumentsPath?: string;
+  certifiedIdsFileId: number | null;
   isChecked_CertifiedIds: boolean;
+  certifiedIdsPath?: string;
   otherForms: {
     otherFormName: string;
-    otherFormFileId: number;
+    otherFormFileId: number | null;
   }[];
 }
 
@@ -317,16 +347,19 @@ export interface DeclarationConsent {
   authorisedSignatoryName: string;
   designation: string;
   digitalSignatureFileId: number | null;
+  digitalSignatureFilePath?: string;
 }
 
 export interface UploadDetailsPayload {
   membershipType: typeof MembershipType[keyof typeof MembershipType];
   sectionNumber: typeof MemberApplicationSection[keyof typeof MemberApplicationSection];
+  application?: any;
   applicability?: Applicability;
   companyDetails?: CompanyDetails;
   bankRelationshipRequirement?: BankRelationshipRequirement;
-  financialThresholds?: FinancialThresholds;
-  regulatoryCompliance?: RegulatoryCompliance;
+  bankRelationReq?: BankRelationshipRequirement;
+  financialThreshold?: FinancialThresholds;
+  regulatorCompliance?: RegulatoryCompliance;
   memberRequiredDocuments?: MemberRequiredDocuments;
   dataProtectionPrivacy?: DataProtectionPrivacy;
   declarationConsent?: DeclarationConsent;

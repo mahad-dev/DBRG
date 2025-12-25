@@ -98,6 +98,11 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               label="Special Consideration"
               to="/admin/dashboard/special-consideration"
             />
+            <NavItem
+              icon={<Handshake size={24} />}
+              label="Applications"
+              to="/admin/dashboard/applications"
+            />
 
             <Button
               variant="ghost"

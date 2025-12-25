@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { ChangeEvent } from "react";
+import type { BankRelationshipRequirement } from "../types/uploadDetails";
 
-export function useStep3BankRelationshipRequirement() {
+export function useStep3BankRelationshipRequirement(bankRelationshipRequirement?: BankRelationshipRequirement) {
   // YesNoGroup expects boolean | null
   const [isClient24Months, setIsClient24Months] = useState<boolean | null>(null);
 
@@ -14,6 +15,28 @@ export function useStep3BankRelationshipRequirement() {
   const [accountType, setAccountType] = useState("");
   const [bankingSince, setBankingSince] = useState("");
   const [address, setAddress] = useState("");
+
+  // Prefill logic
+  useEffect(() => {
+    if (!bankRelationshipRequirement) return;
+    setIsClient24Months(bankRelationshipRequirement.isClientOfDBRGMemberBank24Months ?? null);
+    setBankReferenceLetterFileId(bankRelationshipRequirement.bankReferenceLetterFileId ?? 0);
+    setBankName(bankRelationshipRequirement.bankName || "");
+    setAccountNumber(bankRelationshipRequirement.accountNumber || "");
+    setAccountType(bankRelationshipRequirement.accountType || "");
+    setAddress(bankRelationshipRequirement.bankAddress || "");
+
+    // Convert bankingRelationSince to DD/MM/YYYY format
+    if (bankRelationshipRequirement.bankingRelationSince) {
+      const date = new Date(bankRelationshipRequirement.bankingRelationSince);
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      setBankingSince(`${day}/${month}/${year}`);
+    } else {
+      setBankingSince("");
+    }
+  }, [bankRelationshipRequirement]);
 
   // ----- File Select -----
   const handleSelectFile = (
