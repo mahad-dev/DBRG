@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
-import { useAuth } from '@/context/AuthContext';
 import {
   MemberApplicationSection,
   MembershipType,
@@ -15,8 +14,7 @@ import { toast } from "react-toastify";
 import { useStep1Applicability } from '@/hooks/useStep1Applicability';
 
 export default function Step1Applicability() {
-  const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, getUploadDetails } = useUploadDetails();
-  const { user } = useAuth();
+  const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep } = useUploadDetails();
   const navigate = useNavigate();
   const formData = state.data;
   const isSaving = state.isSaving;
