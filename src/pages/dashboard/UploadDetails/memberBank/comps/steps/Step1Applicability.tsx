@@ -59,8 +59,12 @@ export default function Step1Applicability() {
 
   const [specialConsiderationOpen, setSpecialConsiderationOpen] =
     useState(false);
-  const [currentSetValue, setCurrentSetValue] =
+  const [currentSetValue] =
     useState<((v: boolean) => void) | null>(null);
+
+  const hasAnyNoAnswer = () => {
+    return regulatedByCBA === false || anyAMLNotices === false || hasRelationshipWithUAEGoodDeliveryBrand === false;
+  };
 
   const {
     membership,
@@ -230,10 +234,17 @@ export default function Step1Applicability() {
   /* ------------------------------------------------------------------- */
 
   const handleSave = async () => {
-    if (formData.applicability?.specialConsideration) {
+    // 🚫 Block if special consideration exists but not approved
+    if (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved !== true) {
       toast.info(
-        "Special consideration already pending approval."
+        "Your special consideration request is under review. You can continue once it is approved."
       );
+      return;
+    }
+
+    // If ANY answer is NO and special consideration not approved → open modal, STOP save
+    if (formData.isSpecialConsiderationApproved !== true && hasAnyNoAnswer()) {
+      setSpecialConsiderationOpen(true);
       return;
     }
 
@@ -277,9 +288,14 @@ export default function Step1Applicability() {
         setCurrentStep(2);
         toast.success("Applicability saved!");
       } else {
-        toast.success(
-          "Saved. Awaiting admin approval."
-        );
+        if (updated.isSpecialConsiderationApproved) {
+          setCurrentStep(2);
+          toast.success("Applicability saved!");
+        } else {
+          toast.success(
+            "Saved. Awaiting admin approval."
+          );
+        }
       }
     } catch {
       toast.error("Failed to save applicability");
@@ -380,10 +396,6 @@ export default function Step1Applicability() {
         <YesNoGroup
           value={anyAMLNotices}
           onChange={setAnyAMLNotices}
-          onNoClick={() => {
-            setCurrentSetValue(() => setAnyAMLNotices);
-            setSpecialConsiderationOpen(true);
-          }}
         />
 
         <div className="mt-5">
@@ -419,16 +431,30 @@ export default function Step1Applicability() {
         </div>
       </div>
 
-    <div className="mt-6 flex justify-start">
+      <div className="mt-6 flex justify-start">
         <Button
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={isSaving || (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved === false)}
           variant="site_btn"
-          className="w-[132px] sm:w-full md:w-[132px] h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] text-white transition"
+          className={` h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] transition ${
+            formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+              ? "bg-gray-400 w-[192px] sm:w-full md:w-[192px] cursor-not-allowed text-black/60"
+              : "text-white w-[132px] sm:w-full md:w-[132px]"
+          }`}
         >
-          {isSaving ? "Saving..." : "Save / Next"}
+          {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+            ? "Waiting for Approval"
+            : isSaving
+            ? "Saving..."
+            : "Save / Next"}
         </Button>
       </div>
+        {formData.specialConsideration && formData.isSpecialConsiderationApproved === false && (
+          <p className="mt-3 text-sm text-[#C6A95F]">
+            Your special consideration request is under admin review.
+            You will be able to continue once it is approved.
+          </p>
+        )}
 
       <SpecialConsiderationDialog
         open={specialConsiderationOpen}

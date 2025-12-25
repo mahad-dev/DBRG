@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
-import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useStep4FinancialThresholds } from "@/hooks/useStep4FinancialThresholds";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
@@ -17,7 +15,6 @@ export default function Step4FinancialThresholds() {
   const formData = state.data;
   const isSaving = state.isSaving;
 
-  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
 
   const {
     paidUpCapital,
@@ -150,7 +147,6 @@ export default function Step4FinancialThresholds() {
           <YesNoGroup
             value={bullionTurnover}
             onChange={setBullionTurnover}
-            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
 
@@ -195,8 +191,7 @@ export default function Step4FinancialThresholds() {
         </Label>
 
         <div className="mt-4">
-          <YesNoGroup value={netWorth} onChange={setNetWorth} 
-            onNoClick={() => setSpecialConsiderationOpen(true)}/>
+          <YesNoGroup value={netWorth} onChange={setNetWorth}/>
         </div>
 
         {/* Upload Proof */}
@@ -257,10 +252,6 @@ export default function Step4FinancialThresholds() {
         </Button>
       </div>
 
-      <SpecialConsiderationDialog
-        open={specialConsiderationOpen}
-        onOpenChange={setSpecialConsiderationOpen}
-      />
     </div>
   );
 }

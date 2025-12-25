@@ -23,7 +23,10 @@ export default function Step1Applicability() {
   const formData = state.data;
   const isSaving = state.isSaving;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
-  const [currentSetValue, setCurrentSetValue] = useState<((value: boolean) => void) | null>(null);
+
+  const hasAnyNoAnswer = () => {
+    return isUAEBasedEntity === false || hasUnresolvedAMLNotices === false  || (yearsOfOperation !== null && yearsOfOperation < 1) || servicesProvided.length === 0;
+  };
 
   // Local states for contributing member
   const [isUAEBasedEntity, setIsUAEBasedEntity] = useState<boolean | null>(null);
@@ -106,9 +109,17 @@ export default function Step1Applicability() {
   ] as const;
 
   const handleSave = async () => {
-    // Prevent saving if special consideration is already pending
-    if (formData.applicability?.specialConsideration) {
-      toast.info("You have a pending special consideration request. Please wait for admin approval.");
+    // 🚫 Block if special consideration exists but not approved
+    if (formData?.specialConsideration && formData.isSpecialConsiderationApproved !== true) {
+      toast.info(
+        "Your special consideration request is under review. You can continue once it is approved."
+      );
+      return;
+    }
+
+    // If ANY answer is NO and special consideration not approved → open modal, STOP save
+    if (formData.isSpecialConsiderationApproved !== true && hasAnyNoAnswer()) {
+      setSpecialConsiderationOpen(true);
       return;
     }
 
@@ -163,7 +174,13 @@ export default function Step1Applicability() {
 
       // Check if special consideration is present
       if (updatedData.applicability?.specialConsideration) {
-        toast.success("Applicability saved successfully. You can continue after admin approval.");
+        if (updatedData.isSpecialConsiderationApproved) {
+          toast.success("Applicability saved successfully!");
+          // Move to next step after successful save
+          setCurrentStep(2);
+        } else {
+          toast.success("Applicability saved successfully. You can continue after admin approval.");
+        }
       } else {
         toast.success("Applicability saved successfully!");
         // Move to next step after successful save
@@ -199,9 +216,9 @@ return (
         ].map((opt) => (
           <Button
             key={opt.id}
-            disabled={formData.application?.membershipType !== null && membership !== opt.id}
+            disabled={!!formData.application?.membershipType && membership !== opt.id}
             onClick={() => {
-              if (formData.application?.membershipType === null) {
+              if (!formData.application?.membershipType) {
                 setMembership(opt.id);
                 navigate(opt.path);
               }
@@ -211,7 +228,7 @@ return (
                 membership === opt.id
                   ? "bg-[#C6A95F] text-black border-[#C6A95F]"
                   : "bg-transparent text-white border-white"
-              } ${formData.application?.membershipType !== null && membership !== opt.id ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${!!formData.application?.membershipType && membership !== opt.id ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {opt.label}
           </Button>
@@ -229,10 +246,6 @@ return (
         <YesNoGroup
           value={isUAEBasedEntity}
           onChange={setIsUAEBasedEntity}
-          onNoClick={() => {
-            setCurrentSetValue(() => setIsUAEBasedEntity);
-            setSpecialConsiderationOpen(true);
-          }}
         />
       </div>
     </div>
@@ -305,10 +318,6 @@ return (
         <YesNoGroup
           value={hasUnresolvedAMLNotices}
           onChange={setHasUnresolvedAMLNotices}
-          onNoClick={() => {
-            setCurrentSetValue(() => setHasUnresolvedAMLNotices);
-            setSpecialConsiderationOpen(true);
-          }}
         />
       </div>
 
@@ -341,15 +350,30 @@ return (
     </div>
 
     {/* Save */}
-    <div className="mt-10">
-      <Button
-        onClick={handleSave}
-        disabled={isSaving}
-        className="h-[42px] w-[140px] bg-[#C6A95F] text-black font-gilroySemiBold rounded-lg"
-      >
-        {isSaving ? "Saving..." : "Save / Next"}
-      </Button>
-    </div>
+      <div className="mt-6 flex justify-start">
+        <Button
+          onClick={handleSave}
+          disabled={isSaving || (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved === false)}
+          variant="site_btn"
+          className={` h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] transition ${
+            formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+              ? "bg-gray-400 w-[192px] sm:w-full md:w-[192px] cursor-not-allowed text-black/60"
+              : "text-white w-[132px] sm:w-full md:w-[132px]"
+          }`}
+        >
+          {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+            ? "Waiting for Approval"
+            : isSaving
+            ? "Saving..."
+            : "Save / Next"}
+        </Button>
+      </div>
+        {formData.specialConsideration && formData.isSpecialConsiderationApproved === false && (
+          <p className="mt-3 text-sm text-[#C6A95F]">
+            Your special consideration request is under admin review.
+            You will be able to continue once it is approved.
+          </p>
+        )}
 
     <SpecialConsiderationDialog
       open={specialConsiderationOpen}
@@ -399,13 +423,13 @@ return (
             toast.success("Special consideration request submitted successfully. You can continue after admin approval.");
           }
 
-          if (currentSetValue) currentSetValue(false);
+          // No currentSetValue needed for contributing member
         } catch (error) {
           console.log("error", error);
           toast.error("Failed to submit special consideration request. Please try again.");
         }
       }}
-      onCloseWithoutSubmit={() => currentSetValue?.(true)}
+      onCloseWithoutSubmit={() => setSpecialConsiderationOpen(false)}
     />
   </div>
 );
