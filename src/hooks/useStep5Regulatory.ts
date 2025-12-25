@@ -21,6 +21,7 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
   const [responsibleSourcingAudit, setResponsibleSourcingAudit] = React.useState<boolean | null>(null);
 
   // Compliance officer fields
+  const [officerPhotoFile, setOfficerPhotoFile] = React.useState<File | null>(null);
   const [officerName, setOfficerName] = React.useState("");
   const [officerDesignation, setOfficerDesignation] = React.useState("");
   const [officerContact, setOfficerContact] = React.useState("");
@@ -79,6 +80,7 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
     setOfficerDesignation(regulatorCompliance.complianceOfficerDesignation || "");
     setOfficerContact(regulatorCompliance.complianceOfficerContactNumber || "");
     setOfficerEmail(regulatorCompliance.complianceOfficerEmail || "");
+    // Note: officerPhotoFile is not prefilled from server data as it's a file upload
 
     setOngoingCasesDetails(regulatorCompliance.ongoingCasesDetails || "");
     setPenaltyExplanation(regulatorCompliance.penaltyExplanation || "");
@@ -98,6 +100,7 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
     preciousPolicy,
     responsibleSourcingAudit,
 
+    officerPhotoFile,
     officerName,
     officerDesignation,
     officerContact,
@@ -132,6 +135,7 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
     setPreciousPolicy,
     setResponsibleSourcingAudit,
 
+    setOfficerPhotoFile,
     setOfficerName,
     setOfficerDesignation,
     setOfficerContact,

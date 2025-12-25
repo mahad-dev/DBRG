@@ -30,6 +30,10 @@ import SpecialConsideration from "@/pages/adminDashboard/SpecialConsideration";
 import Settings from "@/pages/adminDashboard/Settings";
 import AdminDashboard from "@/pages/adminDashboard";
 import Applications from "@/pages/adminDashboard/Applications";
+import UploadDetailsMemberBank from "@/pages/dashboard/UploadDetails/memberBank";
+import UploadDetailsContributingMember from "../pages/dashboard/UploadDetails/contributingMember";
+import UploadDetailsAffiliateMember from "@/pages/dashboard/UploadDetails/affiliateMember";
+import UploadDetailsPrincipalMember from "@/pages/dashboard/UploadDetails/principalMember";
 
 // Route configuration type
 export interface RouteConfig {
@@ -76,6 +80,10 @@ const dashboardLayoutRoutes: RouteConfig[] = [
   { path: "resource-library", element: <ResourceLibrary />, name: "ResourceLibrary" },
   { path: "notifications", element: <Notifications />, name: "Notifications" },
   { path: "upload-details", element: <UploadDetails />, name: "UploadDetails" },
+  { path: "member-type/principal-member/upload-details", element: <UploadDetailsPrincipalMember />, name: "UploadDetailsPrincipalMember" },
+  { path: "member-type/member-bank/upload-details", element: <UploadDetailsMemberBank />, name: "UploadDetailsMemberBank" },
+  { path: "member-type/contributing-member/upload-details", element: <UploadDetailsContributingMember />, name: "UploadDetailsContributingMember" },
+  { path: "member-type/affiliate-member/upload-details", element: <UploadDetailsAffiliateMember />, name: "UploadDetailsAffiliateMember" },
 ];
 
 /* ---------------------------------------------------------

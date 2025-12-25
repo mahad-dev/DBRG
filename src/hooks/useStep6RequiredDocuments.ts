@@ -17,22 +17,17 @@ export type OtherForm = {
 export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequiredDocuments) {
   const defaultItems: DocItem[] = [
     { id: "trade_license", label: "Valid UAE Trade License, Memorandum of Association" },
-    { id: "banking_evidence", label: "Banking Relationship Evidence (24+ months)" },
+    { id: "assurance_report", label: "Latest Assurance report issued for Compliance with Regulation for Responsible Sourcing of Gold" },
     { id: "audited_fs", label: "Audited Financial Statements" },
     { id: "net_worth", label: "Net Worth Certificate" },
-    { id: "aml_policy", label: "AML/CFT Policy" },
-    { id: "supply_chain", label: "Supply Chain Compliance Policy" },
-    { id: "amlCftAndSupplyChainPolicies", label: "AML/CFT and Supply Chain Policies" },
-    { id: "declaration_aml", label: "Declaration of No Unresolved AML Notices" },
-    { id: "noUnresolvedAmlNoticesDeclaration", label: "No Unresolved AML Notices Declaration" },
-    { id: "accreditation", label: "Copy of valid accreditation certificate(s)" },
+    { id: "amlCftPolicy", label: "AML/CFT Policy" },
+    { id: "supplyChainPolicy", label: "Supply Chain Compliance Policy" },
+    { id: "noUnresolvedAmlNoticesDeclaration", label: "Declaration of No Unresolved AML Notices" },
     { id: "board_resolution", label: "Copy of Board Resolution" },
     { id: "ownership_structure", label: "Completed ownership structure on the entity letterhead, signed by entity's authorised signatory" },
     { id: "certified_true_copy", label: "Certified true copy by compliance officer" },
-    { id: "assurance_report", label: "Latest Assurance report Issued for Compliance with Regulation for Responsible Sourcing of gold" },
-    { id: "responsibleSourcingAssuranceReport", label: "Responsible Sourcing Assurance Report" },
-    { id: "uboProofDocuments", label: "UBO Proof Documents" },
-    { id: "certifiedIds", label: "Certified IDs" },
+    { id: "ubo_proof", label: "Copy of official documents (MOAs, AOAs, Share Certificate, Authorities Extract, Trade Licenses, Official Companies Profiles, etc.) which prove the Ultimate Beneficial Owner(s)" },
+    { id: "certified_ids", label: "A certified true copy of the passports / Emirates ID for shareholders, directors, ultimate beneficial owners, authorized signatory" },
   ];
 
   const [items] = useState<DocItem[]>(defaultItems);
@@ -77,22 +72,17 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
     // Set checked states based on API data
     setChecked({
       trade_license: memberRequiredDocuments.isChecked_TradeLicenseAndMoa ?? false,
-      banking_evidence: memberRequiredDocuments.isChecked_BankingRelationshipEvidence ?? false,
+      assurance_report: memberRequiredDocuments.isChecked_LatestAssuranceReport ?? false,
       audited_fs: memberRequiredDocuments.isChecked_AuditedFinancialStatements ?? false,
       net_worth: memberRequiredDocuments.isChecked_NetWorthCertificate ?? false,
-      aml_policy: memberRequiredDocuments.isChecked_AmlCftPolicy ?? false,
-      supply_chain: memberRequiredDocuments.isChecked_SupplyChainCompliancePolicy ?? false,
-      amlCftAndSupplyChainPolicies: memberRequiredDocuments.isChecked_AmlCftAndSupplyChainPolicies ?? false,
-      declaration_aml: memberRequiredDocuments.isChecked_DeclarationNoUnresolvedAmlNotices ?? false,
+      amlCftPolicy: memberRequiredDocuments.isChecked_AmlCftPolicy ?? false,
+      supplyChainPolicy: memberRequiredDocuments.isChecked_SupplyChainCompliancePolicy ?? false,
       noUnresolvedAmlNoticesDeclaration: memberRequiredDocuments.isChecked_NoUnresolvedAmlNoticesDeclaration ?? false,
-      accreditation: memberRequiredDocuments.isChecked_AccreditationCertificates ?? false,
       board_resolution: memberRequiredDocuments.isChecked_BoardResolution ?? false,
       ownership_structure: memberRequiredDocuments.isChecked_OwnershipStructure ?? false,
       certified_true_copy: memberRequiredDocuments.isChecked_CertifiedTrueCopy ?? false,
-      assurance_report: memberRequiredDocuments.isChecked_LatestAssuranceReport ?? false,
-      responsibleSourcingAssuranceReport: memberRequiredDocuments.isChecked_ResponsibleSourcingAssuranceReport ?? false,
-      uboProofDocuments: memberRequiredDocuments.isChecked_UboProofDocuments ?? false,
-      certifiedIds: memberRequiredDocuments.isChecked_CertifiedIds ?? false,
+      ubo_proof: memberRequiredDocuments.isChecked_UboProofDocuments ?? false,
+      certified_ids: memberRequiredDocuments.isChecked_CertifiedIds ?? false,
     });
 
     // Handle other forms if they exist

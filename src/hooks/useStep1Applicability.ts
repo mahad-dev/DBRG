@@ -65,6 +65,11 @@ export function useStep1Applicability(applicability?: any, application?: any) {
   // AML notices
   const [anyAMLNotices, setAnyAMLNotices] = useState<boolean | null>(null);
 
+  // Member Bank specific
+  const [regulatedByCBA, setRegulatedByCBA] = useState<boolean | null>(null);
+  const [hasRelationshipWithUAEGoodDeliveryBrand, setHasRelationshipWithUAEGoodDeliveryBrand] = useState<boolean | null>(null);
+  const [brandName, setBrandName] = useState<string>("");
+
   // File uploads and refs
   const [signedAMLFile, setSignedAMLFile] = useState<File | null>(null);
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
@@ -141,6 +146,11 @@ export function useStep1Applicability(applicability?: any, application?: any) {
     // AML Notices
     setAnyAMLNotices(applicability.hasUnresolvedAMLNotices ?? null);
 
+    // Member Bank specific
+    setRegulatedByCBA(applicability.isRegulatedByUAEAuthorities ?? null);
+    setHasRelationshipWithUAEGoodDeliveryBrand(applicability.hasRelationshipWithUAEGoodDeliveryBrand ?? null);
+    setBrandName(applicability.brandName ?? "");
+
     // Existing file paths
     setExistingSignedAMLPath(applicability.signedAMLDeclarationPath ?? null);
     setExistingEvidencePath(applicability.bankingRelationshipEvidencePath ?? null);
@@ -154,6 +164,9 @@ export function useStep1Applicability(applicability?: any, application?: any) {
     refinerAnswers,
     tradingAnswers,
     anyAMLNotices,
+    regulatedByCBA,
+    hasRelationshipWithUAEGoodDeliveryBrand,
+    brandName,
     signedAMLFile,
     evidenceFile,
     existingSignedAMLPath,
@@ -170,6 +183,9 @@ export function useStep1Applicability(applicability?: any, application?: any) {
     setRefinerAnswer,
     setTradingAnswer,
     setAnyAMLNotices: setAnyAMLNotices,
+    setRegulatedByCBA,
+    setHasRelationshipWithUAEGoodDeliveryBrand,
+    setBrandName,
     handleSelectFile,
     handleDropFile,
     setSignedAMLFile,

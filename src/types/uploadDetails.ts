@@ -122,6 +122,11 @@ export interface SpecialConsideration {
 }
 
 export interface Applicability {
+  hasUnresolvedAMLNotices: null;
+  otherServiceDetail: string;
+  servicesProvided: any;
+  yearsOfOperation: null;
+  isUAEBasedEntity: null;
   principalMember?: PrincipalMember;
   memberBank?: MemberBank;
   contributingMember?: ContributingMember;
@@ -242,6 +247,8 @@ export interface FinancialThresholds {
 
 export interface RegulatoryCompliance {
   compliantWithAmlCft: boolean;
+  complianceOfficerPhotoFileId: number | null;
+  complianceOfficerPhotoFilePath?: string;
   complianceOfficerFullName: string;
   complianceOfficerDesignation: string;
   complianceOfficerContactNumber: string;
