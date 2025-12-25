@@ -363,6 +363,8 @@ export interface UploadDetailsPayload {
   memberRequiredDocuments?: MemberRequiredDocuments;
   dataProtectionPrivacy?: DataProtectionPrivacy;
   declarationConsent?: DeclarationConsent;
+  specialConsideration?: SpecialConsideration;
+  isSpecialConsiderationApproved?: boolean;
 }
 
 // API Response types

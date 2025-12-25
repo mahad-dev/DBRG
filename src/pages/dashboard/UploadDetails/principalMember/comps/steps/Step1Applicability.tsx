@@ -25,7 +25,11 @@ export default function Step1Applicability() {
   const formData = state.data;
   const isSaving = state.isSaving;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
-  const [currentSetValue, setCurrentSetValue] = useState<((value: boolean) => void) | null>(null);
+
+  const hasAnyNoAnswer = () => {
+    const selectedCategoryAnswers = category.refiner ? refinerAnswers : category.trading ? tradingAnswers : {};
+    return Object.values(selectedCategoryAnswers).some(v => v === false) || anyAMLNotices === false;
+  };
 
   // Use the custom hook
   const {
@@ -90,13 +94,24 @@ export default function Step1Applicability() {
   ] as const;
 
   const handleSave = async () => {
-    // Prevent saving if special consideration is already pending
-    if (formData.applicability?.specialConsideration) {
-      toast.info("You have a pending special consideration request. Please wait for admin approval.");
+    // 🚫 If special consideration exists & not approved → block
+    if (
+      formData.applicability?.specialConsideration &&
+      formData.isSpecialConsiderationApproved === false
+    ) {
+      toast.info("Special consideration pending admin approval.");
       return;
     }
 
-    dispatch({ type: 'SET_SAVING', payload: true });
+    // 🔴 If ANY answer is NO and special consideration not approved → open modal, STOP save
+    if (formData.isSpecialConsiderationApproved !== true && (hasAnyNoAnswer() || anyAMLNotices === false)) {
+      setSpecialConsiderationOpen(true);
+      return;
+    }
+
+    // ✅ ALL YES → Normal Save
+    dispatch({ type: "SET_SAVING", payload: true });
+
     try {
       // Upload files if present, or use existing IDs from paths
       let signedAMLDocumentId: number | null = null;
@@ -145,39 +160,28 @@ export default function Step1Applicability() {
                   return ServiceType.TradingInPreciousMetals;
               }
             }),
-          refiningOrTradingCategory: category.refiner
-            ? RefiningOrTradingType.Refiner
-            : RefiningOrTradingType.TradingCompany,
-          isAccreditedRefinery: refinerAnswers.accredited || false,
-          operatedUnderUAEML5Years: refinerAnswers.aml5yrs || false,
-          refiningOutputOver10Tons: refinerAnswers.output10tons || false,
-          ratedCompliantByMinistry: refinerAnswers.ratedCompliant || false,
-          involvedInWholesaleBullionTrading:
-            tradingAnswers.wholesaleBullion || false,
-          hasBankingRelationships3Years:
-            tradingAnswers.bankRelationships || false,
+          ...(category.refiner && {
+            refiningOrTradingCategory: RefiningOrTradingType.Refiner,
+            isAccreditedRefinery: refinerAnswers.accredited || false,
+            operatedUnderUAEML5Years: refinerAnswers.aml5yrs || false,
+            refiningOutputOver10Tons: refinerAnswers.output10tons || false,
+            ratedCompliantByMinistry: refinerAnswers.ratedCompliant || false,
+          }),
+          ...(category.trading && {
+            refiningOrTradingCategory: RefiningOrTradingType.TradingCompany,
+            involvedInWholesaleBullionTrading:
+              tradingAnswers.wholesaleBullion || false,
+            hasBankingRelationships3Years:
+              tradingAnswers.bankRelationships || false,
+            bankingRelationshipEvidence: evidenceDocumentId,
+          }),
           hasUnresolvedAMLNotices: anyAMLNotices || false,
-          bankingRelationshipEvidence: evidenceDocumentId,
           signedAMLDeclaration: signedAMLDocumentId,
         };
       }
 
-      // Include special consideration if it exists
-      if (formData.applicability?.specialConsideration) {
-        applicabilityData.specialConsideration = formData.applicability.specialConsideration;
-      }
-
-      // Similar logic for other membership types...
-
       const payload = {
-        membershipType:
-          membership === "principal"
-            ? MembershipType.PrincipalMember
-            : membership === "member_bank"
-            ? MembershipType.MemberBank
-            : membership === "contributing"
-            ? MembershipType.ContributingMember
-            : MembershipType.AffiliateMember,
+        membershipType: MembershipType.PrincipalMember,
         applicability: applicabilityData,
       };
       console.log("first...", payload);
@@ -186,22 +190,12 @@ export default function Step1Applicability() {
       updateFormData(payload);
       await saveUploadDetails(payload, MemberApplicationSection.Applicability);
 
-      // Fetch updated data to check special consideration status
-      const updatedData = await getUploadDetails(user?.userId || '');
-
-      // Check if special consideration is present
-      if (updatedData.applicability?.specialConsideration) {
-        toast.success("Applicability saved successfully. You can continue after admin approval.");
-      } else {
-        toast.success("Applicability saved successfully!");
-        // Move to next step after successful save
-        setCurrentStep(2);
-      }
-
-      dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error("Failed to save applicability. Please try again.");
-      dispatch({ type: 'SET_SAVING', payload: false });
+      toast.success("Applicability saved successfully!");
+      setCurrentStep(2);
+    } catch (e) {
+      toast.error("Failed to save applicability");
+    } finally {
+      dispatch({ type: "SET_SAVING", payload: false });
     }
   };
 
@@ -227,9 +221,9 @@ export default function Step1Applicability() {
             <Button
               key={opt.id}
               variant="site_btn"
-              disabled={formData.application?.membershipType !== null && membership !== opt.id}
+              disabled={!!formData?.application?.membershipType && membership !== opt.id}
               onClick={() => {
-                if (formData.application?.membershipType === null) {
+                if (!formData?.application?.membershipType) {
                   setMembership(opt.id);
                   navigate(opt.path);
                 }
@@ -239,7 +233,7 @@ export default function Step1Applicability() {
                   membership === opt.id
                     ? "text-white border-none"
                     : "bg-transparent text-white border border-white"
-                } ${formData.application?.membershipType !== null && membership !== opt.id ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${!!formData?.application?.membershipType && membership !== opt.id ? "opacity-50 cursor-not-allowed" : ""}`}
               aria-pressed={membership === opt.id}
             >
               {opt.label}
@@ -322,7 +316,6 @@ export default function Step1Applicability() {
                     value={refinerAnswers[item.id]}
                     onChange={(v) => setRefinerAnswer(item.id, v)}
                     className="w-full"
-                    onNoClick={() => { setCurrentSetValue(() => (v: boolean) => setRefinerAnswer(item.id, v)); setSpecialConsiderationOpen(true); }}
                   />
                 </div>
               </div>
@@ -357,7 +350,6 @@ export default function Step1Applicability() {
                   <YesNoGroup
                     value={tradingAnswers[item.id]}
                     onChange={(v) => setTradingAnswer(item.id, v)}
-                    onNoClick={() => { setCurrentSetValue(() => (v: boolean) => setTradingAnswer(item.id, v)); setSpecialConsiderationOpen(true); }}
                   />
                 </div>
               </div>
@@ -403,7 +395,6 @@ export default function Step1Applicability() {
           <YesNoGroup
             value={anyAMLNotices}
             onChange={(v) => setAnyAMLNotices(v)}
-            onNoClick={() => { setCurrentSetValue(() => (v: boolean) => setAnyAMLNotices(v)); setSpecialConsiderationOpen(true); }}
           />
         </div>
 
@@ -440,13 +431,27 @@ export default function Step1Applicability() {
       <div className="mt-6 flex justify-start">
         <Button
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={isSaving || (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved === false)}
           variant="site_btn"
-          className="w-[132px] sm:w-full md:w-[132px] h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] text-white transition"
+          className={` h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] transition ${
+            formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+              ? "bg-gray-400 w-[192px] sm:w-full md:w-[192px] cursor-not-allowed text-black/60"
+              : "text-white w-[132px] sm:w-full md:w-[132px]"
+          }`}
         >
-          {isSaving ? "Saving..." : "Save / Next"}
+          {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+            ? "Waiting for Approval"
+            : isSaving
+            ? "Saving..."
+            : "Save / Next"}
         </Button>
       </div>
+        {formData.specialConsideration && formData.isSpecialConsiderationApproved === false && (
+          <p className="mt-3 text-sm text-[#C6A95F]">
+            Your special consideration request is under admin review.
+            You will be able to continue once it is approved.
+          </p>
+        )}
 
       <SpecialConsiderationDialog
         open={specialConsiderationOpen}
@@ -531,13 +536,13 @@ export default function Step1Applicability() {
               toast.success("Special consideration request submitted successfully. You can continue after admin approval.");
             }
 
-            if (currentSetValue) currentSetValue(false);
+            setSpecialConsiderationOpen(false);
           } catch (error) {
             console.log("error", error);
             toast.error("Failed to submit special consideration request. Please try again.");
           }
         }}
-        onCloseWithoutSubmit={() => { if (currentSetValue) currentSetValue(true); }}
+        onCloseWithoutSubmit={() => setSpecialConsiderationOpen(false)}
       />
     </div>
   );

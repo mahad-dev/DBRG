@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
+import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import {
   MemberApplicationSection,
@@ -12,12 +13,30 @@ import {
 } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
 import { useStep1Applicability } from '@/hooks/useStep1Applicability';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Step1Applicability() {
-  const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep } = useUploadDetails();
+  const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, getUploadDetails } = useUploadDetails();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const formData = state.data;
   const isSaving = state.isSaving;
+  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+
+  // ---- Special Consideration rules from GET ----
+  const isSpecialConsiderationPresent =
+    !!formData?.specialConsideration;
+
+  const isSpecialConsiderationApproved =
+    formData?.isSpecialConsiderationApproved === true;
+
+  // Disable Next when special consideration exists BUT not approved
+  const disableNextDueToSpecialConsideration =
+    isSpecialConsiderationPresent && !isSpecialConsiderationApproved;
+
+  const hasAnyNoAnswer = () => {
+    return hasUAEOffice === false || hasAMLNotices === false || licensedBullion === false || internationalOrg === false;
+  };
 
   // Local states for affiliate member
   const [membership, setMembership] = useState<string | null>("affiliate");
@@ -100,6 +119,20 @@ export default function Step1Applicability() {
   }, [formData.applicability, formData.application]);
 
   const handleSave = async () => {
+    // 🚫 Block if special consideration exists but not approved
+    if (disableNextDueToSpecialConsideration) {
+      toast.info(
+        "Your special consideration request is under review. You can continue once it is approved."
+      );
+      return;
+    }
+
+    // If ANY answer is NO and special consideration not approved → open modal, STOP save
+    if (formData.isSpecialConsiderationApproved !== true && hasAnyNoAnswer()) {
+      setSpecialConsiderationOpen(true);
+      return;
+    }
+
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
       // Upload files if present, or use existing IDs from paths
@@ -188,9 +221,9 @@ export default function Step1Applicability() {
             ].map((item) => (
               <button
                 key={item.id}
-                disabled={formData.application?.membershipType !== null && membership !== item.id}
+                disabled={!!formData.application?.membershipType && membership !== item.id}
                 onClick={() => {
-                  if (formData.application?.membershipType === null) {
+                  if (!formData.application?.membershipType) {
                     setMembership(item.id);
                     navigate(item.path);
                   }
@@ -200,7 +233,7 @@ export default function Step1Applicability() {
                     membership === item.id
                       ? "bg-[#C6A95F] text-black border-[#C6A95F]"
                       : "border-white/70 text-white"
-                  } ${formData.application?.membershipType !== null && membership !== item.id ? "opacity-50 cursor-not-allowed" : ""}`}
+                  } ${!!formData.application?.membershipType && membership !== item.id ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {item.id}
               </button>
@@ -341,15 +374,88 @@ export default function Step1Applicability() {
         </div>
 
         {/* Save */}
-        <div className="mt-12">
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="h-[42px] w-[150px] bg-[#C6A95F] text-black rounded-md"
-          >
-            {isSaving ? "Saving..." : "Save / Next"}
-          </Button>
-        </div>
+      <div className="mt-6 flex justify-start">
+        <Button
+          onClick={handleSave}
+          disabled={isSaving || (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved === false)}
+          variant="site_btn"
+          className={` h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] transition ${
+            formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+              ? "bg-gray-400 w-[192px] sm:w-full md:w-[192px] cursor-not-allowed text-black/60"
+              : "text-white w-[132px] sm:w-full md:w-[132px]"
+          }`}
+        >
+          {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+            ? "Waiting for Approval"
+            : isSaving
+            ? "Saving..."
+            : "Save / Next"}
+        </Button>
+      </div>
+        {formData.specialConsideration && formData.isSpecialConsiderationApproved === false && (
+          <p className="mt-3 text-sm text-[#C6A95F]">
+            Your special consideration request is under admin review.
+            You will be able to continue once it is approved.
+          </p>
+        )}
+
+        <SpecialConsiderationDialog
+          open={specialConsiderationOpen}
+          onOpenChange={setSpecialConsiderationOpen}
+          onSubmit={async (message: string) => {
+            try {
+              // Extract ID from S3 path
+              const extractIdFromPath = (path: string | null): number | null => {
+                if (!path) return null;
+                const match = path.match(/\/(\d+)_/);
+                return match ? parseInt(match[1], 10) : null;
+              };
+
+              let signedAMLDocumentId = extractIdFromPath(existingSignedAMLPath);
+
+              // Prepare applicability data based on membership type
+              let applicabilityData: any = {};
+
+              applicabilityData.affiliateMember = {
+                hasUAEOffice: hasUAEOffice || false,
+                operatesInBullionOrRefining3Years: licensedBullion || false,
+                isInternationalOrgWithUAEBranch: internationalOrg || false,
+                hasUnresolvedAMLNotices: hasAMLNotices || false,
+                uaeOfficeProofDocuments: [],
+                eligibilitySupportingDocuments: [],
+                signedAMLDeclaration: signedAMLDocumentId,
+              };
+
+              // Add special consideration
+              applicabilityData.specialConsideration = { message };
+
+              const payload = {
+                membershipType: MembershipType.AffiliateMember,
+                applicability: applicabilityData,
+              };
+
+              updateFormData(payload);
+              await saveUploadDetails(payload, MemberApplicationSection.Applicability);
+
+              // Fetch updated data to check special consideration status
+              const updatedData = await getUploadDetails(user?.userId || '');
+
+              // Update the form data with the fetched data to prefill fields
+              updateFormData(updatedData);
+
+              // Check if special consideration is present
+              if (updatedData.applicability?.specialConsideration) {
+                toast.success("Special consideration request submitted successfully. You can continue after admin approval.");
+              }
+
+              setSpecialConsiderationOpen(false);
+            } catch (error) {
+              console.log("error", error);
+              toast.error("Failed to submit special consideration request. Please try again.");
+            }
+          }}
+          onCloseWithoutSubmit={() => setSpecialConsiderationOpen(false)}
+        />
 
       </div>
     </div>

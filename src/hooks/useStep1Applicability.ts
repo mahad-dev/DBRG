@@ -36,7 +36,22 @@ export function useStep1Applicability(applicability?: any, application?: any) {
         return { ...c, [key]: false };
       } else {
         // If not checked, check it and uncheck the other
-        return key === "refiner" ? { refiner: true, trading: false } : { refiner: false, trading: true };
+        const newCategory = key === "refiner" ? { refiner: true, trading: false } : { refiner: false, trading: true };
+        // Reset answers for the unselected category
+        if (key === "refiner") {
+          setTradingAnswers({
+            wholesaleBullion: null,
+            bankRelationships: null,
+          });
+        } else {
+          setRefinerAnswers({
+            accredited: null,
+            aml5yrs: null,
+            output10tons: null,
+            ratedCompliant: null,
+          });
+        }
+        return newCategory;
       }
     });
   }, []);

@@ -71,7 +71,7 @@ export default function Step3Regulatory() {
       // Save form data
       await saveUploadDetails({
         membershipType: formData.application.membershipType,
-        regulatoryCompliance: {
+        regulatorCompliance: {
           compliantWithAmlCft: hook.compliantUAE ?? false,
           complianceOfficerFullName: hook.officerName,
           complianceOfficerDesignation: hook.officerDesignation,
