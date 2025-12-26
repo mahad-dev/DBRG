@@ -1,4 +1,4 @@
-import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
+import BecomeMemberButton from "@/pages/layout/comps/BecomeMemberButton";
 
 export default function MembershipProcess() {
   const steps = [
@@ -71,7 +71,7 @@ export default function MembershipProcess() {
 
         {/* Button */}
         <div className="mt-8 sm:mt-10">
-          <BecomeMemberModal
+          <BecomeMemberButton
             triggerText="Apply for Membership"
             triggerClassName="w-[223px] h-[52px] rounded-md text-[20px] font-medium flex justify-center items-center"
           />

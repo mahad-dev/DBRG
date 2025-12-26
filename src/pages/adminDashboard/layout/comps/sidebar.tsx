@@ -31,7 +31,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/admin/login');
     setLogoutDialogOpen(false);
   };
 
@@ -62,7 +62,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </div>
 
           {/* MENU ITEMS */}
-          <nav className="flex flex-col gap-7 text-[18px] font-medium">
+          <nav className="flex flex-col gap-2 text-[18px] font-medium">
             <NavItem
               icon={<LayoutDashboard size={24} />}
               label="Dashboard"

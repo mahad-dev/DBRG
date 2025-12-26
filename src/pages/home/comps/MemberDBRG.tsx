@@ -1,4 +1,4 @@
-import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
+import BecomeMemberButton from "@/pages/layout/comps/BecomeMemberButton";
 
 export default function MemberDBRG() {
   const benefits = [
@@ -90,17 +90,17 @@ export default function MemberDBRG() {
 
         {/* BUTTON — Centered */}
         <div className="flex justify-center mt-12 sm:mt-16">
-         <BecomeMemberModal
+         <BecomeMemberButton
   triggerClassName="
-    w-[202px] 
-    h-[52px] 
-    rounded-[10px] 
-    px-2.5 
-    py-2.5 
-    text-lg 
+    w-[202px]
+    h-[52px]
+    rounded-[10px]
+    px-2.5
+    py-2.5
+    text-lg
     sm:text-xl
-    flex 
-    items-center 
+    flex
+    items-center
     justify-center
     gap-2.5
   "
