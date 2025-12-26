@@ -4,8 +4,8 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+import BecomeMemberButton from "@/pages/layout/comps/BecomeMemberButton";
 // import { Button } from "@/components/ui/button";
-import BecomeMemberModal from "@/pages/layout/comps/BecomeMemberModal";
 import { Check } from "lucide-react";
 
 export default function MembershipChapters() {
@@ -159,7 +159,7 @@ export default function MembershipChapters() {
                   ))}
                 </ul>
 
-               <BecomeMemberModal triggerClassName="mt-4"/>
+               <BecomeMemberButton triggerClassName="mt-4"/>
               </div>
             </AccordionContent>
           </AccordionItem>

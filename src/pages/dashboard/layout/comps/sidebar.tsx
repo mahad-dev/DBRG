@@ -76,7 +76,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </div>
 
           {/* NAVIGATION */}
-          <div className="flex flex-col gap-6 mb-10">
+          <div className="flex flex-col gap-2 mb-10">
             <NavItem icon={<Home size={26} />} label="Home" to="/dashboard" />
             <NavItem icon={<BookOpen size={26} />} label="Upload Details" to="/dashboard/member-type/principal-member/upload-details" />
             <NavItem icon={<Clock3 size={26} />} label="Track Status" to="/dashboard/track-status" />

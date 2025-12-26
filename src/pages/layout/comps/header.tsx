@@ -7,7 +7,7 @@ import {
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { Menu, X } from "lucide-react";
-import BecomeMemberModal from "./BecomeMemberModal";
+import BecomeMemberButton from "./BecomeMemberButton";
 import { Button } from "@/components/ui/button";
 
 export default function Header() {
@@ -88,7 +88,7 @@ export default function Header() {
             </NavigationMenu>
 
             <div className="flex space-x-4">
-              <BecomeMemberModal />
+              <BecomeMemberButton />
               <Button
                 variant="site_btn_transparent"
                 className="w-[110px] h-[46px] rounded-[10px] border border-current"
@@ -159,7 +159,7 @@ export default function Header() {
             })}
           </nav>
           <div className="mt-6">
-            <BecomeMemberModal
+            <BecomeMemberButton
               triggerText="Become a Member"
               onOpen={() => setMobileOpen(false)}
             />

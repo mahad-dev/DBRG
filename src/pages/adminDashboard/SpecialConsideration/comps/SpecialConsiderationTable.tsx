@@ -225,11 +225,19 @@ export default function SpecialConsiderationTable() {
                   ) : (
                     data.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.companyName ?? "—"}</TableCell>
+                        <TableCell>
+                          {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
+                        </TableCell>
+                        <TableCell>
+                          {item.companyName && item.companyName.length > 30 ? `${item.companyName.substring(0, 30)}...` : item.companyName ?? "—"}
+                        </TableCell>
                         <TableCell>{item.membershipType}</TableCell>
-                        <TableCell>{item.country ?? "—"}</TableCell>
-                        <TableCell>{item.message}</TableCell>
+                        <TableCell>
+                          {item.country && item.country.length > 30 ? `${item.country.substring(0, 30)}...` : item.country ?? "—"}
+                        </TableCell>
+                        <TableCell>
+                          {item.message.length > 50 ? `${item.message.substring(0, 50)}...` : item.message}
+                        </TableCell>
                         <TableCell>
                           <ActionMenu
                             onApprove={() => {

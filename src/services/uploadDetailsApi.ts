@@ -63,8 +63,8 @@ async saveUploadDetails(
     return response.data.path;
   }
 
-  async trackStatus(userId: string): Promise<any> {
-    const response: ApiResponse<any> = await this.request(`/UploadDetails/TrackStatus?userId=${userId}`);
+  async trackStatus(): Promise<any> {
+    const response: ApiResponse<any> = await this.request(`/UploadDetails/TrackStatus`);
     return response.data;
   }
 }
