@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Search, Filter, Calendar, MoreVertical } from "lucide-react";
+import GenerateInvoiceModal from "./GenerateInvoice";
 
 /* ================= TYPES ================= */
 
@@ -51,6 +52,7 @@ const ITEMS_PER_PAGE = 6;
 export default function PaymentTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [generateInvoice,setgenerateInvoice]=useState(false);
 
   const filteredData = useMemo(() => {
     return paymentData.filter((i) =>
@@ -67,6 +69,12 @@ export default function PaymentTable() {
     return filteredData.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredData, page]);
 
+  const handleGenerateInvoice = () => {
+
+  setgenerateInvoice(true);
+};
+
+
   return (
     <div className="min-h-screen text-white">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -77,6 +85,9 @@ export default function PaymentTable() {
             Payment Management
           </h1>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
+            <Button className="bg-black text-[#C6A95F] border-[#C6A95F] border-2 w-full sm:w-auto" onClick={() => setgenerateInvoice(true)}>
+              Generate Invoice
+            </Button>
             <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
               Add Payment
             </Button>
@@ -85,6 +96,14 @@ export default function PaymentTable() {
             </Button>
           </div>
         </div>
+
+        {/* ===== MODALS ===== */}
+                <GenerateInvoiceModal
+                  open={generateInvoice}
+                  onOpenChange={setgenerateInvoice}
+                  onConfirm={handleGenerateInvoice}
+                />
+
 
         {/* ===== SEARCH & FILTER ===== */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -194,7 +213,7 @@ export default function PaymentTable() {
                       </TableCell>
                       <TableCell className="py-4 px-2 font-semibold">{item.amount}</TableCell>
                       <TableCell className="py-4 px-2">
-                        <ActionMenu />
+                        <ActionMenu/>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -206,6 +225,7 @@ export default function PaymentTable() {
           <FooterPagination page={page} total={totalPages} setPage={setPage} />
         </div>
       </div>
+
     </div>
   );
 }
@@ -216,6 +236,7 @@ function FooterPagination({
   page,
   total,
   setPage,
+
 }: {
   page: number;
   total: number;
