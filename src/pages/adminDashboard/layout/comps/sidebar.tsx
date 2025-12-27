@@ -10,6 +10,7 @@ import {
   Handshake,
   LogOut,
   Settings,
+  CheckCircle,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavLink } from "react-router-dom";
@@ -102,6 +103,12 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               icon={<Handshake size={24} />}
               label="Applications"
               to="/admin/dashboard/applications"
+            />
+
+            <NavItem
+              icon={<CheckCircle size={24} />}
+              label="Approved Applications"
+              to="/admin/dashboard/approved-applications"
             />
 
             <Button
