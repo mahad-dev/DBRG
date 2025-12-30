@@ -46,6 +46,22 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
     }, {} as Record<string, File | null>)
   );
 
+  // Document IDs state for each file (for upload optimization)
+  const [documentIds, setDocumentIds] = useState<Record<string, number | null>>(() =>
+    defaultItems.reduce((acc, it) => {
+      acc[it.id] = null;
+      return acc;
+    }, {} as Record<string, number | null>)
+  );
+
+  // Document paths state for prefilled files
+  const [documentPaths, setDocumentPaths] = useState<Record<string, string>>(() =>
+    defaultItems.reduce((acc, it) => {
+      acc[it.id] = "";
+      return acc;
+    }, {} as Record<string, string>)
+  );
+
   const setItemChecked = useCallback((id: string, val: boolean) => {
     setChecked((prev) => ({ ...prev, [id]: val }));
   }, []);
@@ -58,7 +74,31 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
     setFiles((prev) => ({ ...prev, [id]: null }));
   }, []);
 
+  const setItemDocumentId = useCallback((id: string, docId: number | null) => {
+    setDocumentIds((prev) => ({ ...prev, [id]: docId }));
+  }, []);
+
+  const setItemDocumentPath = useCallback((id: string, path: string) => {
+    setDocumentPaths((prev) => ({ ...prev, [id]: path }));
+  }, []);
+
   const [otherForms, setOtherForms] = useState<OtherForm[]>([]);
+
+  // Document IDs for other forms
+  const [otherFormDocumentIds, setOtherFormDocumentIds] = useState<Record<string, number | null>>({});
+
+  // Helper to extract document ID from S3 path
+  const extractIdFromPath = useCallback((path: string | null): number | null => {
+    if (!path) return null;
+    // Remove query parameters first (everything after ?)
+    const pathWithoutQuery = path.split('?')[0];
+    // Extract the filename from the URL
+    const filename = pathWithoutQuery.split('/').pop();
+    if (!filename) return null;
+    // Match pattern: documentId_filename (e.g., "780_Screenshot.png")
+    const match = filename.match(/^(\d+)_/);
+    return match ? parseInt(match[1], 10) : null;
+  }, []);
 
   // Prefill logic
   useEffect(() => {
@@ -85,6 +125,38 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
       certified_ids: memberRequiredDocuments.isChecked_CertifiedIds ?? false,
     });
 
+    // Prefill document IDs from existing data
+    setDocumentIds({
+      trade_license: memberRequiredDocuments.tradeLicenseAndMoaFileId ?? extractIdFromPath(memberRequiredDocuments.tradeLicenseAndMoaPath ?? null),
+      assurance_report: memberRequiredDocuments.latestAssuranceReportFileId ?? extractIdFromPath(memberRequiredDocuments.latestAssuranceReportPath ?? null),
+      audited_fs: memberRequiredDocuments.auditedFinancialStatementsFileId ?? extractIdFromPath(memberRequiredDocuments.auditedFinancialStatementsPath ?? null),
+      net_worth: memberRequiredDocuments.netWorthCertificateFileId ?? extractIdFromPath(memberRequiredDocuments.netWorthCertificatePath ?? null),
+      amlCftPolicy: memberRequiredDocuments.amlCftPolicyFileId ?? extractIdFromPath(memberRequiredDocuments.amlCftPolicyPath ?? null),
+      supplyChainPolicy: memberRequiredDocuments.supplyChainCompliancePolicyFileId ?? extractIdFromPath(memberRequiredDocuments.supplyChainCompliancePolicyPath ?? null),
+      noUnresolvedAmlNoticesDeclaration: memberRequiredDocuments.noUnresolvedAmlNoticesDeclarationFileId ?? extractIdFromPath(memberRequiredDocuments.noUnresolvedAmlNoticesDeclarationPath ?? null),
+      board_resolution: memberRequiredDocuments.boardResolutionFileId ?? extractIdFromPath(memberRequiredDocuments.boardResolutionPath ?? null),
+      ownership_structure: memberRequiredDocuments.ownershipStructureFileId ?? extractIdFromPath(memberRequiredDocuments.ownershipStructurePath ?? null),
+      certified_true_copy: memberRequiredDocuments.certifiedTrueCopyFileId ?? extractIdFromPath(memberRequiredDocuments.certifiedTrueCopyPath ?? null),
+      ubo_proof: memberRequiredDocuments.uboProofDocumentsFileId ?? extractIdFromPath(memberRequiredDocuments.uboProofDocumentsPath ?? null),
+      certified_ids: memberRequiredDocuments.certifiedIdsFileId ?? extractIdFromPath(memberRequiredDocuments.certifiedIdsPath ?? null),
+    });
+
+    // Prefill document paths
+    setDocumentPaths({
+      trade_license: memberRequiredDocuments.tradeLicenseAndMoaPath ?? "",
+      assurance_report: memberRequiredDocuments.latestAssuranceReportPath ?? "",
+      audited_fs: memberRequiredDocuments.auditedFinancialStatementsPath ?? "",
+      net_worth: memberRequiredDocuments.netWorthCertificatePath ?? "",
+      amlCftPolicy: memberRequiredDocuments.amlCftPolicyPath ?? "",
+      supplyChainPolicy: memberRequiredDocuments.supplyChainCompliancePolicyPath ?? "",
+      noUnresolvedAmlNoticesDeclaration: memberRequiredDocuments.noUnresolvedAmlNoticesDeclarationPath ?? "",
+      board_resolution: memberRequiredDocuments.boardResolutionPath ?? "",
+      ownership_structure: memberRequiredDocuments.ownershipStructurePath ?? "",
+      certified_true_copy: memberRequiredDocuments.certifiedTrueCopyPath ?? "",
+      ubo_proof: memberRequiredDocuments.uboProofDocumentsPath ?? "",
+      certified_ids: memberRequiredDocuments.certifiedIdsPath ?? "",
+    });
+
     // Handle other forms if they exist
     if (memberRequiredDocuments.otherForms && memberRequiredDocuments.otherForms.length > 0) {
       console.log("Setting other forms:", memberRequiredDocuments.otherForms);
@@ -95,7 +167,7 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
       }));
       setOtherForms(otherFormsData);
     }
-  }, [memberRequiredDocuments]);
+  }, [memberRequiredDocuments, extractIdFromPath]);
 
   const addOtherForm = useCallback((name = "") => {
     setOtherForms((o) => [...o, { id: `other_${Date.now()}`, name, file: null }]);
@@ -111,6 +183,10 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
 
   const removeOtherForm = useCallback((id: string) => {
     setOtherForms((o) => o.filter((it) => it.id !== id));
+  }, []);
+
+  const setOtherFormDocumentId = useCallback((id: string, docId: number | null) => {
+    setOtherFormDocumentIds((prev) => ({ ...prev, [id]: docId }));
   }, []);
 
   // Generic handlers: accept a setter that receives File | null
@@ -145,16 +221,22 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
     items,
     checked,
     files,
+    documentIds,
+    documentPaths,
     otherForms,
+    otherFormDocumentIds,
     refs,
     // actions
     setItemChecked,
     setItemFile,
     removeItemFile,
+    setItemDocumentId,
+    setItemDocumentPath,
     addOtherForm,
     updateOtherFormName,
     setOtherFormFile,
     removeOtherForm,
+    setOtherFormDocumentId,
     handleSelectFile,
     handleDropFile,
   } as const;

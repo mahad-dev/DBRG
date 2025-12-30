@@ -7,7 +7,8 @@ export function useStep3BankRelationshipRequirement(bankRelationshipRequirement?
   const [isClient24Months, setIsClient24Months] = useState<boolean | null>(null);
 
   const [bankFile, setBankFile] = useState<File | null>(null);
-  const [bankReferenceLetterFileId, setBankReferenceLetterFileId] = useState<number>(0);
+  const [bankReferenceLetterFileId, setBankReferenceLetterFileId] = useState<number | null>(null);
+  const [bankReferenceLetterFilePath, setBankReferenceLetterFilePath] = useState("");
   const bankRef = useRef<HTMLInputElement | null>(null);
 
   const [bankName, setBankName] = useState("");
@@ -20,7 +21,8 @@ export function useStep3BankRelationshipRequirement(bankRelationshipRequirement?
   useEffect(() => {
     if (!bankRelationshipRequirement) return;
     setIsClient24Months(bankRelationshipRequirement.isClientOfDBRGMemberBank24Months ?? null);
-    setBankReferenceLetterFileId(bankRelationshipRequirement.bankReferenceLetterFileId ?? 0);
+    setBankReferenceLetterFileId(bankRelationshipRequirement.bankReferenceLetterFileId ?? null);
+    setBankReferenceLetterFilePath(bankRelationshipRequirement.bankReferenceLetterFilePath || "");
     setBankName(bankRelationshipRequirement.bankName || "");
     setAccountNumber(bankRelationshipRequirement.accountNumber || "");
     setAccountType(bankRelationshipRequirement.accountType || "");
@@ -67,6 +69,8 @@ export function useStep3BankRelationshipRequirement(bankRelationshipRequirement?
 
     bankReferenceLetterFileId,
     setBankReferenceLetterFileId,
+    bankReferenceLetterFilePath,
+    setBankReferenceLetterFilePath,
 
     bankName,
     setBankName,

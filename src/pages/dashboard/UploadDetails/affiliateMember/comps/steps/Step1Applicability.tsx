@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
@@ -14,6 +14,8 @@ import {
 import { toast } from "react-toastify";
 import { useStep1Applicability } from '@/hooks/useStep1Applicability';
 import { useAuth } from '@/context/AuthContext';
+import { Formik, Form } from 'formik';
+import { affiliateMemberStep1Schema } from '@/validation';
 
 export default function Step1Applicability() {
   const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, getUploadDetails } = useUploadDetails();
@@ -22,6 +24,9 @@ export default function Step1Applicability() {
   const formData = state.data;
   const isSaving = state.isSaving;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+
+  // Track pending file uploads
+  const [pendingUploads, setPendingUploads] = useState<number>(0);
 
   // ---- Special Consideration rules from GET ----
   const isSpecialConsiderationPresent =
@@ -50,10 +55,100 @@ export default function Step1Applicability() {
     signedAMLFile,
     signedRef,
     setSignedAMLFile,
-    removeSignedAMLFile,
-    handleSelectFile,
-    handleDropFile,
   } = useStep1Applicability(formData.applicability, formData.application);
+
+  // Document ID states for immediate uploads
+  const [officeProofDocumentId, setOfficeProofDocumentId] = useState<number | null>(null);
+  const [tradeLicenseDocumentId, setTradeLicenseDocumentId] = useState<number | null>(null);
+  const [signedAMLDocumentId, setSignedAMLDocumentId] = useState<number | null>(null);
+
+  // Helper to extract document ID from S3 path
+  const extractIdFromPath = (path: string | null): number | null => {
+    if (!path) return null;
+    // Try to match pattern: /12345_filename or 12345_filename
+    const match = path.match(/\/(\d+)_/);
+    if (match) return parseInt(match[1], 10);
+
+    // Fallback: try to match at start of filename
+    const pathWithoutQuery = path.split('?')[0];
+    const filename = pathWithoutQuery.split('/').pop();
+    if (!filename) return null;
+    const filenameMatch = filename.match(/^(\d+)_/);
+    return filenameMatch ? parseInt(filenameMatch[1], 10) : null;
+  };
+
+  // CRITICAL FIX: Extract document IDs synchronously using useMemo BEFORE Formik initializes
+  const extractedDocumentIds = useMemo(() => {
+    if (!formData.applicability) {
+      return { officeProof: null, tradeLicense: null, signedAML: null };
+    }
+
+    const affiliateData = (formData.applicability.affiliateMember || formData.applicability) as any;
+    console.log('🔍 useMemo: Extracting document IDs from formData.applicability:', affiliateData);
+
+    // Extract Office Proof Document ID
+    let officeProofId: number | null = null;
+    if (affiliateData.uaeOfficeProofDocumentPaths && affiliateData.uaeOfficeProofDocumentPaths.length > 0) {
+      const path = affiliateData.uaeOfficeProofDocumentPaths[0];
+
+      // Backend sends string (e.g., "1041"), handle all cases
+      let backendId = null;
+      if (typeof affiliateData.uaeOfficeProofDocuments === 'string') {
+        backendId = parseInt(affiliateData.uaeOfficeProofDocuments, 10);
+      } else if (typeof affiliateData.uaeOfficeProofDocuments === 'number') {
+        backendId = affiliateData.uaeOfficeProofDocuments;
+      } else if (Array.isArray(affiliateData.uaeOfficeProofDocuments) && affiliateData.uaeOfficeProofDocuments.length > 0) {
+        const firstItem = affiliateData.uaeOfficeProofDocuments[0];
+        backendId = typeof firstItem === 'number' ? firstItem : parseInt(firstItem, 10);
+      }
+
+      // Try backend ID first, fallback to path extraction
+      officeProofId = backendId ?? extractIdFromPath(path);
+      console.log('✅ useMemo: Office proof - Path:', path, 'Backend ID:', backendId, 'Extracted ID:', officeProofId);
+    }
+
+    // Extract Trade License Document ID
+    let tradeLicenseId: number | null = null;
+    if (affiliateData.eligibilitySupportingDocumentPath && affiliateData.eligibilitySupportingDocumentPath.length > 0) {
+      const path = affiliateData.eligibilitySupportingDocumentPath[0];
+
+      // Backend sends string (e.g., "1042"), handle all cases
+      let backendId = null;
+      if (typeof affiliateData.eligibilitySupportingDocuments === 'string') {
+        backendId = parseInt(affiliateData.eligibilitySupportingDocuments, 10);
+      } else if (typeof affiliateData.eligibilitySupportingDocuments === 'number') {
+        backendId = affiliateData.eligibilitySupportingDocuments;
+      } else if (Array.isArray(affiliateData.eligibilitySupportingDocuments) && affiliateData.eligibilitySupportingDocuments.length > 0) {
+        const firstItem = affiliateData.eligibilitySupportingDocuments[0];
+        backendId = typeof firstItem === 'number' ? firstItem : parseInt(firstItem, 10);
+      }
+
+      // Try backend ID first, fallback to path extraction
+      tradeLicenseId = backendId ?? extractIdFromPath(path);
+      console.log('✅ useMemo: Trade license - Path:', path, 'Backend ID:', backendId, 'Extracted ID:', tradeLicenseId);
+    }
+
+    // Extract Signed AML Document ID
+    let signedAMLId: number | null = null;
+    if (affiliateData.signedAMLDeclarationPath) {
+      // Backend sends number (e.g., 1043)
+      let backendId = null;
+      if (typeof affiliateData.signedAMLDeclaration === 'number') {
+        backendId = affiliateData.signedAMLDeclaration;
+      } else if (typeof affiliateData.signedAMLDeclaration === 'string') {
+        backendId = parseInt(affiliateData.signedAMLDeclaration, 10);
+      }
+
+      signedAMLId = backendId ?? extractIdFromPath(affiliateData.signedAMLDeclarationPath);
+      console.log('✅ useMemo: Signed AML - Path:', affiliateData.signedAMLDeclarationPath, 'Backend ID:', backendId, 'Extracted ID:', signedAMLId);
+    }
+
+    return {
+      officeProof: officeProofId && !isNaN(officeProofId) ? officeProofId : null,
+      tradeLicense: tradeLicenseId && !isNaN(tradeLicenseId) ? tradeLicenseId : null,
+      signedAML: signedAMLId && !isNaN(signedAMLId) ? signedAMLId : null,
+    };
+  }, [formData.applicability]);
 
   // Redirect based on existing membershipType
   useEffect(() => {
@@ -91,10 +186,21 @@ export default function Step1Applicability() {
   const officeProofRef = useRef<HTMLInputElement>(null);
   const tradeLicenseRef = useRef<HTMLInputElement>(null);
 
+  // Sync extracted document IDs from useMemo to component state
+  useEffect(() => {
+    console.log('🔄 Syncing extracted IDs to component state:', extractedDocumentIds);
+    setOfficeProofDocumentId(extractedDocumentIds.officeProof);
+    setTradeLicenseDocumentId(extractedDocumentIds.tradeLicense);
+    setSignedAMLDocumentId(extractedDocumentIds.signedAML);
+  }, [extractedDocumentIds]);
+
   // Prefill local states from formData
   useEffect(() => {
     if (formData.applicability) {
       const affiliateData = (formData.applicability.affiliateMember || formData.applicability) as any;
+
+      console.log('🔍 Prefilling from formData.applicability:', affiliateData);
+
       setHasUAEOffice(affiliateData.hasUAEOffice ?? null);
       setLicensedBullion(affiliateData.operatesInBullionOrRefining3Years ?? null);
       setInternationalOrg(affiliateData.isInternationalOrgWithUAEBranch ?? null);
@@ -104,9 +210,11 @@ export default function Step1Applicability() {
       if (affiliateData.uaeOfficeProofDocumentPaths && affiliateData.uaeOfficeProofDocumentPaths.length > 0) {
         setExistingOfficeProofPath(affiliateData.uaeOfficeProofDocumentPaths[0]);
       }
+
       if (affiliateData.eligibilitySupportingDocumentPath && affiliateData.eligibilitySupportingDocumentPath.length > 0) {
         setExistingTradeLicensePath(affiliateData.eligibilitySupportingDocumentPath[0]);
       }
+
       if (affiliateData.signedAMLDeclarationPath) {
         setExistingSignedAMLPath(affiliateData.signedAMLDeclarationPath);
       }
@@ -118,7 +226,46 @@ export default function Step1Applicability() {
     }
   }, [formData.applicability, formData.application]);
 
-  const handleSave = async () => {
+  // Upload file immediately when selected - with immediate UI update
+  const handleFileUpload = async (
+    file: File | null,
+    setFile: (f: File | null) => void,
+    setDocumentId: (id: number | null) => void,
+    setFieldValue: any,
+    setFieldTouched: any,
+    fieldName: string
+  ) => {
+    // Immediately update UI with the file (don't wait for API)
+    setFile(file);
+    setFieldValue(fieldName, file);
+
+    if (file) {
+      // Background upload - UI already shows the file
+      setPendingUploads(prev => prev + 1);
+      try {
+        const documentId = await uploadDocument(file);
+        setDocumentId(documentId);
+        setFieldValue(`${fieldName}Id`, documentId);
+        setFieldTouched(fieldName, true); // Only touch after successful upload
+        toast.success('File uploaded successfully!');
+      } catch (error) {
+        toast.error('File upload failed. Please try again.');
+        // Remove file from UI on error
+        setFile(null);
+        setFieldValue(fieldName, null);
+        setFieldValue(`${fieldName}Id`, null);
+        setFieldTouched(fieldName, true); // Touch on error too
+      } finally {
+        setPendingUploads(prev => prev - 1);
+      }
+    } else {
+      // File removed
+      setFieldValue(`${fieldName}Id`, null);
+      setFieldTouched(fieldName, true);
+    }
+  };
+
+  const handleSave = async (formikValues?: any) => {
     // 🚫 Block if special consideration exists but not approved
     if (disableNextDueToSpecialConsideration) {
       toast.info(
@@ -135,34 +282,76 @@ export default function Step1Applicability() {
 
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
-      // Upload files if present, or use existing IDs from paths
-      let officeProofDocumentId: number | null = null;
-      let tradeLicenseDocumentId: number | null = null;
-      let signedAMLDocumentId: number | null = null;
+      // CRITICAL: Use IDs from Formik state first (these are validated), fallback to component state
+      const formikOfficeProofId = formikValues?.uaeOfficeProofDocumentsId;
+      const formikTradeLicenseId = formikValues?.eligibilitySupportingDocumentsId;
+      const formikSignedAMLId = formikValues?.signedAMLDeclarationId;
 
-      // Extract ID from S3 path
+      console.log('🎯 Formik Document IDs:', {
+        officeProof: formikOfficeProofId,
+        tradeLicense: formikTradeLicenseId,
+        signedAML: formikSignedAMLId,
+      });
+
+      // Use document IDs from Formik first, then component state, then extract from paths
+      let finalOfficeProofId = formikOfficeProofId || officeProofDocumentId;
+      let finalTradeLicenseId = formikTradeLicenseId || tradeLicenseDocumentId;
+      let finalSignedAMLId = formikSignedAMLId || signedAMLDocumentId;
+
+      // Debug: Log document IDs to verify they're set
+      console.log('📄 Component State Document IDs:', {
+        officeProof: officeProofDocumentId,
+        tradeLicense: tradeLicenseDocumentId,
+        signedAML: signedAMLDocumentId,
+        hasUAEOffice,
+        existingPaths: {
+          officeProof: existingOfficeProofPath,
+          tradeLicense: existingTradeLicensePath,
+          signedAML: existingSignedAMLPath,
+        }
+      });
+
+      // CRITICAL FIX: If validation passed but IDs are still null, extract from existing paths
       const extractIdFromPath = (path: string | null): number | null => {
         if (!path) return null;
         const match = path.match(/\/(\d+)_/);
         return match ? parseInt(match[1], 10) : null;
       };
 
-      if (officeProofFile) {
-        officeProofDocumentId = await uploadDocument(officeProofFile);
-      } else if (existingOfficeProofPath) {
-        officeProofDocumentId = extractIdFromPath(existingOfficeProofPath);
+      if (!finalOfficeProofId && existingOfficeProofPath) {
+        finalOfficeProofId = extractIdFromPath(existingOfficeProofPath);
+        console.warn('⚠️ Office proof ID was null, extracted from path:', finalOfficeProofId);
+      }
+      if (!finalTradeLicenseId && existingTradeLicensePath) {
+        finalTradeLicenseId = extractIdFromPath(existingTradeLicensePath);
+        console.warn('⚠️ Trade license ID was null, extracted from path:', finalTradeLicenseId);
+      }
+      if (!finalSignedAMLId && existingSignedAMLPath) {
+        finalSignedAMLId = extractIdFromPath(existingSignedAMLPath);
+        console.warn('⚠️ Signed AML ID was null, extracted from path:', finalSignedAMLId);
       }
 
-      if (tradeLicenseFile) {
-        tradeLicenseDocumentId = await uploadDocument(tradeLicenseFile);
-      } else if (existingTradeLicensePath) {
-        tradeLicenseDocumentId = extractIdFromPath(existingTradeLicensePath);
-      }
+      console.log('✅ Final IDs after extraction:', {
+        officeProof: finalOfficeProofId,
+        tradeLicense: finalTradeLicenseId,
+        signedAML: finalSignedAMLId,
+      });
 
-      if (signedAMLFile) {
-        signedAMLDocumentId = await uploadDocument(signedAMLFile);
-      } else if (existingSignedAMLPath) {
-        signedAMLDocumentId = extractIdFromPath(existingSignedAMLPath);
+      // CRITICAL: Backend requires non-null values for these fields
+      if (!finalTradeLicenseId) {
+        toast.error('Trade license document is missing. Please upload it.');
+        dispatch({ type: 'SET_SAVING', payload: false });
+        return;
+      }
+      if (!finalSignedAMLId) {
+        toast.error('Signed AML declaration is missing. Please upload it.');
+        dispatch({ type: 'SET_SAVING', payload: false });
+        return;
+      }
+      if (hasUAEOffice && !finalOfficeProofId) {
+        toast.error('UAE office proof document is missing. Please upload it.');
+        dispatch({ type: 'SET_SAVING', payload: false });
+        return;
       }
 
       // Prepare applicability data based on membership type
@@ -173,10 +362,12 @@ export default function Step1Applicability() {
         operatesInBullionOrRefining3Years: licensedBullion || false,
         isInternationalOrgWithUAEBranch: internationalOrg || false,
         hasUnresolvedAMLNotices: hasAMLNotices || false,
-        uaeOfficeProofDocuments: officeProofDocumentId ? [officeProofDocumentId] : [],
-        eligibilitySupportingDocuments: tradeLicenseDocumentId ? [tradeLicenseDocumentId] : [],
-        signedAMLDeclaration: signedAMLDocumentId,
+        uaeOfficeProofDocuments: finalOfficeProofId ? [finalOfficeProofId] : null,
+        eligibilitySupportingDocuments: finalTradeLicenseId ? [finalTradeLicenseId] : null,
+        signedAMLDeclaration: finalSignedAMLId,
       };
+
+      console.log('📦 Final Payload:', JSON.stringify(applicabilityData, null, 2));
 
       const payload = {
         membershipType: MembershipType.AffiliateMember,
@@ -197,9 +388,64 @@ export default function Step1Applicability() {
     }
   };
 
+  // Create initial values - use extracted IDs from useMemo for immediate availability
+  const initialValues = {
+    membership: membership,
+    hasUAEOffice: hasUAEOffice,
+    operatesInBullionOrRefining3Years: licensedBullion,
+    isInternationalOrgWithUAEBranch: internationalOrg,
+    hasUnresolvedAMLNotices: hasAMLNotices,
+    uaeOfficeProofDocuments: officeProofFile || null,
+    uaeOfficeProofDocumentsId: extractedDocumentIds.officeProof || null,
+    eligibilitySupportingDocuments: tradeLicenseFile || null,
+    eligibilitySupportingDocumentsId: extractedDocumentIds.tradeLicense || null,
+    signedAMLDeclaration: signedAMLFile || null,
+    signedAMLDeclarationId: extractedDocumentIds.signedAML || null,
+  };
+
+  console.log('📋 Formik initialValues:', {
+    hasFiles: {
+      officeProof: !!officeProofFile,
+      tradeLicense: !!tradeLicenseFile,
+      signedAML: !!signedAMLFile,
+    },
+    hasIds: {
+      officeProof: extractedDocumentIds.officeProof,
+      tradeLicense: extractedDocumentIds.tradeLicense,
+      signedAML: extractedDocumentIds.signedAML,
+    },
+    hasPaths: {
+      officeProof: !!existingOfficeProofPath,
+      tradeLicense: !!existingTradeLicensePath,
+      signedAML: !!existingSignedAMLPath,
+    }
+  });
+
+  const handleSubmit = async (values: any) => {
+    console.log('🔥 handleSubmit called with values:', values);
+    console.log('🔍 Formik values at submit:', {
+      uaeOfficeProofDocumentsId: values.uaeOfficeProofDocumentsId,
+      eligibilitySupportingDocumentsId: values.eligibilitySupportingDocumentsId,
+      signedAMLDeclarationId: values.signedAMLDeclarationId,
+    });
+    await handleSave(values);
+  };
+
   return (
-    <div className="w-full min-h-screen bg-[#353535] flex justify-center">
-      <div className="w-full max-w-[1100px] p-8 rounded-xl">
+    <Formik
+      key={`${extractedDocumentIds.officeProof}-${extractedDocumentIds.tradeLicense}-${extractedDocumentIds.signedAML}`}
+      initialValues={initialValues}
+      validationSchema={affiliateMemberStep1Schema}
+      onSubmit={handleSubmit}
+      enableReinitialize
+      validateOnChange={false}
+      validateOnBlur={true}
+      validateOnMount={false}
+    >
+      {({ errors, touched, setFieldValue, setFieldTouched, submitForm }) => (
+        <Form>
+          <div className="w-full min-h-screen bg-[#353535] flex justify-center">
+            <div className="w-full max-w-[1100px] p-8 rounded-xl">
 
         {/* Section Title */}
         <h2 className="text-[26px] font-gilroy font-bold text-[#C6A95F]">
@@ -249,29 +495,56 @@ export default function Step1Applicability() {
         {/* UAE Office */}
         <div className="mt-8">
           <p className="text-[20px] text-white">
-           1) Does your company have a UAE office?
+           1) Does your company have a UAE office? <span className="text-red-500">*</span>
           </p>
           <div className="mt-3">
-            <YesNoGroup value={hasUAEOffice} onChange={setHasUAEOffice} />
+            <YesNoGroup
+              value={hasUAEOffice}
+              onChange={(val) => {
+                setHasUAEOffice(val);
+                setFieldValue('hasUAEOffice', val);
+                setFieldTouched('hasUAEOffice', true);
+              }}
+            />
           </div>
+          {touched.hasUAEOffice && errors.hasUAEOffice && (
+            <p className="text-red-500 text-sm mt-1">{errors.hasUAEOffice as string}</p>
+          )}
           {hasUAEOffice === true && (
             <div className="mt-6 ">
               <p className="text-[20px] text-white mb-3">
-                Proof of office (lease agreement, utility bill, etc.)
+                Proof of office (lease agreement, utility bill, etc.) <span className="text-red-500">*</span>
               </p>
               <input
                 ref={officeProofRef}
                 type="file"
                 hidden
-                onChange={(e) => handleSelectFile(e, setOfficeProofFile)}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  handleFileUpload(file, setOfficeProofFile, setOfficeProofDocumentId, setFieldValue, setFieldTouched, 'uaeOfficeProofDocuments');
+                }}
               />
               <UploadBox
                 title=""
                 file={officeProofFile}
+                prefilledUrl={existingOfficeProofPath}
                 onClick={() => officeProofRef.current?.click()}
-                onDrop={(e) => handleDropFile(e, setOfficeProofFile)}
-                onRemove={() => setOfficeProofFile(null)}
+                onDrop={(e) => {
+                  const file = e.dataTransfer?.files?.[0] || null;
+                  handleFileUpload(file, setOfficeProofFile, setOfficeProofDocumentId, setFieldValue, setFieldTouched, 'uaeOfficeProofDocuments');
+                }}
+                onRemove={() => {
+                  setOfficeProofFile(null);
+                  setOfficeProofDocumentId(null);
+                  setExistingOfficeProofPath(null);
+                  setFieldValue('uaeOfficeProofDocuments', null);
+                  setFieldValue('uaeOfficeProofDocumentsId', null);
+                  setFieldTouched('uaeOfficeProofDocuments', true);
+                }}
               />
+              {touched.uaeOfficeProofDocuments && errors.uaeOfficeProofDocuments && pendingUploads === 0 && (
+                <p className="text-red-500 text-sm mt-1">{errors.uaeOfficeProofDocuments as string}</p>
+              )}
               {existingOfficeProofPath && !officeProofFile && (
                 <a
                   href={existingOfficeProofPath}
@@ -288,41 +561,78 @@ export default function Step1Applicability() {
         {/* Operates licensed bullion */}
         <div className="mt-8">
           <p className="text-[18px] text-white">
-            a) Operates in licensed bullion trading or refining in UAE for at least 3 years OR 36 months
+            a) Operates in licensed bullion trading or refining in UAE for at least 3 years OR 36 months <span className="text-red-500">*</span>
           </p>
           <div className="mt-3">
-            <YesNoGroup value={licensedBullion} onChange={setLicensedBullion} />
+            <YesNoGroup
+              value={licensedBullion}
+              onChange={(val) => {
+                setLicensedBullion(val);
+                setFieldValue('operatesInBullionOrRefining3Years', val);
+                setFieldTouched('operatesInBullionOrRefining3Years', true);
+              }}
+            />
           </div>
+          {touched.operatesInBullionOrRefining3Years && errors.operatesInBullionOrRefining3Years && (
+            <p className="text-red-500 text-sm mt-1">{errors.operatesInBullionOrRefining3Years as string}</p>
+          )}
         </div>
 
         {/* International org */}
         <div className="mt-8">
           <p className="text-[18px] text-white">
-            b) International organization with over 10 years of experience and have a UAE branch.
+            b) International organization with over 10 years of experience and have a UAE branch. <span className="text-red-500">*</span>
           </p>
           <div className="mt-3">
-            <YesNoGroup value={internationalOrg} onChange={setInternationalOrg} />
+            <YesNoGroup
+              value={internationalOrg}
+              onChange={(val) => {
+                setInternationalOrg(val);
+                setFieldValue('isInternationalOrgWithUAEBranch', val);
+                setFieldTouched('isInternationalOrgWithUAEBranch', true);
+              }}
+            />
           </div>
+          {touched.isInternationalOrgWithUAEBranch && errors.isInternationalOrgWithUAEBranch && (
+            <p className="text-red-500 text-sm mt-1">{errors.isInternationalOrgWithUAEBranch as string}</p>
+          )}
         </div>
 
         {/* Upload: Trade license */}
         <div className="mt-10 ">
           <p className="text-[20px] text-white w-full mb-3">
-            Trade license, proof of years in operation, and/or global trade association membership certificate
+            Trade license, proof of years in operation, and/or global trade association membership certificate <span className="text-red-500">*</span>
           </p>
           <input
             ref={tradeLicenseRef}
             type="file"
             hidden
-            onChange={(e) => handleSelectFile(e, setTradeLicenseFile)}
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              handleFileUpload(file, setTradeLicenseFile, setTradeLicenseDocumentId, setFieldValue, setFieldTouched, 'eligibilitySupportingDocuments');
+            }}
           />
           <UploadBox
             title=""
             file={tradeLicenseFile}
+            prefilledUrl={existingTradeLicensePath}
             onClick={() => tradeLicenseRef.current?.click()}
-            onDrop={(e) => handleDropFile(e, setTradeLicenseFile)}
-            onRemove={() => setTradeLicenseFile(null)}
+            onDrop={(e) => {
+              const file = e.dataTransfer?.files?.[0] || null;
+              handleFileUpload(file, setTradeLicenseFile, setTradeLicenseDocumentId, setFieldValue, setFieldTouched, 'eligibilitySupportingDocuments');
+            }}
+            onRemove={() => {
+              setTradeLicenseFile(null);
+              setTradeLicenseDocumentId(null);
+              setExistingTradeLicensePath(null);
+              setFieldValue('eligibilitySupportingDocuments', null);
+              setFieldValue('eligibilitySupportingDocumentsId', null);
+              setFieldTouched('eligibilitySupportingDocuments', true);
+            }}
           />
+          {touched.eligibilitySupportingDocuments && errors.eligibilitySupportingDocuments && pendingUploads === 0 && (
+            <p className="text-red-500 text-sm mt-1">{errors.eligibilitySupportingDocuments as string}</p>
+          )}
           {existingTradeLicensePath && !tradeLicenseFile && (
             <a
               href={existingTradeLicensePath}
@@ -337,21 +647,38 @@ export default function Step1Applicability() {
         {/* Upload: AML */}
         <div className="mt-8 max-w-[420px]">
           <p className="text-[20px] text-white mb-3">
-            Signed AML declaration
+            Signed AML declaration <span className="text-red-500">*</span>
           </p>
           <input
             ref={signedRef}
             type="file"
             hidden
-            onChange={(e) => handleSelectFile(e, setSignedAMLFile)}
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              handleFileUpload(file, setSignedAMLFile, setSignedAMLDocumentId, setFieldValue, setFieldTouched, 'signedAMLDeclaration');
+            }}
           />
           <UploadBox
             title=""
             file={signedAMLFile}
+            prefilledUrl={existingSignedAMLPath}
             onClick={() => signedRef.current?.click()}
-            onDrop={(e) => handleDropFile(e, setSignedAMLFile)}
-            onRemove={removeSignedAMLFile}
+            onDrop={(e) => {
+              const file = e.dataTransfer?.files?.[0] || null;
+              handleFileUpload(file, setSignedAMLFile, setSignedAMLDocumentId, setFieldValue, setFieldTouched, 'signedAMLDeclaration');
+            }}
+            onRemove={() => {
+              setSignedAMLFile(null);
+              setSignedAMLDocumentId(null);
+              setExistingSignedAMLPath(null);
+              setFieldValue('signedAMLDeclaration', null);
+              setFieldValue('signedAMLDeclarationId', null);
+              setFieldTouched('signedAMLDeclaration', true);
+            }}
           />
+          {touched.signedAMLDeclaration && errors.signedAMLDeclaration && pendingUploads === 0 && (
+            <p className="text-red-500 text-sm mt-1">{errors.signedAMLDeclaration as string}</p>
+          )}
           {existingSignedAMLPath && !signedAMLFile && (
             <a
               href={existingSignedAMLPath}
@@ -366,18 +693,29 @@ export default function Step1Applicability() {
         {/* AML Notices */}
         <div className="mt-10">
           <p className="text-[18px] text-white">
-            Any unresolved UAE AML notices?
+            Any unresolved UAE AML notices? <span className="text-red-500">*</span>
           </p>
           <div className="mt-3">
-            <YesNoGroup value={hasAMLNotices} onChange={setHasAMLNotices} />
+            <YesNoGroup
+              value={hasAMLNotices}
+              onChange={(val) => {
+                setHasAMLNotices(val);
+                setFieldValue('hasUnresolvedAMLNotices', val);
+                setFieldTouched('hasUnresolvedAMLNotices', true);
+              }}
+            />
           </div>
+          {touched.hasUnresolvedAMLNotices && errors.hasUnresolvedAMLNotices && (
+            <p className="text-red-500 text-sm mt-1">{errors.hasUnresolvedAMLNotices as string}</p>
+          )}
         </div>
 
         {/* Save */}
       <div className="mt-6 flex justify-start">
         <Button
-          onClick={handleSave}
-          disabled={isSaving || (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved === false)}
+          type="button"
+          onClick={() => submitForm()}
+          disabled={isSaving || pendingUploads > 0 || (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved === false)}
           variant="site_btn"
           className={` h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] transition ${
             formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
@@ -387,6 +725,8 @@ export default function Step1Applicability() {
         >
           {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
             ? "Waiting for Approval"
+            : pendingUploads > 0
+            ? "Uploading..."
             : isSaving
             ? "Saving..."
             : "Save / Next"}
@@ -459,5 +799,8 @@ export default function Step1Applicability() {
 
       </div>
     </div>
+        </Form>
+      )}
+    </Formik>
   );
 }

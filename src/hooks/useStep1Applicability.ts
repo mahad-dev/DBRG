@@ -93,7 +93,9 @@ export function useStep1Applicability(applicability?: any, application?: any) {
   const [existingSignedAMLPath, setExistingSignedAMLPath] = useState<string | null>(null);
   const [existingEvidencePath, setExistingEvidencePath] = useState<string | null>(null);
 
-  // Existing IDs extracted from paths (not used in this hook, but available for future use)
+  // Document IDs (for upload optimization - files upload on selection, not on submit)
+  const [signedAMLDocumentId, setSignedAMLDocumentId] = useState<number | null>(null);
+  const [evidenceDocumentId, setEvidenceDocumentId] = useState<number | null>(null)
 
   const signedRef = useRef<HTMLInputElement | null>(null);
   const evidenceRef = useRef<HTMLInputElement | null>(null);
@@ -114,9 +116,24 @@ export function useStep1Applicability(applicability?: any, application?: any) {
   const removeSignedAMLFile = useCallback(() => setSignedAMLFile(null), []);
   const removeEvidenceFile = useCallback(() => setEvidenceFile(null), []);
 
+  // Helper to extract document ID from S3 path
+  const extractIdFromPath = useCallback((path: string | null): number | null => {
+    if (!path) return null;
+    // Remove query parameters first (everything after ?)
+    const pathWithoutQuery = path.split('?')[0];
+    // Extract the filename from the URL
+    const filename = pathWithoutQuery.split('/').pop();
+    if (!filename) return null;
+    // Match pattern: documentId_filename (e.g., "780_Screenshot.png")
+    const match = filename.match(/^(\d+)_/);
+    return match ? parseInt(match[1], 10) : null;
+  }, []);
+
   // Prefill logic
   useEffect(() => {
     if (!applicability) return;
+
+    console.log('🔄 useStep1Applicability prefilling data...');
 
     // Membership
     if (application?.membershipType === MembershipType.PrincipalMember) {
@@ -167,9 +184,26 @@ export function useStep1Applicability(applicability?: any, application?: any) {
     setBrandName(applicability.brandName ?? "");
 
     // Existing file paths
-    setExistingSignedAMLPath(applicability.signedAMLDeclarationPath ?? null);
-    setExistingEvidencePath(applicability.bankingRelationshipEvidencePath ?? null);
-  }, [applicability]);
+    const signedAMLPath = applicability.signedAMLDeclarationPath ?? null;
+    const evidencePath = applicability.bankingRelationshipEvidencePath ?? null;
+    setExistingSignedAMLPath(signedAMLPath);
+    setExistingEvidencePath(evidencePath);
+
+    // Prefill document IDs from existing data
+    // Try to get ID from backend first, otherwise extract from path
+    const signedAMLId = applicability.signedAMLDeclarationFileId ?? extractIdFromPath(signedAMLPath);
+    const evidenceId = applicability.bankingRelationshipEvidenceFileId ?? extractIdFromPath(evidencePath);
+
+    console.log('📋 Extracted document IDs:', {
+      signedAMLPath,
+      signedAMLId,
+      evidencePath,
+      evidenceId
+    });
+
+    setSignedAMLDocumentId(signedAMLId);
+    setEvidenceDocumentId(evidenceId);
+  }, [applicability, extractIdFromPath]);
 
   return {
     // state
@@ -186,6 +220,10 @@ export function useStep1Applicability(applicability?: any, application?: any) {
     evidenceFile,
     existingSignedAMLPath,
     existingEvidencePath,
+
+    // Document IDs
+    signedAMLDocumentId,
+    evidenceDocumentId,
 
     // refs
     signedRef,
@@ -207,5 +245,9 @@ export function useStep1Applicability(applicability?: any, application?: any) {
     setEvidenceFile,
     removeSignedAMLFile,
     removeEvidenceFile,
+
+    // Document ID setters
+    setSignedAMLDocumentId,
+    setEvidenceDocumentId,
   } as const;
 }

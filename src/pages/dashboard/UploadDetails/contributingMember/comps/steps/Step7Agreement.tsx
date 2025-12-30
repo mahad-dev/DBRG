@@ -21,6 +21,8 @@ import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
 import { useStep8DeclarationConsent } from '@/hooks/useStep8DeclarationConsent';
+import { Formik } from "formik";
+import { contributingMemberStep8Schema } from "@/validation";
 
 export default function Step8Agreement() {
   const { state, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, dispatch } = useUploadDetails();
@@ -30,6 +32,7 @@ export default function Step8Agreement() {
   const sigPadRef = useRef<SignaturePad>(null);
 
   const [openSigPad, setOpenSigPad] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState(0);
 
   // Use the hook for prefilling
   const {
@@ -52,15 +55,6 @@ export default function Step8Agreement() {
     setSignatureURL,
   } = useStep8DeclarationConsent(formData.declarationConsent);
 
-  // Signature functions
-  const saveSignature = () => {
-    if (sigPadRef.current) {
-      const dataURL = sigPadRef.current.getCanvas().toDataURL("image/png");
-      setSignatureURL(dataURL);
-      setOpenSigPad(false);
-    }
-  };
-
   const clearSignature = () => sigPadRef.current?.clear();
 
   // Extract ID from S3 path
@@ -72,31 +66,20 @@ export default function Step8Agreement() {
 
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
-    // Validate required fields
-    if (!consentData || !acknowledgeRetention || !agreeCode) {
-      toast.error("Please check all required consent checkboxes.");
-      dispatch({ type: 'SET_SAVING', payload: false });
-
-      return;
-    }
-
-    if (!applicantName || !signatoryName || !designation || !selectedDate) {
-      toast.error("Please fill in all required fields.");
-      dispatch({ type: 'SET_SAVING', payload: false });
-
-      return;
-    }
-
-
 
     try {
       // Upload signature if it's a data URL
       let signatureDocumentId: number | null = null;
       if (signatureURL.startsWith("data:")) {
-        const response = await fetch(signatureURL);
-        const blob = await response.blob();
-        const signatureFile = new File([blob], "signature.png", { type: "image/png" });
-        signatureDocumentId = await uploadDocument(signatureFile);
+        setPendingUploads((prev) => prev + 1);
+        try {
+          const response = await fetch(signatureURL);
+          const blob = await response.blob();
+          const signatureFile = new File([blob], "signature.png", { type: "image/png" });
+          signatureDocumentId = await uploadDocument(signatureFile);
+        } finally {
+          setPendingUploads((prev) => prev - 1);
+        }
       }
 
       const declarationConsentData = {
@@ -106,7 +89,7 @@ export default function Step8Agreement() {
         applicantName,
         authorisedSignatoryName: signatoryName,
         designation,
-        date: selectedDate.toISOString(),
+        date: selectedDate ? selectedDate.toISOString() : "",
         digitalSignatureFileId: signatureDocumentId || extractIdFromPath(existingSignaturePath),
       };
 
@@ -127,7 +110,27 @@ export default function Step8Agreement() {
     }
   };
 
+  // Formik initial values
+  const initialValues = {
+    consentData: consentData,
+    acknowledgeRetention: acknowledgeRetention,
+    agreeCode: agreeCode,
+    applicantName: applicantName,
+    signatoryName: signatoryName,
+    designation: designation,
+    selectedDate: selectedDate,
+    signatureURL: signatureURL,
+    existingSignaturePath: existingSignaturePath,
+  };
+
   return (
+    <Formik
+      initialValues={initialValues}
+      validationSchema={contributingMemberStep8Schema}
+      onSubmit={handleSave}
+      enableReinitialize
+    >
+      {({ errors, touched, setFieldValue, setFieldTouched, submitForm }) => (
     <>
       <Card className="bg-[#353535] border-none rounded-xl w-full">
         <CardContent className="space-y-6">
@@ -140,12 +143,18 @@ export default function Step8Agreement() {
             <ServiceCheckbox
               label="I consent to the processing, storage, and use of my data by DBRG for compliance and governance purposes in accordance with applicable laws."
               checked={consentData}
-              onChange={() => setConsentData(!consentData)}
+              onChange={() => {
+                setConsentData(!consentData);
+                setFieldValue('consentData', !consentData);
+              }}
             />
             <ServiceCheckbox
               label="I acknowledge that my data will be retained for at least 5 years or more as per applicable laws (DFSA requires 6 years) after termination of membership."
               checked={acknowledgeRetention}
-              onChange={() => setAcknowledgeRetention(!acknowledgeRetention)}
+              onChange={() => {
+                setAcknowledgeRetention(!acknowledgeRetention);
+                setFieldValue('acknowledgeRetention', !acknowledgeRetention);
+              }}
             />
           </div>
 
@@ -155,44 +164,68 @@ export default function Step8Agreement() {
           <ServiceCheckbox
             label="I hereby confirm that I have read, understood, and agree to adhere to the DBRG Code of Conduct."
             checked={agreeCode}
-            onChange={() => setAgreeCode(!agreeCode)}
+            onChange={() => {
+              setAgreeCode(!agreeCode);
+              setFieldValue('agreeCode', !agreeCode);
+            }}
           />
 
           {/* Inputs Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 text-black">
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">Name of the Applicant</label>
+              <label className="text-sm font-gilory font-normal">Name of the Applicant <span className="text-red-500">*</span></label>
               <Input
                 value={applicantName}
-                onChange={(e) => setApplicantName(e.target.value)}
+                onChange={(e) => {
+                  setApplicantName(e.target.value);
+                  setFieldValue('applicantName', e.target.value);
+                }}
+                onBlur={() => setFieldTouched('applicantName', true)}
                 placeholder="Name of the Applicant"
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
               />
+              {touched.applicantName && errors.applicantName && (
+                <p className="text-red-500 text-sm mt-2">{errors.applicantName as string}</p>
+              )}
             </div>
 
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">Name of Authorised Signatory</label>
+              <label className="text-sm font-gilory font-normal">Name of Authorised Signatory <span className="text-red-500">*</span></label>
               <Input
                 value={signatoryName}
-                onChange={(e) => setSignatoryName(e.target.value)}
+                onChange={(e) => {
+                  setSignatoryName(e.target.value);
+                  setFieldValue('signatoryName', e.target.value);
+                }}
+                onBlur={() => setFieldTouched('signatoryName', true)}
                 placeholder="Name of Authorised Signatory"
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
               />
+              {touched.signatoryName && errors.signatoryName && (
+                <p className="text-red-500 text-sm mt-2">{errors.signatoryName as string}</p>
+              )}
             </div>
 
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">Designation</label>
+              <label className="text-sm font-gilory font-normal">Designation <span className="text-red-500">*</span></label>
               <Input
                 value={designation}
-                onChange={(e) => setDesignation(e.target.value)}
+                onChange={(e) => {
+                  setDesignation(e.target.value);
+                  setFieldValue('designation', e.target.value);
+                }}
+                onBlur={() => setFieldTouched('designation', true)}
                 placeholder="Designation"
                 className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black placeholder:text-black/50"
               />
+              {touched.designation && errors.designation && (
+                <p className="text-red-500 text-sm mt-2">{errors.designation as string}</p>
+              )}
             </div>
 
             {/* Signature */}
             <div className="space-y-1 text-white">
-              <label className="text-sm font-gilory font-normal">Signature</label>
+              <label className="text-sm font-gilory font-normal">Signature <span className="text-red-500">*</span></label>
               <div className="relative w-full mt-2 bg-white rounded-md h-9 flex items-center px-4">
                 {signatureURL ? (
                   <img src={signatureURL} alt="Signature" className="h-full object-contain py-1" />
@@ -206,6 +239,9 @@ export default function Step8Agreement() {
               >
                 Upload Digital Signature
               </Button>
+              {touched.signatureURL && errors.signatureURL && (
+                <p className="text-red-500 text-sm mt-2">{errors.signatureURL as string}</p>
+              )}
               {existingSignaturePath && !signatureURL && (
                 <a
                   href={existingSignaturePath}
@@ -220,7 +256,7 @@ export default function Step8Agreement() {
 
           {/* Date Picker */}
           <div className="w-full md:w-1/4 pt-4">
-            <label className="text-sm font-gilory font-normal text-white">Date</label>
+            <label className="text-sm font-gilory font-normal text-white">Date <span className="text-red-500">*</span></label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -235,10 +271,17 @@ export default function Step8Agreement() {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={(date) => setSelectedDate(date ?? undefined)}
+                  onSelect={(date) => {
+                    setSelectedDate(date ?? undefined);
+                    setFieldValue('selectedDate', date ?? undefined);
+                    setFieldTouched('selectedDate', true);
+                  }}
                 />
               </PopoverContent>
             </Popover>
+            {touched.selectedDate && errors.selectedDate && (
+              <p className="text-red-500 text-sm mt-2">{errors.selectedDate as string}</p>
+            )}
           </div>
 
           {/* Buttons */}
@@ -249,14 +292,14 @@ export default function Step8Agreement() {
                     >
                       Back
                     </Button>
-            
+
             <Button
-              onClick={handleSave}
-              disabled={isSaving}
+              onClick={() => submitForm()}
+              disabled={isSaving || pendingUploads > 0}
               variant="site_btn"
               className="w-[180px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
             >
-              {isSaving ? "Saving..." : "Submit Application"}
+              {pendingUploads > 0 ? "Uploading..." : isSaving ? "Saving..." : "Submit Application"}
             </Button>
           </div>
         </CardContent>
@@ -278,12 +321,22 @@ export default function Step8Agreement() {
             <Button variant="outline" onClick={clearSignature}>
               Clear
             </Button>
-            <Button variant="site_btn" onClick={saveSignature}>
+            <Button variant="site_btn" onClick={() => {
+              if (sigPadRef.current) {
+                const dataURL = sigPadRef.current.getCanvas().toDataURL("image/png");
+                setSignatureURL(dataURL);
+                setFieldValue('signatureURL', dataURL);
+                setFieldTouched('signatureURL', true);
+                setOpenSigPad(false);
+              }
+            }}>
               Save Signature
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
+      )}
+    </Formik>
   );
 }

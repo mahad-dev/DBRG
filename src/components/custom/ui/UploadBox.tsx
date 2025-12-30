@@ -6,15 +6,43 @@ import { Button } from "@/components/ui/button";
 interface UploadBoxProps {
   title?: string;
   file: File | null;
+  prefilledUrl?: string | null;
   onClick: () => void;
   onDrop: (e: React.DragEvent) => void;
   id?: string;
   onRemove?: () => void;
 }
 
+// Helper function to check if URL is an image
+const isImageUrl = (url: string): boolean => {
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+  return imageExtensions.some(ext => url.toLowerCase().includes(ext));
+};
+
+// Helper function to extract filename from S3 URL
+const getFilenameFromUrl = (url: string): string => {
+  try {
+    // Handle presigned URLs with query parameters (e.g., ?X-Amz-Algorithm=...)
+    const urlWithoutQuery = url.split('?')[0];
+    const parts = urlWithoutQuery.split('/');
+    let filename = parts[parts.length - 1];
+
+    // Decode URL-encoded characters (e.g., %20 → space)
+    filename = decodeURIComponent(filename);
+
+    // Remove document ID prefix if exists (e.g., "123_document.pdf" → "document.pdf")
+    filename = filename.replace(/^\d+_/, '');
+
+    return filename || 'Previously uploaded';
+  } catch {
+    return 'Previously uploaded';
+  }
+};
+
 export const UploadBox: React.FC<UploadBoxProps> = ({
   title,
   file,
+  prefilledUrl,
   onClick,
   onDrop,
   id,
@@ -80,17 +108,33 @@ export const UploadBox: React.FC<UploadBoxProps> = ({
           `}
         >
           {previewUrl ? (
+            // New file image preview
             <img
               src={previewUrl}
               alt="Preview"
               className="w-full h-[140px] object-cover rounded-[18px]"
             />
           ) : file && !file.type.startsWith("image/") ? (
-            <div className="text-[18px] text-center break-words px-1">
+            // New file non-image
+            <div className="text-[18px] text-center wrap-break-word px-1">
               <div>{file.name}</div>
               <div className="text-[13px] text-gray-600">{file.type}</div>
             </div>
+          ) : prefilledUrl && isImageUrl(prefilledUrl) ? (
+            // Prefilled image
+            <img
+              src={prefilledUrl}
+              alt="Uploaded file"
+              className="w-full h-[140px] object-cover rounded-[18px]"
+            />
+          ) : prefilledUrl ? (
+            // Prefilled document
+            <div className="text-[18px] text-center wrap-break-word px-1">
+              <div className="font-medium">{getFilenameFromUrl(prefilledUrl)}</div>
+              <div className="text-[13px] text-gray-600">Previously uploaded</div>
+            </div>
           ) : (
+            // Empty state
             <>
               <svg
                 width="32"
@@ -109,7 +153,7 @@ export const UploadBox: React.FC<UploadBoxProps> = ({
               </svg>
 
               <p className="text-[18px] sm:text-[20px] text-center mt-1 leading-tight">
-                Drag & Drop  
+                Drag & Drop
                 <br /> or Select File
               </p>
             </>

@@ -1,4 +1,9 @@
+"use client";
+
 import { useRef, useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+
 import {
   Dialog,
   DialogContent,
@@ -7,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import { userApi, type User } from "@/services/userApi";
 import UploadBox from "@/components/custom/ui/UploadBox";
 
@@ -17,213 +23,177 @@ interface ReplaceDelegateModalProps {
   onSuccess?: () => void;
 }
 
+const validationSchema = Yup.object({
+  name: Yup.string().required("Name is required"),
+  phoneNumber: Yup.string().required("Phone number is required"),
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required"),
+});
+
 export default function ReplaceDelegateModal({
   open,
   onClose,
   user,
   onSuccess,
 }: ReplaceDelegateModalProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    phoneNumber: "",
-    email: "",
-  });
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      setError(null);
-    }
-  };
+  const handleSubmit = async (
+    values: { name: string; phoneNumber: string; email: string },
+    { setSubmitting, resetForm }: any
+  ) => {
+    setApiError(null);
 
-  const handleFileDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      setFile(droppedFile);
-      setError(null);
-    }
-  };
-
-  const handleFileRemove = () => {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    // Validation
-    if (!formData.name.trim()) {
-      setError("Name is required");
-      return;
-    }
-    if (!formData.phoneNumber.trim()) {
-      setError("Phone number is required");
-      return;
-    }
-    if (!formData.email.trim()) {
-      setError("Email is required");
-      return;
-    }
     if (!file) {
-      setError("Delegate document is required");
+      setApiError("Delegate document is required");
+      setSubmitting(false);
       return;
     }
 
     try {
-      setLoading(true);
-
-      // Step 1: Upload document first
       const documentId = await userApi.uploadDocument(file);
 
-      // Step 2: Replace company delegate
       await userApi.replaceCompanyDelegate({
         userid: user.userId,
-        name: formData.name,
-        phoneNumber: formData.phoneNumber,
-        email: formData.email,
+        name: values.name,
+        phoneNumber: values.phoneNumber,
+        email: values.email,
         delegateDocuments: [documentId],
       });
 
-      // Reset form
-      setFormData({ name: "", phoneNumber: "", email: "" });
+      resetForm();
       setFile(null);
-
-      // Call success callback
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      // Close modal
+      onSuccess?.();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to replace delegate");
-      console.error("Error replacing delegate:", err);
+      setApiError(
+        err instanceof Error ? err.message : "Failed to replace delegate"
+      );
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleClose = () => {
-    if (!loading) {
-      setFormData({ name: "", phoneNumber: "", email: "" });
-      setFile(null);
-      setError(null);
-      onClose();
+      setSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-black border border-[#C6A95F] text-white max-w-[600px] rounded-[20px] p-8">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-[650px] rounded-[20px] border border-[#C6A95F] bg-black p-8 text-white">
         <DialogHeader>
-          <DialogTitle className="text-[28px] font-semibold text-[#C6A95F] text-center mb-4">
+          <DialogTitle className="text-[28px] font-gilory font-semibold text-[#C6A95F]">
             Replace Company Delegate
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name Field */}
-          <div>
-            <label className="block text-[16px] font-medium text-white mb-2">
-              Name
-            </label>
-            <Input
-              type="text"
-              placeholder="Naved"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="h-[48px] bg-transparent border border-white rounded-[10px] text-white placeholder:text-white/50 focus-visible:ring-1 focus-visible:ring-[#C6A95F] text-[16px]"
-              disabled={loading}
-            />
-          </div>
+        <Formik
+          initialValues={{ name: "", phoneNumber: "", email: "" }}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting }) => (
+            <Form className="space-y-6">
+              {/* Name */}
+              <div>
+                <label className="mb-2 block text-sm">Name</label>
+                <Field
+                  as={Input}
+                  name="name"
+                  placeholder="Naved"
+                  className="h-12 rounded-[10px] bg-white text-black"
+                />
+                <ErrorMessage
+                  name="name"
+                  component="p"
+                  className="mt-1 text-xs text-red-400"
+                />
+              </div>
 
-          {/* Phone Number and Email Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[16px] font-medium text-white mb-2">
-                Phone Number
-              </label>
-              <Input
-                type="tel"
-                placeholder="+91-987-654-3210"
-                value={formData.phoneNumber}
-                onChange={(e) =>
-                  setFormData({ ...formData, phoneNumber: e.target.value })
-                }
-                className="h-[48px] bg-transparent border border-white rounded-[10px] text-white placeholder:text-white/50 focus-visible:ring-1 focus-visible:ring-[#C6A95F] text-[16px]"
-                disabled={loading}
-              />
-            </div>
+              {/* Phone + Email */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm">Phone Number</label>
+                  <Field
+                    as={Input}
+                    name="phoneNumber"
+                    placeholder="+91-987-654-3210"
+                    className="h-12 rounded-[10px] bg-white text-black"
+                  />
+                  <ErrorMessage
+                    name="phoneNumber"
+                    component="p"
+                    className="mt-1 text-xs text-red-400"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-[16px] font-medium text-white mb-2">
-                Email
-              </label>
-              <Input
-                type="email"
-                placeholder="xyz@gmail.com"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="h-[48px] bg-transparent border border-white rounded-[10px] text-white placeholder:text-white/50 focus-visible:ring-1 focus-visible:ring-[#C6A95F] text-[16px]"
-                disabled={loading}
-              />
-            </div>
-          </div>
+                <div>
+                  <label className="mb-2 block text-sm">Email</label>
+                  <Field
+                    as={Input}
+                    name="email"
+                    placeholder="xyz@gmail.com"
+                    className="h-12 rounded-[10px] bg-white text-black"
+                  />
+                  <ErrorMessage
+                    name="email"
+                    component="p"
+                    className="mt-1 text-xs text-red-400"
+                  />
+                </div>
+              </div>
 
-          {/* Upload Delegate's Documents */}
-          <div>
-            <label className="block text-[16px] font-medium text-white mb-3">
-              Upload Delegate's Documents
-            </label>
+              {/* Upload */}
+              <div>
+                <label className="block text-sm">
+                  Upload Delegate’s Documents
+                </label>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-              disabled={loading}
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      setFile(e.target.files[0]);
+                      setApiError(null);
+                    }
+                  }}
+                />
 
-            <UploadBox
-              file={file}
-              onClick={() => fileInputRef.current?.click()}
-              onDrop={handleFileDrop}
-              onRemove={handleFileRemove}
-            />
-          </div>
+                <div className="flex items-center gap-4">
+                  <UploadBox
+                    file={file}
+                    onClick={() => fileInputRef.current?.click()}
+                    onRemove={() => setFile(null)} onDrop={function (_e: React.DragEvent): void {
+                      throw new Error("Function not implemented.");
+                    } }                  />
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
+               
+                </div>
+              </div>
+
+              {/* API Error */}
+              {apiError && (
+                <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-3">
+                  <p className="text-sm text-red-400">{apiError}</p>
+                </div>
+              )}
+
+              {/* Save */}
+              <div className="flex justify-start pt-4">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  variant={"site_btn"}
+                  className="h-12 rounded-[10px] px-12"
+                >
+                  {isSubmitting ? "Saving Changes..." : "Save Changes"}
+                </Button>
+              </div>
+            </Form>
           )}
-
-          {/* Action Button */}
-          <div className="flex justify-center pt-2">
-            <Button
-              type="submit"
-              className="bg-[#C6A95F] text-black hover:bg-[#D5B15F] h-[48px] px-12 rounded-[10px] text-[16px] font-medium"
-              disabled={loading}
-            >
-              {loading ? "Saving Changes..." : "Save Changes"}
-            </Button>
-          </div>
-        </form>
+        </Formik>
       </DialogContent>
     </Dialog>
   );

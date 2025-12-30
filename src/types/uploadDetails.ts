@@ -335,7 +335,20 @@ export interface MemberRequiredDocuments {
 }
 
 export interface DataProtectionPrivacy {
-  acknowledge: boolean;
+  // Data Protection Compliance Questions (Yes/No - required)
+  gdprCompliant: boolean | null;
+  hasDataProtectionPolicy: boolean | null;
+  hasDataBreachProcedures: boolean | null;
+  conductsDataProtectionTraining: boolean | null;
+
+  // Consent Checkboxes (NO required validation)
+  consentDataProcessing: boolean;
+  consentDataSharing: boolean;
+  consentDataRetention: boolean;
+
+  // Conditional file upload (required if hasDataProtectionPolicy === true)
+  dataProtectionPolicyFileId?: number | null;
+  dataProtectionPolicyFilePath?: string;
 }
 
 export interface DeclarationConsent {

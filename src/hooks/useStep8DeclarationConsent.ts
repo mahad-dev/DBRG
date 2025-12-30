@@ -18,6 +18,7 @@ export function useStep8DeclarationConsent(declarationConsent?: DeclarationConse
   // Signature
   const [signatureURL, setSignatureURL] = useState<string>("");
   const [existingSignaturePath, setExistingSignaturePath] = useState<string | null>(null);
+  const [signatureDocumentId, setSignatureDocumentId] = useState<number | null>(null);
 
   // Prefill logic
   useEffect(() => {
@@ -49,6 +50,7 @@ export function useStep8DeclarationConsent(declarationConsent?: DeclarationConse
     selectedDate,
     signatureURL,
     existingSignaturePath,
+    signatureDocumentId,
 
     // setters
     setConsentData,
@@ -60,5 +62,6 @@ export function useStep8DeclarationConsent(declarationConsent?: DeclarationConse
     setSelectedDate,
     setSignatureURL,
     setExistingSignaturePath,
+    setSignatureDocumentId,
   } as const;
 }

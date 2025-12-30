@@ -41,6 +41,10 @@ const [netWorthProofPath, setNetWorthProofPath] = useState<string | null>(null);
 const [netWorthFile, setNetWorthFile] = useState<File | null>(null);
 const netWorthRef = useRef<HTMLInputElement | null>(null);
 
+// Document IDs for uploads
+const [bullionTurnoverDocumentId, setBullionTurnoverDocumentId] = useState<number | null>(null);
+const [netWorthDocumentId, setNetWorthDocumentId] = useState<number | null>(null);
+
 // Prefill logic
 useEffect(() => {
   if (!financialThresholds) return;
@@ -50,9 +54,11 @@ useEffect(() => {
   setBullionTurnover(financialThresholds.hasRequiredBullionTurnover ?? null);
   setBullionTurnoverProofFileId(financialThresholds.bullionTurnoverProofFileId ?? null);
   setBullionTurnoverProofFileIdPath(financialThresholds.bullionTurnoverProofFileIdPath ?? null);
+  setBullionTurnoverDocumentId(financialThresholds.bullionTurnoverProofFileId ?? null);
   setNetWorth(financialThresholds.hasRequiredNetWorth ?? null);
   setNetWorthProofFileId(financialThresholds.netWorthProofFileId ?? null);
   setNetWorthProofPath(financialThresholds.netWorthProofPath ?? null);
+  setNetWorthDocumentId(financialThresholds.netWorthProofFileId ?? null);
 }, [financialThresholds]);
 
 
@@ -68,6 +74,15 @@ setter(e.target.files?.[0] ?? null);
 const handleDropFile = useCallback((e: React.DragEvent, setter: (f: File | null) => void) => {
 e.preventDefault();
 setter(e.dataTransfer?.files?.[0] ?? null);
+}, []);
+
+// Remove file handlers
+const removeBullionFile = useCallback(() => {
+  setBullionFile(null);
+}, []);
+
+const removeNetWorthFile = useCallback(() => {
+  setNetWorthFile(null);
 }, []);
 
 
@@ -98,5 +113,13 @@ setNetWorthFile,
 
 handleSelectFile,
 handleDropFile,
+
+removeBullionFile,
+removeNetWorthFile,
+
+bullionTurnoverDocumentId,
+netWorthDocumentId,
+setBullionTurnoverDocumentId,
+setNetWorthDocumentId,
 } as const;
 }
