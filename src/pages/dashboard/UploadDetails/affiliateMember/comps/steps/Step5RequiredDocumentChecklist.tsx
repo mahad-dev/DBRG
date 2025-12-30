@@ -6,6 +6,8 @@ import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { Formik } from "formik";
+import { affiliateMemberStep6Schema } from "@/validation";
 
 export default function Step5RequiredDocumentChecklist(): React.ReactElement {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
@@ -19,18 +21,25 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
     checked,
     files,
     otherForms,
+    documentIds,
+    documentPaths,
+    otherFormDocumentIds,
     refs,
     setItemChecked,
     setItemFile,
     removeItemFile,
+    setItemDocumentId,
+    setItemDocumentPath,
     addOtherForm,
     updateOtherFormName,
     setOtherFormFile,
+    setOtherFormDocumentId,
     handleSelectFile,
     handleDropFile,
   } = useStep6RequiredDocuments(formData?.memberRequiredDocuments);
 
   const [selectedDocType, setSelectedDocType] = useState<string>(""); // radio toggle state
+  const [pendingUploads, setPendingUploads] = useState<Record<string, boolean>>({});
 
   // Auto-select otherForms if there are other forms in the data
   React.useEffect(() => {
@@ -47,19 +56,35 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
     "certified_ids",
   ];
 
-  const pathMap: Record<string, string> = {
-    trade_license: 'tradeLicenseAndMoaPath',
-    assurance_report: 'latestAssuranceReportPath',
-    audited_fs: 'auditedFinancialStatementsPath',
-    net_worth: 'netWorthCertificatePath',
-    amlCftPolicy: 'amlCftPolicyPath',
-    supplyChainPolicy: 'supplyChainCompliancePolicyPath',
-    noUnresolvedAmlNoticesDeclaration: 'noUnresolvedAmlNoticesDeclarationPath',
-    board_resolution: 'boardResolutionPath',
-    ownership_structure: 'ownershipStructurePath',
-    certified_true_copy: 'certifiedTrueCopyPath',
-    ubo_proof: 'uboProofDocumentsPath',
-    certified_ids: 'certifiedIdsPath',
+  // Handle file upload immediately when selected
+  const handleFileUpload = async (itemId: string, file: File | null, isOtherForm = false) => {
+    if (!file) return;
+
+    // Clear old path when new file is uploaded so anchor tag disappears
+    if (!isOtherForm) {
+      setItemDocumentPath(itemId, "");
+    }
+
+    // Set uploading state
+    setPendingUploads(prev => ({ ...prev, [itemId]: true }));
+
+    try {
+      const documentId = await uploadDocument(file);
+
+      // Store document ID based on type
+      if (isOtherForm) {
+        setOtherFormDocumentId(itemId, documentId);
+      } else {
+        setItemDocumentId(itemId, documentId);
+      }
+
+      toast.success('File uploaded successfully!');
+    } catch (error) {
+      toast.error('Failed to upload file. Please try again.');
+      console.error('File upload error:', error);
+    } finally {
+      setPendingUploads(prev => ({ ...prev, [itemId]: false }));
+    }
   };
 
   const handleSave = async () => {
@@ -72,54 +97,78 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
         return match ? parseInt(match[1], 10) : null;
       };
 
-      // Upload files if present and collect document IDs
-      const fileIds: Record<string, number> = {};
-      const otherFormIds: Record<string, number> = {};
+      // Build payload conditionally - only include fields for checked items
+      const payload: any = {};
 
-      // Upload item files
-      for (const [key, file] of Object.entries(files)) {
-        if (file) {
-          fileIds[key] = await uploadDocument(file);
-        }
+      if (checked.trade_license) {
+        payload.tradeLicenseAndMoaFileId = documentIds.trade_license || extractIdFromPath((formData.memberRequiredDocuments as any)?.tradeLicenseAndMoaPath) || null;
+        payload.isChecked_TradeLicenseAndMoa = true;
       }
 
-      // Upload other form files
-      for (const of of otherForms) {
-        if (of.file) {
-          otherFormIds[of.id] = await uploadDocument(of.file);
-        }
+      if (checked.assurance_report) {
+        payload.latestAssuranceReportFileId = documentIds.assurance_report || extractIdFromPath((formData.memberRequiredDocuments as any)?.latestAssuranceReportPath) || null;
+        payload.isChecked_LatestAssuranceReport = true;
       }
 
-      // Save form data
+      if (checked.audited_fs) {
+        payload.auditedFinancialStatementsFileId = documentIds.audited_fs || extractIdFromPath((formData.memberRequiredDocuments as any)?.auditedFinancialStatementsPath) || null;
+        payload.isChecked_AuditedFinancialStatements = true;
+      }
+
+      if (checked.net_worth) {
+        payload.netWorthCertificateFileId = documentIds.net_worth || extractIdFromPath((formData.memberRequiredDocuments as any)?.netWorthCertificatePath) || null;
+        payload.isChecked_NetWorthCertificate = true;
+      }
+
+      if (checked.amlCftPolicy) {
+        payload.amlCftPolicyFileId = documentIds.amlCftPolicy || extractIdFromPath((formData.memberRequiredDocuments as any)?.amlCftPolicyPath) || null;
+        payload.isChecked_AmlCftPolicy = true;
+      }
+
+      if (checked.supplyChainPolicy) {
+        payload.supplyChainCompliancePolicyFileId = documentIds.supplyChainPolicy || extractIdFromPath((formData.memberRequiredDocuments as any)?.supplyChainCompliancePolicyPath) || null;
+        payload.isChecked_SupplyChainCompliancePolicy = true;
+      }
+
+      if (checked.noUnresolvedAmlNoticesDeclaration) {
+        payload.noUnresolvedAmlNoticesDeclarationFileId = documentIds.noUnresolvedAmlNoticesDeclaration || extractIdFromPath((formData.memberRequiredDocuments as any)?.noUnresolvedAmlNoticesDeclarationPath) || null;
+        payload.isChecked_NoUnresolvedAmlNoticesDeclaration = true;
+      }
+
+      if (checked.board_resolution) {
+        payload.boardResolutionFileId = documentIds.board_resolution || extractIdFromPath((formData.memberRequiredDocuments as any)?.boardResolutionPath) || null;
+        payload.isChecked_BoardResolution = true;
+      }
+
+      // Checkbox-only items (no file upload)
+      if (checked.ownership_structure) {
+        payload.isChecked_OwnershipStructure = true;
+      }
+
+      if (checked.certified_true_copy) {
+        payload.isChecked_CertifiedTrueCopy = true;
+      }
+
+      if (checked.ubo_proof) {
+        payload.isChecked_UboProofDocuments = true;
+      }
+
+      if (checked.certified_ids) {
+        payload.isChecked_CertifiedIds = true;
+      }
+
+      // Only include otherForms if there are any
+      if (otherForms.length > 0) {
+        payload.otherForms = otherForms.map(of => ({
+          otherFormName: of.name,
+          otherFormFileId: otherFormDocumentIds[of.id] || null
+        }));
+      }
+
+      // Save form data using document IDs from state (files already uploaded)
       await saveUploadDetails({
         membershipType: formData.application.membershipType,
-        memberRequiredDocuments: {
-          tradeLicenseAndMoaFileId: fileIds.trade_license || extractIdFromPath((formData.memberRequiredDocuments as any)?.tradeLicenseAndMoaPath) || null,
-          isChecked_TradeLicenseAndMoa: checked.trade_license,
-          latestAssuranceReportFileId: fileIds.assurance_report || extractIdFromPath((formData.memberRequiredDocuments as any)?.latestAssuranceReportPath) || null,
-          isChecked_LatestAssuranceReport: checked.assurance_report,
-          auditedFinancialStatementsFileId: fileIds.audited_fs || extractIdFromPath((formData.memberRequiredDocuments as any)?.auditedFinancialStatementsPath) || null,
-          isChecked_AuditedFinancialStatements: checked.audited_fs,
-          netWorthCertificateFileId: fileIds.net_worth || extractIdFromPath((formData.memberRequiredDocuments as any)?.netWorthCertificatePath) || null,
-          isChecked_NetWorthCertificate: checked.net_worth,
-          amlCftPolicyFileId: fileIds.amlCftPolicy || extractIdFromPath((formData.memberRequiredDocuments as any)?.amlCftPolicyPath) || null,
-          isChecked_AmlCftPolicy: checked.amlCftPolicy,
-          supplyChainCompliancePolicyFileId: fileIds.supplyChainPolicy || extractIdFromPath((formData.memberRequiredDocuments as any)?.supplyChainCompliancePolicyPath) || null,
-          isChecked_SupplyChainCompliancePolicy: checked.supplyChainPolicy,
-          noUnresolvedAmlNoticesDeclarationFileId: fileIds.noUnresolvedAmlNoticesDeclaration || extractIdFromPath((formData.memberRequiredDocuments as any)?.noUnresolvedAmlNoticesDeclarationPath) || null,
-          isChecked_NoUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration,
-          boardResolutionFileId: fileIds.board_resolution || extractIdFromPath((formData.memberRequiredDocuments as any)?.boardResolutionPath) || null,
-          isChecked_BoardResolution: checked.board_resolution,
-          ownershipStructureFileId: fileIds.ownership_structure || extractIdFromPath((formData.memberRequiredDocuments as any)?.ownershipStructurePath) || null,
-          isChecked_OwnershipStructure: checked.ownership_structure,
-          certifiedTrueCopyFileId: fileIds.certified_true_copy || extractIdFromPath((formData.memberRequiredDocuments as any)?.certifiedTrueCopyPath) || null,
-          isChecked_CertifiedTrueCopy: checked.certified_true_copy,
-          uboProofDocumentsFileId: fileIds.ubo_proof || extractIdFromPath((formData.memberRequiredDocuments as any)?.uboProofDocumentsPath) || null,
-          isChecked_UboProofDocuments: checked.ubo_proof,
-          certifiedIdsFileId: fileIds.certified_ids || extractIdFromPath((formData.memberRequiredDocuments as any)?.certifiedIdsPath) || null,
-          isChecked_CertifiedIds: checked.certified_ids,
-          otherForms: otherForms.map(of => ({ otherFormName: of.name, otherFormFileId: otherFormIds[of.id] || null }))
-        }
+        memberRequiredDocuments: payload
       }, MemberApplicationSection.RequiredDocs);
 
       toast.success('Required document checklist saved successfully!');
@@ -131,8 +180,54 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
     }
   };
 
+  // Create initial values for Formik
+  const initialValues = {
+    // File fields for each item
+    trade_license_file: files.trade_license,
+    trade_license_fileId: documentIds.trade_license,
+    assurance_report_file: files.assurance_report,
+    assurance_report_fileId: documentIds.assurance_report,
+    audited_fs_file: files.audited_fs,
+    audited_fs_fileId: documentIds.audited_fs,
+    net_worth_file: files.net_worth,
+    net_worth_fileId: documentIds.net_worth,
+    amlCftPolicy_file: files.amlCftPolicy,
+    amlCftPolicy_fileId: documentIds.amlCftPolicy,
+    supplyChainPolicy_file: files.supplyChainPolicy,
+    supplyChainPolicy_fileId: documentIds.supplyChainPolicy,
+    noUnresolvedAmlNoticesDeclaration_file: files.noUnresolvedAmlNoticesDeclaration,
+    noUnresolvedAmlNoticesDeclaration_fileId: documentIds.noUnresolvedAmlNoticesDeclaration,
+    board_resolution_file: files.board_resolution,
+    board_resolution_fileId: documentIds.board_resolution,
+    ownership_structure_file: files.ownership_structure,
+    ownership_structure_fileId: documentIds.ownership_structure,
+    certified_true_copy_file: files.certified_true_copy,
+    certified_true_copy_fileId: documentIds.certified_true_copy,
+    ubo_proof_file: files.ubo_proof,
+    ubo_proof_fileId: documentIds.ubo_proof,
+    certified_ids_file: files.certified_ids,
+    certified_ids_fileId: documentIds.certified_ids,
+    // Checkboxes
+    checked,
+    // Other forms
+    otherForms,
+  };
+
   return (
-    <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg text-white font-gilroy">
+    <Formik
+      initialValues={initialValues}
+      validationSchema={affiliateMemberStep6Schema}
+      onSubmit={handleSave}
+      enableReinitialize
+      validateOnChange={false}
+      validateOnBlur={false}
+      validateOnMount={false}
+    >
+      {({ errors, touched, setFieldValue, setFieldTouched, submitForm }) => {
+        const hasAnyUploadInProgress = Object.values(pendingUploads).some(uploading => uploading);
+
+        return (
+          <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg text-white font-gilroy">
       <h2 className="text-[30px] sm:text-[22px] font-bold text-[#C6A95F] leading-[100%] mb-6">
         Section 5 – Required Document Checklist
       </h2>
@@ -145,7 +240,12 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                 id={it.id}
                 label={it.label}
                 checked={!!checked[it.id]}
-                onChange={() => setItemChecked(it.id, !checked[it.id])}
+                onChange={() => {
+                  const newValue = !checked[it.id];
+                  setItemChecked(it.id, newValue);
+                  setFieldValue(`checked.${it.id}`, newValue);
+                  setFieldTouched(`checked.${it.id}`, true);
+                }}
               />
 
               {/* Only show upload box if not checkbox-only items */}
@@ -156,23 +256,44 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                     type="file"
                     className="hidden"
                     accept="application/pdf,image/*"
-                    onChange={(e) =>
-                      handleSelectFile(e, (f) => setItemFile(it.id, f))
-                    }
+                    onChange={(e) => {
+                      handleSelectFile(e, async (f) => {
+                        setItemFile(it.id, f);
+                        setFieldValue(`${it.id}_file`, f);
+                        setFieldTouched(`${it.id}_file`, true);
+                        await handleFileUpload(it.id, f, false);
+                      });
+                    }}
                   />
 
                   <UploadBox
                     id={`upload_${it.id}`}
                     file={files[it.id]}
+                    prefilledUrl={documentPaths[it.id]}
                     onClick={() => refs[it.id]?.current?.click()}
-                    onDrop={(e: React.DragEvent) =>
-                      handleDropFile(e, (f) => setItemFile(it.id, f))
-                    }
-                    onRemove={() => removeItemFile(it.id)}
+                    onDrop={(e: React.DragEvent) => {
+                      handleDropFile(e, async (f) => {
+                        setItemFile(it.id, f);
+                        setFieldValue(`${it.id}_file`, f);
+                        setFieldTouched(`${it.id}_file`, true);
+                        await handleFileUpload(it.id, f, false);
+                      });
+                    }}
+                    onRemove={() => {
+                      removeItemFile(it.id);
+                      setItemDocumentPath(it.id, "");
+                      setFieldValue(`${it.id}_file`, null);
+                      setFieldTouched(`${it.id}_file`, true);
+                    }}
                   />
-                  {(formData.memberRequiredDocuments as any)?.[pathMap[it.id]] && !files[it.id] && (
+                  {errors[`${it.id}_file` as keyof typeof errors] && touched[`${it.id}_file` as keyof typeof touched] && !documentIds[it.id] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`${it.id}_file` as keyof typeof errors] as string}
+                    </p>
+                  )}
+                  {documentPaths[it.id] && (
                     <a
-                      href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
+                      href={documentPaths[it.id]}
                       target="_blank"
                       className="text-[#C6A95F] underline mt-2 block"
                     >
@@ -237,19 +358,30 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                       type="file"
                       className="hidden"
                       accept="application/pdf,image/*"
-                      onChange={(e) =>
-                        handleSelectFile(e, (f) => setOtherFormFile(of.id, f))
-                      }
+                      onChange={(e) => {
+                        handleSelectFile(e, async (f) => {
+                          setOtherFormFile(of.id, f);
+                          setFieldValue(`otherForms[${otherForms.indexOf(of)}].file`, f);
+                          await handleFileUpload(of.id, f, true);
+                        });
+                      }}
                     />
 
                     <UploadBox
                       id={`other_${of.id}`}
                       file={of.file}
                       onClick={() => otherRefs.current[of.id]?.click()}
-                      onDrop={(e: React.DragEvent) =>
-                        handleDropFile(e, (f) => setOtherFormFile(of.id, f))
-                      }
-                      onRemove={() => setOtherFormFile(of.id, null)}
+                      onDrop={(e: React.DragEvent) => {
+                        handleDropFile(e, async (f) => {
+                          setOtherFormFile(of.id, f);
+                          setFieldValue(`otherForms[${otherForms.indexOf(of)}].file`, f);
+                          await handleFileUpload(of.id, f, true);
+                        });
+                      }}
+                      onRemove={() => {
+                        setOtherFormFile(of.id, null);
+                        setFieldValue(`otherForms[${otherForms.indexOf(of)}].file`, null);
+                      }}
                     />
                   </div>
                 </div>
@@ -277,15 +409,18 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
         </Button>
 
           <Button
-            onClick={handleSave}
-            disabled={isSaving}
+            onClick={() => submitForm()}
+            disabled={isSaving || hasAnyUploadInProgress}
             variant="site_btn"
             className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
           >
-            {isSaving ? 'Saving...' : 'Save / Next'}
+            {hasAnyUploadInProgress ? 'Uploading...' : isSaving ? 'Saving...' : 'Save / Next'}
           </Button>
         </div>
       </div>
-    </div>
+          </div>
+        );
+      }}
+    </Formik>
   );
 }

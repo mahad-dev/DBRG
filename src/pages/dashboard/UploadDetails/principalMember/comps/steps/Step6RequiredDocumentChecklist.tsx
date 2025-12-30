@@ -6,11 +6,15 @@ import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { Formik, Form } from 'formik';
+import { principalMemberStep6Schema } from '@/validation';
+import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
 
 export default function Step6RequiredDocumentChecklist(): React.ReactElement {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
   const formData = state.data;
   const isSaving = state.isSaving;
+  const [pendingUploads, setPendingUploads] = useState<number>(0);
 
   console.log("Step6RequiredDocumentChecklist formData?.memberRequiredDocuments:", formData?.memberRequiredDocuments);
 
@@ -18,16 +22,18 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
     items,
     checked,
     files,
+    documentIds,
     otherForms,
+    otherFormDocumentIds,
     refs,
     setItemChecked,
     setItemFile,
     removeItemFile,
+    setItemDocumentId,
     addOtherForm,
     updateOtherFormName,
     setOtherFormFile,
-    handleSelectFile,
-    handleDropFile,
+    setOtherFormDocumentId,
   } = useStep6RequiredDocuments(formData?.memberRequiredDocuments);
 
   const [selectedDocType, setSelectedDocType] = useState<string>(""); // radio toggle state
@@ -45,8 +51,8 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
     banking_evidence: 'bankingRelationshipEvidencePath',
     audited_fs: 'auditedFinancialStatementsPath',
     net_worth: 'netWorthCertificatePath',
-    aml_policy: 'amlCftPolicyPath',
-    supply_chain: 'supplyChainCompliancePolicyPath',
+    amlCftPolicy: 'amlCftPolicyPath',
+    supplyChainPolicy: 'supplyChainCompliancePolicyPath',
     amlCftAndSupplyChainPolicies: 'amlCftAndSupplyChainPoliciesPath',
     declaration_aml: 'declarationNoUnresolvedAmlNoticesPath',
     noUnresolvedAmlNoticesDeclaration: 'noUnresolvedAmlNoticesDeclarationPath',
@@ -56,90 +62,149 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
     certified_true_copy: 'certifiedTrueCopyPath',
     assurance_report: 'latestAssuranceReportPath',
     responsibleSourcingAssuranceReport: 'responsibleSourcingAssuranceReportPath',
-    uboProofDocuments: 'uboProofDocumentsPath',
-    certifiedIds: 'certifiedIdsPath',
+    ubo_proof: 'uboProofDocumentsPath',
+    certified_ids: 'certifiedIdsPath',
   };
 
-  const handleSave = async () => {
+  // Upload file immediately when selected
+  const handleFileUpload = async (
+    itemId: string,
+    file: File | null,
+    setFieldValue: any
+  ) => {
+    setItemFile(itemId, file);
+    setFieldValue(`${itemId}_file`, file);
+    setFieldValue(`${itemId}_fileTouched`, true);
+
+    if (file) {
+      setPendingUploads(prev => prev + 1);
+      try {
+        const documentId = await uploadDocument(file);
+        setItemDocumentId(itemId, documentId);
+        setFieldValue(`${itemId}_fileId`, documentId);
+        toast.success('File uploaded successfully!');
+      } catch (error) {
+        toast.error('File upload failed');
+        setItemFile(itemId, null);
+        setFieldValue(`${itemId}_file`, null);
+      } finally {
+        setPendingUploads(prev => prev - 1);
+      }
+    }
+  };
+
+  // Upload other form file immediately when selected
+  const handleOtherFormFileUpload = async (
+    formId: string,
+    file: File | null,
+    _setFieldValue: any
+  ) => {
+    setOtherFormFile(formId, file);
+
+    if (file) {
+      setPendingUploads(prev => prev + 1);
+      try {
+        const documentId = await uploadDocument(file);
+        setOtherFormDocumentId(formId, documentId);
+        toast.success('File uploaded successfully!');
+      } catch (error) {
+        toast.error('File upload failed');
+        setOtherFormFile(formId, null);
+      } finally {
+        setPendingUploads(prev => prev - 1);
+      }
+    }
+  };
+
+  const handleSubmit = async (_values: any, _helpers: any) => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
-      // Extract ID from S3 path
-      const extractIdFromPath = (path: string | null): number | null => {
-        if (!path) return null;
-        const match = path.match(/\/(\d+)_/);
-        return match ? parseInt(match[1], 10) : null;
+      // Use stored document IDs or extract from existing paths
+      const getDocumentId = (itemId: string): number | null => {
+        return documentIds[itemId] ?? extractDocumentIdFromPath((formData.memberRequiredDocuments as any)?.[pathMap[itemId]] ?? null);
       };
 
-      // Upload files if present and collect document IDs
-      const fileIds: Record<string, number> = {};
-      const otherFormIds: Record<string, number> = {};
-
-      // Upload item files
-      for (const [key, file] of Object.entries(files)) {
-        if (file) {
-          fileIds[key] = await uploadDocument(file);
-        }
-      }
-
-      // Upload other form files
-      for (const of of otherForms) {
-        if (of.file) {
-          otherFormIds[of.id] = await uploadDocument(of.file);
-        }
-      }
+      // Prepare other forms data with document IDs
+      const otherFormsData = otherForms.map(of => ({
+        otherFormName: of.name,
+        otherFormFileId: otherFormDocumentIds[of.id] ?? null,
+      }));
 
       // Save form data
       await saveUploadDetails({
         membershipType: formData.application.membershipType,
         memberRequiredDocuments: {
-          tradeLicenseAndMoaFileId: fileIds.trade_license || extractIdFromPath((formData.memberRequiredDocuments as any)?.tradeLicenseAndMoaPath) || null,
-          isChecked_TradeLicenseAndMoa: checked.trade_license,
-          bankingRelationshipEvidenceFileId: fileIds.banking_evidence || extractIdFromPath((formData.memberRequiredDocuments as any)?.bankingRelationshipEvidencePath) || null,
-          isChecked_BankingRelationshipEvidence: checked.banking_evidence,
-          auditedFinancialStatementsFileId: fileIds.audited_fs || extractIdFromPath((formData.memberRequiredDocuments as any)?.auditedFinancialStatementsPath) || null,
-          isChecked_AuditedFinancialStatements: checked.audited_fs,
-          netWorthCertificateFileId: fileIds.net_worth || extractIdFromPath((formData.memberRequiredDocuments as any)?.netWorthCertificatePath) || null,
-          isChecked_NetWorthCertificate: checked.net_worth,
-          amlCftPolicyFileId: fileIds.aml_policy || extractIdFromPath((formData.memberRequiredDocuments as any)?.amlCftPolicyPath) || null,
-          isChecked_AmlCftPolicy: checked.aml_policy,
-          supplyChainCompliancePolicyFileId: fileIds.supply_chain || extractIdFromPath((formData.memberRequiredDocuments as any)?.supplyChainCompliancePolicyPath) || null,
-          isChecked_SupplyChainCompliancePolicy: checked.supply_chain,
-          amlCftAndSupplyChainPoliciesFileId: fileIds.amlCftAndSupplyChainPolicies || extractIdFromPath((formData.memberRequiredDocuments as any)?.amlCftAndSupplyChainPoliciesPath) || null,
-          isChecked_AmlCftAndSupplyChainPolicies: checked.amlCftAndSupplyChainPolicies || false,
-          declarationNoUnresolvedAmlNoticesFileId: fileIds.declaration_aml || extractIdFromPath((formData.memberRequiredDocuments as any)?.declarationNoUnresolvedAmlNoticesPath) || null,
-          isChecked_DeclarationNoUnresolvedAmlNotices: checked.declaration_aml,
-          noUnresolvedAmlNoticesDeclarationFileId: fileIds.noUnresolvedAmlNoticesDeclaration || extractIdFromPath((formData.memberRequiredDocuments as any)?.noUnresolvedAmlNoticesDeclarationPath) || null,
-          isChecked_NoUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration || false,
-          accreditationCertificatesFileId: fileIds.accreditation || extractIdFromPath((formData.memberRequiredDocuments as any)?.accreditationCertificatesPath) || null,
-          isChecked_AccreditationCertificates: checked.accreditation,
-          boardResolutionFileId: fileIds.board_resolution || extractIdFromPath((formData.memberRequiredDocuments as any)?.boardResolutionPath) || null,
-          isChecked_BoardResolution: checked.board_resolution,
-          ownershipStructureFileId: fileIds.ownership_structure || extractIdFromPath((formData.memberRequiredDocuments as any)?.ownershipStructurePath) || null,
-          isChecked_OwnershipStructure: checked.ownership_structure,
-          certifiedTrueCopyFileId: fileIds.certified_true_copy || extractIdFromPath((formData.memberRequiredDocuments as any)?.certifiedTrueCopyPath) || null,
-          isChecked_CertifiedTrueCopy: checked.certified_true_copy,
-          latestAssuranceReportFileId: fileIds.assurance_report || extractIdFromPath((formData.memberRequiredDocuments as any)?.latestAssuranceReportPath) || null,
-          isChecked_LatestAssuranceReport: checked.assurance_report,
-          responsibleSourcingAssuranceReportFileId: fileIds.responsibleSourcingAssuranceReport || extractIdFromPath((formData.memberRequiredDocuments as any)?.responsibleSourcingAssuranceReportPath) || null,
-          isChecked_ResponsibleSourcingAssuranceReport: checked.responsibleSourcingAssuranceReport || false,
-          uboProofDocumentsFileId: fileIds.uboProofDocuments || extractIdFromPath((formData.memberRequiredDocuments as any)?.uboProofDocumentsPath) || null,
-          isChecked_UboProofDocuments: checked.uboProofDocuments || false,
-          certifiedIdsFileId: fileIds.certifiedIds || extractIdFromPath((formData.memberRequiredDocuments as any)?.certifiedIdsPath) || null,
-          isChecked_CertifiedIds: checked.certifiedIds || false,
-          otherForms: otherForms.map(of => ({ otherFormName: of.name, otherFormFileId: otherFormIds[of.id] || null }))
+          tradeLicenseAndMoaFileId: getDocumentId('trade_license'),
+          isChecked_TradeLicenseAndMoa: checked.trade_license ?? false,
+          bankingRelationshipEvidenceFileId: null,
+          isChecked_BankingRelationshipEvidence: false,
+          auditedFinancialStatementsFileId: getDocumentId('audited_fs'),
+          isChecked_AuditedFinancialStatements: checked.audited_fs ?? false,
+          netWorthCertificateFileId: getDocumentId('net_worth'),
+          isChecked_NetWorthCertificate: checked.net_worth ?? false,
+          amlCftPolicyFileId: getDocumentId('amlCftPolicy'),
+          isChecked_AmlCftPolicy: checked.amlCftPolicy ?? false,
+          supplyChainCompliancePolicyFileId: getDocumentId('supplyChainPolicy'),
+          isChecked_SupplyChainCompliancePolicy: checked.supplyChainPolicy ?? false,
+          amlCftAndSupplyChainPoliciesFileId: null,
+          isChecked_AmlCftAndSupplyChainPolicies: false,
+          declarationNoUnresolvedAmlNoticesFileId: null,
+          isChecked_DeclarationNoUnresolvedAmlNotices: false,
+          noUnresolvedAmlNoticesDeclarationFileId: getDocumentId('noUnresolvedAmlNoticesDeclaration'),
+          isChecked_NoUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration ?? false,
+          accreditationCertificatesFileId: null,
+          isChecked_AccreditationCertificates: false,
+          boardResolutionFileId: getDocumentId('board_resolution'),
+          isChecked_BoardResolution: checked.board_resolution ?? false,
+          ownershipStructureFileId: getDocumentId('ownership_structure'),
+          isChecked_OwnershipStructure: checked.ownership_structure ?? false,
+          certifiedTrueCopyFileId: getDocumentId('certified_true_copy'),
+          isChecked_CertifiedTrueCopy: checked.certified_true_copy ?? false,
+          latestAssuranceReportFileId: getDocumentId('assurance_report'),
+          isChecked_LatestAssuranceReport: checked.assurance_report ?? false,
+          responsibleSourcingAssuranceReportFileId: null,
+          isChecked_ResponsibleSourcingAssuranceReport: false,
+          uboProofDocumentsFileId: getDocumentId('ubo_proof'),
+          isChecked_UboProofDocuments: checked.ubo_proof ?? false,
+          certifiedIdsFileId: getDocumentId('certified_ids'),
+          isChecked_CertifiedIds: checked.certified_ids ?? false,
+          otherForms: otherFormsData,
         }
       }, MemberApplicationSection.RequiredDocs);
 
       toast.success('Required document checklist saved successfully!');
       setCurrentStep(7);
-      dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error) {
       toast.error('Failed to save required document checklist. Please try again.');
+    } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
 
+  // Formik initial values
+  const initialValues = {
+    checked: checked,
+    otherForms: otherForms,
+    ...items.reduce((acc, item) => {
+      acc[`${item.id}_file`] = files[item.id];
+      acc[`${item.id}_filePath`] = (formData.memberRequiredDocuments as any)?.[pathMap[item.id]] ?? null;
+      acc[`${item.id}_fileId`] = documentIds[item.id];
+      return acc;
+    }, {} as Record<string, any>),
+  };
+
   return (
+    <Formik
+      initialValues={initialValues}
+      validationSchema={principalMemberStep6Schema}
+      onSubmit={handleSubmit}
+      validateOnChange={false}
+      validateOnBlur={true}
+      validateOnMount={false}
+      enableReinitialize={true}
+    >
+      {({ errors, touched, setFieldValue, submitForm }) => (
+        <Form>
     <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg text-white font-gilroy">
       <h2 className="text-[30px] sm:text-[22px] font-bold text-[#C6A95F] leading-[100%] mb-6">
         Section 6 – Required Document Checklist
@@ -162,28 +227,30 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                   type="file"
                   className="hidden"
                   accept="application/pdf,image/*"
-                  onChange={(e) =>
-                    handleSelectFile(e, (f) => setItemFile(it.id, f))
-                  }
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    await handleFileUpload(it.id, file, setFieldValue);
+                  }}
                 />
 
                 <UploadBox
                   id={`upload_${it.id}`}
                   file={files[it.id]}
+                  prefilledUrl={(formData.memberRequiredDocuments as any)?.[pathMap[it.id]]}
                   onClick={() => refs[it.id]?.current?.click()}
-                  onDrop={(e: React.DragEvent) =>
-                    handleDropFile(e, (f) => setItemFile(it.id, f))
-                  }
-                  onRemove={() => removeItemFile(it.id)}
+                  onDrop={async (e: React.DragEvent) => {
+                    const file = e.dataTransfer?.files?.[0] ?? null;
+                    await handleFileUpload(it.id, file, setFieldValue);
+                  }}
+                  onRemove={() => {
+                    removeItemFile(it.id);
+                    setItemDocumentId(it.id, null);
+                    setFieldValue(`${it.id}_file`, null);
+                    setFieldValue(`${it.id}_fileId`, null);
+                  }}
                 />
-                {(formData.memberRequiredDocuments as any)?.[pathMap[it.id]] && !files[it.id] && (
-                  <a
-                    href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
-                    target="_blank"
-                    className="text-[#C6A95F] underline mt-2 block"
-                  >
-                    View previously uploaded {it.label}
-                  </a>
+                {(touched as any)[`${it.id}_file`] && (errors as any)[`${it.id}_file`] && (
+                  <p className="text-red-500 text-sm mt-2">{(errors as any)[`${it.id}_file`] as string}</p>
                 )}
               </div>
             </div>
@@ -242,19 +309,24 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                       type="file"
                       className="hidden"
                       accept="application/pdf,image/*"
-                      onChange={(e) =>
-                        handleSelectFile(e, (f) => setOtherFormFile(of.id, f))
-                      }
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        await handleOtherFormFileUpload(of.id, file, setFieldValue);
+                      }}
                     />
 
                     <UploadBox
                       id={`other_${of.id}`}
                       file={of.file}
                       onClick={() => otherRefs.current[of.id]?.click()}
-                      onDrop={(e: React.DragEvent) =>
-                        handleDropFile(e, (f) => setOtherFormFile(of.id, f))
-                      }
-                      onRemove={() => setOtherFormFile(of.id, null)}
+                      onDrop={async (e: React.DragEvent) => {
+                        const file = e.dataTransfer?.files?.[0] ?? null;
+                        await handleOtherFormFileUpload(of.id, file, setFieldValue);
+                      }}
+                      onRemove={() => {
+                        setOtherFormFile(of.id, null);
+                        setOtherFormDocumentId(of.id, null);
+                      }}
                     />
                   </div>
                 </div>
@@ -275,6 +347,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
         {/* Footer */}
         <div className="mt-10 flex justify-start gap-4">
         <Button
+          type="button"
           onClick={() => setCurrentStep(5)}
           className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
         >
@@ -282,15 +355,19 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
         </Button>
 
           <Button
-            onClick={handleSave}
-            disabled={isSaving}
+            type="button"
+            onClick={submitForm}
+            disabled={isSaving || pendingUploads > 0}
             variant="site_btn"
             className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
           >
-            {isSaving ? 'Saving...' : 'Save / Next'}
+            {pendingUploads > 0 ? 'Uploading...' : isSaving ? 'Saving...' : 'Save / Next'}
           </Button>
         </div>
       </div>
     </div>
+        </Form>
+      )}
+    </Formik>
   );
 }

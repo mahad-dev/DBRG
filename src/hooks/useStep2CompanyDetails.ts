@@ -14,6 +14,8 @@ export interface Shareholder {
   dateOfAppointment: string;
   address: string;
   proofFile: File | null;
+  proofFileId?: number | null;
+  proofFilePath?: string;
 }
 
 export interface UBO {
@@ -24,6 +26,8 @@ export interface UBO {
   passportId: string;
   nationalIdNumber: string;
   confirmationFile: File | null;
+  confirmationFileId?: number | null;
+  confirmationFilePath?: string;
 }
 
 export interface Director {
@@ -36,6 +40,13 @@ export interface Director {
 
 export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
   const companyDetails = sectionNumber === 2 ? payload?.companyDetails : payload;
+
+  console.log('🔍 useStep2CompanyDetails - payload:', payload);
+  console.log('🔍 useStep2CompanyDetails - sectionNumber:', sectionNumber);
+  console.log('🔍 useStep2CompanyDetails - companyDetails:', companyDetails);
+  console.log('🔍 useStep2CompanyDetails - shareholders:', companyDetails?.shareholders);
+  console.log('🔍 useStep2CompanyDetails - UBOs:', companyDetails?.ultimateBeneficialOwners);
+  console.log('🔍 useStep2CompanyDetails - directors:', companyDetails?.directors);
   /* -----------------------------------------
      Company Fields
   ------------------------------------------*/
@@ -89,6 +100,16 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     accreditationCertificate: null as number | null,
     accreditationCertificatePath: "",
   });
+
+  // Document IDs (for upload optimization - files upload on selection, not on submit)
+  const [tradeLicenseDocumentId, setTradeLicenseDocumentId] = useState<number | null>(null);
+  const [coiDocumentId, setCoiDocumentId] = useState<number | null>(null);
+  const [passportDocumentId, setPassportDocumentId] = useState<number | null>(null);
+  const [nationalIdDocumentId, setNationalIdDocumentId] = useState<number | null>(null);
+  const [vatDocumentId, setVatDocumentId] = useState<number | null>(null);
+  const [taxRegDocumentId, setTaxRegDocumentId] = useState<number | null>(null);
+  const [addressProofDocumentId, setAddressProofDocumentId] = useState<number | null>(null);
+  const [tradeAssociationCertificateDocumentId, setTradeAssociationCertificateDocumentId] = useState<number | null>(null);
 
   const setField = (field: keyof typeof form, value: any) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -184,6 +205,10 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     setShareholders((prev) => {
       const updated = [...prev];
       updated[index].proofFile = file;
+      // Clear the old path when new file is uploaded so anchor tag disappears
+      if (file) {
+        updated[index].proofFilePath = "";
+      }
       return updated;
     });
   };
@@ -229,6 +254,10 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     setUbos((prev) => {
       const updated = [...prev];
       updated[index].confirmationFile = file;
+      // Clear the old path when new file is uploaded so anchor tag disappears
+      if (file) {
+        updated[index].confirmationFilePath = "";
+      }
       return updated;
     });
   };
@@ -267,9 +296,47 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     });
   };
 
+  // Helper to extract document ID from S3 path
+  const extractIdFromPath = (path: string | null): number | null => {
+    if (!path) return null;
+    // Remove query parameters first (everything after ?)
+    const pathWithoutQuery = path.split('?')[0];
+    // Extract the filename from the URL
+    const filename = pathWithoutQuery.split('/').pop();
+    if (!filename) return null;
+    // Match pattern: documentId_filename (e.g., "780_Screenshot.png")
+    const match = filename.match(/^(\d+)_/);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
   // Prefill logic
   useEffect(() => {
-    if (!companyDetails) return;
+    console.log('🚀🚀🚀 useEffect FIRED! - companyDetails.id:', companyDetails?.id);
+    console.log('🔍 useEffect triggered - companyDetails:', companyDetails);
+    console.log('🔍 Checking arrays:');
+    console.log('  - shareholders:', companyDetails?.shareholders);
+    console.log('  - UBOs:', companyDetails?.ultimateBeneficialOwners);
+    console.log('  - directors:', companyDetails?.directors);
+
+    if (!companyDetails) {
+      console.log('⚠️ companyDetails is null/undefined, skipping prefill');
+      return;
+    }
+
+    console.log('✅ companyDetails exists, starting prefill...');
+
+    // Parse refineryAccreditations from comma-separated string
+    let accreditationNumbers: number[] = [];
+    if (companyDetails.refineryAccreditations) {
+      if (typeof companyDetails.refineryAccreditations === 'string') {
+        accreditationNumbers = companyDetails.refineryAccreditations
+          .split(',')
+          .map((num: string) => parseInt(num.trim(), 10))
+          .filter((num: number) => !isNaN(num));
+      } else if (Array.isArray(companyDetails.refineryAccreditations)) {
+        accreditationNumbers = companyDetails.refineryAccreditations;
+      }
+    }
 
     // Company form fields
     setForm({
@@ -298,12 +365,12 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
       tradeAssociationName: companyDetails.tradeAssociationName || "",
       nameOfMember: companyDetails.nameOfMember || "",
       dateOfAppointment: companyDetails.dateOfAppointment || "",
-      lbma: companyDetails.lbma || false,
-      dmccDgd: companyDetails.dmccDgd || false,
-      dmccMdb: companyDetails.dmccMdb || false,
-      rjc: companyDetails.rjc || false,
-      iages: companyDetails.iages || false,
-      accreditationOther: companyDetails.accreditationOther || false,
+      lbma: accreditationNumbers.includes(0),
+      dmccDgd: accreditationNumbers.includes(1),
+      dmccMdb: accreditationNumbers.includes(2),
+      rjc: accreditationNumbers.includes(3),
+      iages: accreditationNumbers.includes(4),
+      accreditationOther: accreditationNumbers.includes(5),
       otherAccreditation: companyDetails.otherAccreditation || "",
       tradeLicenseDocument: companyDetails.tradeLicenseDocument || null,
       tradeLicenseDocumentPath: companyDetails.tradeLicenseDocumentPath || "",
@@ -323,8 +390,43 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
       accreditationCertificatePath: companyDetails.accreditationCertificatePath || "",
     });
 
+    // Prefill document IDs from existing data
+    setTradeLicenseDocumentId(
+      companyDetails.tradeLicenseDocument ??
+      extractIdFromPath(companyDetails.tradeLicenseDocumentPath ?? null)
+    );
+    setCoiDocumentId(
+      companyDetails.certificateOfIncorporation ??
+      extractIdFromPath(companyDetails.certificateOfIncorporationPath ?? null)
+    );
+    setPassportDocumentId(
+      companyDetails.passportDocument ??
+      extractIdFromPath(companyDetails.passportDocumentPath ?? null)
+    );
+    setNationalIdDocumentId(
+      companyDetails.nationalIdDocument ??
+      extractIdFromPath(companyDetails.nationalIdDocumentPath ?? null)
+    );
+    setVatDocumentId(
+      companyDetails.vatDocument ??
+      extractIdFromPath(companyDetails.vatDocumentPath ?? null)
+    );
+    setTaxRegDocumentId(
+      companyDetails.taxRegistrationDocument ??
+      extractIdFromPath(companyDetails.taxRegistrationDocumentPath ?? null)
+    );
+    setAddressProofDocumentId(
+      companyDetails.addressProofDocument ??
+      extractIdFromPath(companyDetails.addressProofDocumentPath ?? null)
+    );
+    setTradeAssociationCertificateDocumentId(
+      companyDetails.accreditationCertificate ??
+      extractIdFromPath(companyDetails.accreditationCertificatePath ?? null)
+    );
+
     // Shareholders
     if (companyDetails.shareholders && Array.isArray(companyDetails.shareholders)) {
+      console.log('✅ Prefilling shareholders, count:', companyDetails.shareholders.length);
       const mappedShareholders = companyDetails.shareholders.map((s: any) => ({
         fullName: s.fullName || "",
         passportId: s.passportId || "",
@@ -334,12 +436,18 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
         dateOfAppointment: s.dateOfAppointment || "",
         address: s.address || "",
         proofFile: null, // Files can't be prefilled from URLs
+        proofFileId: s.shareholdingDocumentId || s.shareholdingDocument || null,
+        proofFilePath: s.shareholdingDocumentPath || "",
       }));
+      console.log('✅ Mapped shareholders:', mappedShareholders);
       setShareholders(mappedShareholders);
+    } else {
+      console.log('⚠️ No shareholders found or not an array');
     }
 
     // UBOs
     if (companyDetails.ultimateBeneficialOwners && Array.isArray(companyDetails.ultimateBeneficialOwners)) {
+      console.log('✅ Prefilling UBOs, count:', companyDetails.ultimateBeneficialOwners.length);
       const mappedUbos = companyDetails.ultimateBeneficialOwners.map((u: any) => ({
         fullName: u.fullName || "",
         ownershipPercentage: u.ownershipPercentage || 0,
@@ -348,12 +456,18 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
         passportId: u.passportId || "",
         nationalIdNumber: u.nationalIdNumber || "",
         confirmationFile: null, // Files can't be prefilled from URLs
+        confirmationFileId: u.uboConfirmationDocument || null,
+        confirmationFilePath: u.uboConfirmationDocumentPath || "",
       }));
+      console.log('✅ Mapped UBOs:', mappedUbos);
       setUbos(mappedUbos);
+    } else {
+      console.log('⚠️ No UBOs found or not an array');
     }
 
     // Directors
     if (companyDetails.directors && Array.isArray(companyDetails.directors)) {
+      console.log('✅ Prefilling directors, count:', companyDetails.directors.length);
       const mappedDirectors = companyDetails.directors.map((d: any) => ({
         fullName: d.fullName || "",
         dateOfAppointment: d.dateOfAppointment || "",
@@ -361,9 +475,12 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
         address: d.address || "",
         phoneNumber: d.phoneNumber || "",
       }));
+      console.log('✅ Mapped directors:', mappedDirectors);
       setDirectors(mappedDirectors);
+    } else {
+      console.log('⚠️ No directors found or not an array');
     }
-  }, [companyDetails]);
+  }, [companyDetails?.id]);
 
   /* -----------------------------------------
        Return all
@@ -374,6 +491,7 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     setField,
 
     uploadBoxes,
+    setUploadBoxes,
     fileRefs,
     handleSelectFile,
     handleDropFile,
@@ -397,5 +515,25 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     addDirector,
     removeDirector,
     setDirectorField,
+
+    // Document IDs
+    tradeLicenseDocumentId,
+    coiDocumentId,
+    passportDocumentId,
+    nationalIdDocumentId,
+    vatDocumentId,
+    taxRegDocumentId,
+    addressProofDocumentId,
+    tradeAssociationCertificateDocumentId,
+
+    // Document ID setters
+    setTradeLicenseDocumentId,
+    setCoiDocumentId,
+    setPassportDocumentId,
+    setNationalIdDocumentId,
+    setVatDocumentId,
+    setTaxRegDocumentId,
+    setAddressProofDocumentId,
+    setTradeAssociationCertificateDocumentId,
   };
 }

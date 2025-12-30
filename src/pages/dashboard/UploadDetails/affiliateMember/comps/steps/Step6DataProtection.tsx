@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useUploadDetails } from "@/context/UploadDetailsContext";
 import { MemberApplicationSection } from "@/types/uploadDetails";
 import { toast } from "react-toastify";
+import { Formik } from "formik";
+import { affiliateMemberStep7Schema } from "@/validation";
 
 export default function Step7DataProtection() {
   const { state, saveUploadDetails, setCurrentStep, dispatch } =
@@ -37,7 +39,19 @@ export default function Step7DataProtection() {
     }
   };
 
+  // Formik initial values
+  const initialValues = {
+    acknowledge: true,
+  };
+
   return (
+    <Formik
+      initialValues={initialValues}
+      validationSchema={affiliateMemberStep7Schema}
+      onSubmit={handleSave}
+      enableReinitialize
+    >
+      {({ submitForm }) => (
     <Card className="bg-[#353535] border-none rounded-xl w-full">
       <CardContent className="space-y-8 sm:space-y-6">
         {/* Heading */}
@@ -129,7 +143,7 @@ export default function Step7DataProtection() {
           </Button>
 
           <Button
-            onClick={handleSave}
+            onClick={() => submitForm()}
             disabled={isSaving}
             variant="site_btn"
             className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
@@ -139,5 +153,7 @@ export default function Step7DataProtection() {
         </div>
       </CardContent>
     </Card>
+      )}
+    </Formik>
   );
 }

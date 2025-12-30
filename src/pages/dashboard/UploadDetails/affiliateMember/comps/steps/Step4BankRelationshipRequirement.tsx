@@ -19,6 +19,9 @@ import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
 import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
+import { Formik } from "formik";
+import { affiliateMemberStep3Schema } from "@/validation";
+import { extractDocumentIdFromPath } from "@/validation/utils/fileValidation";
 
 export default function Step4BankRelationshipRequirement() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
@@ -31,6 +34,9 @@ export default function Step4BankRelationshipRequirement() {
     bankFile,
     setBankFile,
     bankRef,
+    bankReferenceLetterFileId,
+    setBankReferenceLetterFileId,
+    bankReferenceLetterFilePath,
     bankName,
     setBankName,
     accountNumber,
@@ -47,6 +53,9 @@ export default function Step4BankRelationshipRequirement() {
 
   // Track selected date as Date object for Calendar
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+  // Track pending uploads
+  const [pendingUploads, setPendingUploads] = useState(0);
 
   // Update selectedDate when bankingSince changes
   useEffect(() => {
@@ -70,24 +79,41 @@ export default function Step4BankRelationshipRequirement() {
     }
   }, [selectedDate, setBankingSince]);
 
+  // Handle file upload with immediate API call
+  const handleFileUpload = async (
+    file: File | null,
+    setFile: (f: File | null) => void,
+    setDocumentId: (id: number | null) => void,
+    setFieldValue: any,
+    fieldName: string
+  ) => {
+    setFile(file);
+    setFieldValue(fieldName, file);
+    setFieldValue(`${fieldName}Touched`, true);
+
+    if (file) {
+      setPendingUploads((prev) => prev + 1);
+      try {
+        const documentId = await uploadDocument(file);
+        setDocumentId(documentId);
+        toast.success("File uploaded successfully!");
+      } catch (error) {
+        toast.error("File upload failed. Please try again.");
+        setFile(null);
+        setFieldValue(fieldName, null);
+      } finally {
+        setPendingUploads((prev) => prev - 1);
+      }
+    } else {
+      setDocumentId(null);
+    }
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
-      let bankFileId = null;
-
-      // Extract ID from S3 path
-      const extractIdFromPath = (path: string | null): number | null => {
-        if (!path) return null;
-        const match = path.match(/\/(\d+)_/);
-        return match ? parseInt(match[1], 10) : null;
-      };
-
-      // Upload file if present, or use existing ID from path
-      if (bankFile) {
-        bankFileId = await uploadDocument(bankFile);
-      } else if (formData.bankRelationReq?.bankReferenceLetterFilePath) {
-        bankFileId = extractIdFromPath(formData.bankRelationReq.bankReferenceLetterFilePath);
-      }
+      // Use document ID from hook (already uploaded immediately)
+      const bankFileId = bankReferenceLetterFileId || extractDocumentIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath || null);
 
       // Save form data
       await saveUploadDetails({
@@ -112,7 +138,26 @@ export default function Step4BankRelationshipRequirement() {
     }
   };
 
+  // Formik initial values
+  const initialValues = {
+    isClient24Months: isClient24Months,
+    bankReferenceLetterFile: bankFile,
+    bankReferenceLetterFileId: bankReferenceLetterFileId,
+    bankName: bankName || "",
+    accountNumber: accountNumber || "",
+    accountType: accountType || "",
+    bankingSince: bankingSince || "",
+    address: address || "",
+  };
+
   return (
+    <Formik
+      initialValues={initialValues}
+      validationSchema={affiliateMemberStep3Schema}
+      onSubmit={handleSave}
+      enableReinitialize
+    >
+      {({ errors, touched, setFieldValue, setFieldTouched, submitForm }) => (
     <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg">
       <h2 className="text-[30px] sm:text-[26px] font-bold text-[#C6A95F] font-gilroy">
         Section 4 – Bank Relationship Requirement
@@ -121,36 +166,64 @@ export default function Step4BankRelationshipRequirement() {
       {/* Question 1 */}
       <div className="mt-8">
         <Label className="text-white font-gilroy text-[20px]">
-          I. Client of UAE-regulated bank for 12+ months
+          I. Client of UAE-regulated bank for 12+ months <span className="text-red-500">*</span>
         </Label>
         <div className="mt-4 flex gap-10 sm:flex-col sm:gap-3">
           <YesNoGroup
             value={isClient24Months}
-            onChange={setIsClient24Months}
+            onChange={(val) => {
+              setIsClient24Months(val);
+              setFieldValue("isClient24Months", val);
+              setFieldTouched("isClient24Months", true);
+            }}
             onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
+        {touched.isClient24Months && errors.isClient24Months && (
+          <p className="text-red-500 text-sm mt-2">{errors.isClient24Months as string}</p>
+        )}
       </div>
 
       {/* Upload Section */}
       <div className="mt-10">
-    
+        <Label className="text-white font-gilroy text-[18px]">
+          Bank reference letter or account confirmation <span className="text-red-500">*</span>
+        </Label>
+
         <input
           ref={bankRef}
           type="file"
           className="hidden"
           accept="application/pdf,image/*"
-          onChange={(e) => handleSelectFile(e, setBankFile)}
+          onChange={async (e) => {
+            const file = e.target.files?.[0] ?? null;
+            await handleFileUpload(file, setBankFile, setBankReferenceLetterFileId, setFieldValue, "bankReferenceLetterFile");
+            if (file) handleSelectFile(e, setBankFile);
+          }}
         />
         <UploadBox
           title="Bank reference letter or account confirmation"
           file={bankFile}
+          prefilledUrl={bankReferenceLetterFilePath}
           onClick={() => bankRef.current?.click()}
-          onDrop={(e: any) => handleDropFile(e, setBankFile)}
+          onDrop={async (e: any) => {
+            e.preventDefault();
+            const file = e.dataTransfer?.files?.[0] ?? null;
+            await handleFileUpload(file, setBankFile, setBankReferenceLetterFileId, setFieldValue, "bankReferenceLetterFile");
+            if (file) handleDropFile(e, setBankFile);
+          }}
           id="bank-upload"
-          onRemove={() => setBankFile(null)}
+          onRemove={() => {
+            setBankFile(null);
+            setBankReferenceLetterFileId(null);
+            setFieldValue("bankReferenceLetterFile", null);
+            setFieldValue("bankReferenceLetterFileId", null);
+          }}
         />
-        {formData.bankRelationReq?.bankReferenceLetterFilePath  && (
+        {touched.bankReferenceLetterFile && errors.bankReferenceLetterFile && (
+          <p className="text-red-500 text-sm mt-2">{errors.bankReferenceLetterFile as string}</p>
+        )}
+        {formData.bankRelationReq?.bankReferenceLetterFilePath && !bankFile && (
           <a
             href={formData.bankRelationReq.bankReferenceLetterFilePath}
             target="_blank"
@@ -170,44 +243,65 @@ export default function Step4BankRelationshipRequirement() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <Label className="text-white font-gilroy text-[18px]">
-              Name of Bank
+              Name of Bank <span className="text-red-500">*</span>
             </Label>
             <Input
               value={bankName}
-              onChange={(e) => setBankName(e.target.value)}
+              onChange={(e) => {
+                setBankName(e.target.value);
+                setFieldValue("bankName", e.target.value);
+              }}
+              onBlur={() => setFieldTouched("bankName", true)}
               placeholder="Name of Bank"
               className="mt-2 bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 border-white h-[47px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"
             />
+            {touched.bankName && errors.bankName && (
+              <p className="text-red-500 text-sm mt-2">{errors.bankName as string}</p>
+            )}
           </div>
 
           <div>
             <Label className="text-white font-gilroy text-[18px]">
-              Account Number
+              Account Number <span className="text-red-500">*</span>
             </Label>
             <Input
               value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
+              onChange={(e) => {
+                setAccountNumber(e.target.value);
+                setFieldValue("accountNumber", e.target.value);
+              }}
+              onBlur={() => setFieldTouched("accountNumber", true)}
               placeholder="Account Number"
               className="mt-2 bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 border-white h-[47px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"
             />
+            {touched.accountNumber && errors.accountNumber && (
+              <p className="text-red-500 text-sm mt-2">{errors.accountNumber as string}</p>
+            )}
           </div>
 
           <div>
             <Label className="text-white font-gilroy text-[18px]">
-              Account Type
+              Account Type <span className="text-red-500">*</span>
             </Label>
             <Input
               value={accountType}
-              onChange={(e) => setAccountType(e.target.value)}
+              onChange={(e) => {
+                setAccountType(e.target.value);
+                setFieldValue("accountType", e.target.value);
+              }}
+              onBlur={() => setFieldTouched("accountType", true)}
               placeholder="Account Type"
               className="mt-2 border-white bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 h-[47px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"
             />
+            {touched.accountType && errors.accountType && (
+              <p className="text-red-500 text-sm mt-2">{errors.accountType as string}</p>
+            )}
           </div>
 
           {/* Calendar Input */}
           <div>
             <Label className="text-white font-gilroy text-[18px]">
-              Banking Relation since
+              Banking Relation since <span className="text-red-500">*</span>
             </Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -223,21 +317,35 @@ export default function Step4BankRelationshipRequirement() {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={(date) => setSelectedDate(date ?? undefined)}
+                  onSelect={(date) => {
+                    setSelectedDate(date ?? undefined);
+                    setFieldValue("bankingSince", date ? date.toISOString() : "");
+                    setFieldTouched("bankingSince", true);
+                  }}
                 />
               </PopoverContent>
             </Popover>
+            {touched.bankingSince && errors.bankingSince && (
+              <p className="text-red-500 text-sm mt-2">{errors.bankingSince as string}</p>
+            )}
           </div>
         </div>
 
         <div className="mt-6">
-          <Label className="text-white font-gilroy text-[18px]">Address</Label>
+          <Label className="text-white font-gilroy text-[18px]">Address <span className="text-red-500">*</span></Label>
           <Input
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(e) => {
+              setAddress(e.target.value);
+              setFieldValue("address", e.target.value);
+            }}
+            onBlur={() => setFieldTouched("address", true)}
             placeholder="Address"
             className="mt-2 border-white bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 h-[55px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"
           />
+          {touched.address && errors.address && (
+            <p className="text-red-500 text-sm mt-2">{errors.address as string}</p>
+          )}
         </div>
       </div>
 
@@ -251,12 +359,12 @@ export default function Step4BankRelationshipRequirement() {
         </Button>
 
         <Button
-          onClick={handleSave}
-          disabled={state.isSaving}
+          onClick={() => submitForm()}
+          disabled={state.isSaving || pendingUploads > 0}
           variant="site_btn"
           className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
         >
-          {state.isSaving ? 'Saving...' : 'Save'}
+          {pendingUploads > 0 ? 'Uploading...' : state.isSaving ? 'Saving...' : 'Save / Next'}
         </Button>
       </div>
 
@@ -265,5 +373,7 @@ export default function Step4BankRelationshipRequirement() {
         onOpenChange={setSpecialConsiderationOpen}
       />
     </div>
+      )}
+    </Formik>
   );
 }

@@ -38,6 +38,13 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
   const [supplyChainDueDiligenceFile, setSupplyChainDueDiligenceFile] = React.useState<File | null>(null);
   const [responsibleSourcingFile, setResponsibleSourcingFile] = React.useState<File | null>(null);
 
+  // Document IDs (for upload optimization - files upload on selection, not on submit)
+  const [ongoingDetailsDocumentId, setOngoingDetailsDocumentId] = React.useState<number | null>(null);
+  const [amlPolicyDocumentId, setAmlPolicyDocumentId] = React.useState<number | null>(null);
+  const [declarationDocumentId, setDeclarationDocumentId] = React.useState<number | null>(null);
+  const [supplyChainDocumentId, setSupplyChainDocumentId] = React.useState<number | null>(null);
+  const [responsibleSourcingDocumentId, setResponsibleSourcingDocumentId] = React.useState<number | null>(null);
+
   const ongoingRef = useRef<HTMLInputElement | null>(null);
   const amlRef = useRef<HTMLInputElement | null>(null);
   const declarationRef = useRef<HTMLInputElement | null>(null);
@@ -54,6 +61,19 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
   };
 
   const removeFile = (setter: (f: File | null) => void) => setter(null);
+
+  // Helper to extract document ID from S3 path
+  const extractIdFromPath = (path: string | null): number | null => {
+    if (!path) return null;
+    // Remove query parameters first (everything after ?)
+    const pathWithoutQuery = path.split('?')[0];
+    // Extract the filename from the URL
+    const filename = pathWithoutQuery.split('/').pop();
+    if (!filename) return null;
+    // Match pattern: documentId_filename (e.g., "780_Screenshot.png")
+    const match = filename.match(/^(\d+)_/);
+    return match ? parseInt(match[1], 10) : null;
+  };
 
   // Prefill logic
   useEffect(() => {
@@ -84,6 +104,25 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
 
     setOngoingCasesDetails(regulatorCompliance.ongoingCasesDetails || "");
     setPenaltyExplanation(regulatorCompliance.penaltyExplanation || "");
+
+    // Prefill document IDs from existing data
+    // Try to get ID from backend first, otherwise extract from path
+    setAmlPolicyDocumentId(
+      regulatorCompliance.amlCftPolicyDocumentFileId ??
+      extractIdFromPath(regulatorCompliance.amlCftPolicyDocumentFilePath ?? null)
+    );
+    setDeclarationDocumentId(
+      regulatorCompliance.declarationNoPenaltyFileId ??
+      extractIdFromPath(regulatorCompliance.declarationNoPenaltyFilePath ?? null)
+    );
+    setSupplyChainDocumentId(
+      regulatorCompliance.supplyChainPolicyDocumentFileId ??
+      extractIdFromPath(regulatorCompliance.supplyChainPolicyDocumentFilePath ?? null)
+    );
+    setResponsibleSourcingDocumentId(
+      regulatorCompliance.assuranceReportFileId ??
+      extractIdFromPath(regulatorCompliance.assuranceReportFilePath ?? null)
+    );
   }, [regulatorCompliance]);
 
   return {
@@ -114,6 +153,19 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
     declarationFile,
     supplyChainDueDiligenceFile,
     responsibleSourcingFile,
+
+    // Document IDs
+    ongoingDetailsDocumentId,
+    amlPolicyDocumentId,
+    declarationDocumentId,
+    supplyChainDocumentId,
+    responsibleSourcingDocumentId,
+
+    // Document paths for prefilled URLs
+    amlCftPolicyDocumentFilePath: regulatorCompliance?.amlCftPolicyDocumentFilePath || "",
+    declarationNoPenaltyFilePath: regulatorCompliance?.declarationNoPenaltyFilePath || "",
+    supplyChainPolicyDocumentFilePath: regulatorCompliance?.supplyChainPolicyDocumentFilePath || "",
+    assuranceReportFilePath: regulatorCompliance?.assuranceReportFilePath || "",
 
     // refs
     ongoingRef,
@@ -149,6 +201,13 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
     setDeclarationFile,
     setSupplyChainDueDiligenceFile,
     setResponsibleSourcingFile,
+
+    // Document ID setters
+    setOngoingDetailsDocumentId,
+    setAmlPolicyDocumentId,
+    setDeclarationDocumentId,
+    setSupplyChainDocumentId,
+    setResponsibleSourcingDocumentId,
 
     handleSelectFile,
     handleDropFile,

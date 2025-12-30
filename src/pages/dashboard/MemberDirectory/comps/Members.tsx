@@ -1,73 +1,96 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Map } from "lucide-react";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+import { Search, ChevronLeft, ChevronRight, Loader2, Mail } from "lucide-react";
+import { memberDirectoryApi, type Member } from "@/services/memberDirectoryApi";
+import { toast } from "react-toastify";
+import ContactMemberModal from "./ContactMemberModal";
 
-export default function MembersDirectory() {
+export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?: () => void }) {
   const [search, setSearch] = useState("");
+  const [country] = useState("");
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 6;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
-  const members = [
-    {
-      id: 1,
-      company: "Arbaz",
-      location: "New York City, USA",
-      type: "Membership Type",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-      avatar: "/static/company1.jpg",
-    },
-    {
-      id: 2,
-      company: "Company Name",
-      location: "New York City, USA",
-      type: "Membership Type",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-      avatar: "/static/company2.jpg",
-    },
-    {
-      id: 3,
-      company: "Company Name",
-      location: "New York City, USA",
-      type: "Membership Type",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-      avatar: "/static/company1.jpg",
-    },
-    {
-      id: 4,
-      company: "Company Name",
-      location: "New York City, USA",
-      type: "Membership Type",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-      avatar: "/static/company2.jpg",
-    },
-    {
-      id: 5,
-      company: "Company Name",
-      location: "New York City, USA",
-      type: "Membership Type",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-      avatar: "/static/company1.jpg",
-    },
-    {
-      id: 6,
-      company: "Company Name",
-      location: "New York City, USA",
-      type: "Membership Type",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-      avatar: "/static/company2.jpg",
-    },
-  ];
+  // Common countries list (you can expand this)
+  // const countries = [
+  //   "United States",
+  //   "United Kingdom",
+  //   "Canada",
+  //   "Australia",
+  //   "Germany",
+  //   "France",
+  //   "Japan",
+  //   "India",
+  //   "China",
+  //   "Brazil",
+  //   "UAE",
+  //   "Saudi Arabia",
+  //   "Singapore",
+  // ];
 
-  // Filter members based on search input
-  const filteredMembers = members.filter((member) =>
-    member.company.toLowerCase().includes(search.toLowerCase())
-  );
+  // Fetch members from API
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      const response = await memberDirectoryApi.getMembers({
+        Search: search || undefined,
+        Country: country || undefined,
+        PageNumber: currentPage,
+        PageSize: pageSize,
+      });
+
+      setMembers(response.data);
+      setTotalPages(response.totalPages);
+      setTotalCount(response.totalCount);
+    } catch (error: any) {
+      console.error("Error fetching members:", error);
+      toast.error(error.message || "Failed to fetch members");
+      setMembers([]);
+      setTotalPages(1);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch members on component mount and when filters change
+  useEffect(() => {
+    fetchMembers();
+  }, [currentPage, country]);
+
+  // Handle search with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1); // Reset to first page on new search
+      fetchMembers();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [search]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+
 
   return (
     <div className="w-full min-h-screen flex flex-col gap-6">
@@ -93,13 +116,33 @@ export default function MembersDirectory() {
           <Search className="absolute right-3 top-3.5 h-5 w-5" color="white" />
         </div>
 
-        {/* Filter Button */}
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 h-12 rounded-xl border-white text-white w-full md:w-auto"
-        >
-          <Map className="h-5 w-5" /> Country
-        </Button>
+        {/* Country Filter */}
+        {/* <div className="flex items-center gap-2 w-full md:w-auto">
+          <Select value={country} onValueChange={handleCountryChange}>
+            <SelectTrigger className="flex items-center gap-2 h-12 rounded-xl border-white text-white bg-transparent w-full md:w-[200px]">
+              <Map className="h-5 w-5" />
+              <SelectValue placeholder="Country" />
+            </SelectTrigger>
+            <SelectContent>
+              {countries.map((countryName) => (
+                <SelectItem key={countryName} value={countryName}>
+                  {countryName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {country && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={clearCountryFilter}
+              className="h-12 w-12 rounded-xl border-white text-white"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
+        </div> */}
       </div>
 
       {/* Section Title */}
@@ -109,8 +152,12 @@ export default function MembersDirectory() {
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-        {filteredMembers.length > 0 ? (
-          filteredMembers.map((member) => (
+        {loading ? (
+          <div className="col-span-full flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[#C6A95F]" />
+          </div>
+        ) : members.length > 0 ? (
+          members.map((member) => (
             <Card
               key={member.id}
               className="bg-[#FFFFFF26] border-none rounded-2xl text-white w-full"
@@ -119,7 +166,7 @@ export default function MembersDirectory() {
                 {/* Top Section */}
                 <div className="flex items-center gap-4">
                   <img
-                    src={member.avatar}
+                    src={member.avatar || "/static/company1.jpg"}
                     alt="avatar"
                     className="w-12 h-12 rounded-full object-cover"
                   />
@@ -136,7 +183,7 @@ export default function MembersDirectory() {
                 {/* Membership */}
                 <div>
                   <p className="font-plusjakarta font-semibold text-[14px] leading-[200%] tracking-normal text-white">
-                    Membership Type
+                    {member.type || "Membership Type"}
                   </p>
 
                   <p className="font-inter font-normal text-[14px] md:text-[16px] leading-[1.2] tracking-normal text-white mt-1">
@@ -147,6 +194,10 @@ export default function MembersDirectory() {
                 {/* Buttons */}
                 <div className="flex flex-wrap items-center justify-between mt-2 gap-3 w-full">
                   <Button
+                    onClick={() => {
+                      setSelectedMember(member);
+                      setIsModalOpen(true);
+                    }}
                     className="
                       font-inter font-normal text-[14px] leading-[100%] tracking-normal
                       text-center w-full md:w-[132px] h-[37px]
@@ -176,6 +227,61 @@ export default function MembersDirectory() {
           </p>
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-white font-inter font-medium text-[14px]">
+              Page {currentPage} of {totalPages}
+            </span>
+            <span className="text-white/70 font-inter font-normal text-[12px]">
+              ({totalCount} members)
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
+
+      {/* Contact Member Modal */}
+      {selectedMember && (
+        <ContactMemberModal
+          memberId={selectedMember.id.toString()}
+          memberName={selectedMember.company}
+          isOpen={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
+      )}
+
+      {/* Floating Action Button for Inbox */}
+      {onSwitchToInbox && (
+        <Button
+          onClick={onSwitchToInbox}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#C6A95F] text-black shadow-lg hover:bg-[#C6A95F]/90 hover:shadow-xl transition-all duration-200 z-50"
+          size="icon"
+        >
+          <Mail className="h-6 w-6" />
+        </Button>
+      )}
     </div>
   );
 }

@@ -30,6 +30,7 @@ import SpecialConsideration from "@/pages/adminDashboard/SpecialConsideration";
 import Settings from "@/pages/adminDashboard/Settings";
 import AdminDashboard from "@/pages/adminDashboard";
 import Applications from "@/pages/adminDashboard/Applications";
+import ApprovedApplications from "@/pages/adminDashboard/ApprovedApplications";
 import UploadDetailsMemberBank from "@/pages/dashboard/UploadDetails/memberBank";
 import UploadDetailsContributingMember from "../pages/dashboard/UploadDetails/contributingMember";
 import UploadDetailsAffiliateMember from "@/pages/dashboard/UploadDetails/affiliateMember";
@@ -98,6 +99,7 @@ const adminDashboardRoutes: RouteConfig[] = [
   { path: "special-consideration", element: <SpecialConsideration />, name: "SpecialConsideration" },
   { path: "settings", element: <Settings />, name: "Settings" },
   { path: "applications", element: <Applications />, name: "Applications" },
+  { path: "approved-applications", element: <ApprovedApplications />, name: "ApprovedApplications" },
 ];
 
 /* ---------------------------------------------------------
