@@ -255,6 +255,8 @@ export interface RegulatoryCompliance {
   complianceOfficerEmail: string;
   hasOngoingCases: boolean;
   ongoingCasesDetails: string;
+  investigationSupportingDocuments: number[];
+  investigationSupportingDocumentPath?: string[];
   anyOnSanctionsList: boolean;
   hasDocumentedAmlPolicies: boolean;
   amlCftPolicyDocumentFileId: number | null;

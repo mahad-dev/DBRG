@@ -37,7 +37,6 @@ export default function Step4BankRelationshipRequirement() {
     bankReferenceLetterFileId,
     setBankReferenceLetterFileId,
     bankReferenceLetterFilePath,
-    setBankReferenceLetterFilePath,
     bankName,
     setBankName,
     accountNumber,

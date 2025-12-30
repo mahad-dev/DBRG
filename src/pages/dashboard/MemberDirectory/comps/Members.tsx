@@ -9,14 +9,14 @@ import { Card, CardContent } from "@/components/ui/card";
 //   SelectTrigger,
 //   SelectValue,
 // } from "@/components/ui/select";
-import { Search, Map, ChevronLeft, ChevronRight, Loader2, X, Mail } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2, Mail } from "lucide-react";
 import { memberDirectoryApi, type Member } from "@/services/memberDirectoryApi";
 import { toast } from "react-toastify";
 import ContactMemberModal from "./ContactMemberModal";
 
 export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?: () => void }) {
   const [search, setSearch] = useState("");
-  const [country, setCountry] = useState("");
+  const [country] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,17 +90,7 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
     }
   };
 
-  // Handle country selection
-  const handleCountryChange = (value: string) => {
-    setCountry(value);
-    setCurrentPage(1);
-  };
 
-  // Clear country filter
-  const clearCountryFilter = () => {
-    setCountry("");
-    setCurrentPage(1);
-  };
 
   return (
     <div className="w-full min-h-screen flex flex-col gap-6">
