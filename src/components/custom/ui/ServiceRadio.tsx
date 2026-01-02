@@ -15,7 +15,6 @@ export const ServiceRadio: React.FC<ServiceRadioProps> = ({
   checked,
   onChange,
   id,
-  name,
 }) => {
   return (
     <label

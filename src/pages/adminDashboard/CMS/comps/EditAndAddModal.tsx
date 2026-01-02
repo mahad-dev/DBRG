@@ -38,17 +38,18 @@ export default function EditAndAddModal({
   onOpenChange,
   onConfirm,
 }: EditAndAddModalProps) {
-  const [category, setCategory] = useState("News"); 
+  const [category, setCategory] = useState("News");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [file, setFile] = useState<File | null>(null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-black text-white border-[#C6A95F] p-6 rounded-lg max-w-lg font-inter">
-        <DialogHeader className="flex-row justify-between items-center w-full mb-1 text-[#C6A95F] text-xl">
+      <DialogContent className="bg-black text-white border-[#C6A95F] p-0 rounded-lg max-w-lg font-inter h-[90vh] flex flex-col">
+        <DialogHeader className="flex-row justify-between items-center w-full px-6 pt-6 pb-2 text-[#C6A95F] text-xl shrink-0">
           Edit & Add New
         </DialogHeader>
 
-        <div className="mb-4">
+        <div className="px-6 pb-6 overflow-y-auto flex-1 scrollbar-hide">
           {/* Title */}
           <label className="text-sm mb-2 block">Title</label>
           <textarea
@@ -154,21 +155,40 @@ export default function EditAndAddModal({
           )}
 
               <label className="text-sm mb-2 mt-4 block">Upload File</label>
-                <UploadBox/>
+                <UploadBox
+                  file={file}
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.onchange = (e) => {
+                      const target = e.target as HTMLInputElement;
+                      if (target.files?.[0]) {
+                        setFile(target.files[0]);
+                      }
+                    };
+                    input.click();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const droppedFile = e.dataTransfer.files[0];
+                    if (droppedFile) {
+                      setFile(droppedFile);
+                    }
+                  }}
+                  onRemove={() => setFile(null)}
+                />
 
           {/* Save Button */}
-          <div>
-            <Button
-              className="self-start mt-16"
-              onClick={onConfirm}
-              variant="site_btn"
-            >
-              Add or Save
-            </Button>
-          </div>
+          <Button
+            className="self-start mt-16"
+            onClick={onConfirm}
+            variant="site_btn"
+          >
+            Add or Save
+          </Button>
         </div>
 
-        <DialogFooter />
+        <DialogFooter className="shrink-0" />
       </DialogContent>
     </Dialog>
   );
