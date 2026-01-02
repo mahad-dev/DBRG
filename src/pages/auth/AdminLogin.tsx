@@ -52,10 +52,11 @@ const AdminLogin: React.FC = () => {
 
       const userData = {
         userId: data.userId,
-        name: data.name,
+        name: data.name || data.email.split('@')[0] || 'Admin User',
         email: data.email,
         userType: data.userType,
         membershipType: data.application?.result?.membershipType?.toString(),
+        accessToken: data.accessToken,
       };
 
       login(userData);

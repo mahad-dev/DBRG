@@ -7,6 +7,7 @@ interface User {
   email: string;
   userType: number; // 0/1 for member, 2 for admin
   membershipType?: string;
+  accessToken?: string;
 }
 
 interface AuthContextType {
@@ -35,10 +36,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const token = localStorage.getItem('accessToken');
     const userId = localStorage.getItem('userId');
-    const name = localStorage.getItem('name');
     const email = localStorage.getItem('email');
     const userType = localStorage.getItem('userType');
-    return !!(token && userId && name && email && userType);
+    // Note: name can be empty, so we don't require it for authentication
+    return !!(token && userId && email && userType);
   });
 
   const [user, setUser] = useState<User | null>(() => {
@@ -49,10 +50,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const userType = localStorage.getItem('userType');
     const membershipType = localStorage.getItem('membershipType');
 
-    if (token && userId && name && email && userType) {
+    if (token && userId && email && userType) {
       return {
         userId,
-        name,
+        name: name || email?.split('@')[0] || 'User',
         email,
         userType: parseInt(userType),
         membershipType: membershipType || undefined,
@@ -79,7 +80,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setRole(userData.userType === 2 ? 'admin' : 'member');
 
     // Store in localStorage
-    localStorage.setItem('accessToken', localStorage.getItem('accessToken') || '');
+    if (userData.accessToken) {
+      localStorage.setItem('accessToken', userData.accessToken);
+    }
     localStorage.setItem('userId', userData.userId);
     localStorage.setItem('name', userData.name);
     localStorage.setItem('email', userData.email);

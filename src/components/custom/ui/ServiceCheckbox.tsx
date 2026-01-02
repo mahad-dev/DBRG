@@ -7,6 +7,7 @@ interface ServiceCheckboxProps {
   checked: boolean;
   onChange: () => void;
   id?: string;
+  transparent?: boolean;
 }
 
 export const ServiceCheckbox: React.FC<ServiceCheckboxProps> = ({
@@ -14,6 +15,7 @@ export const ServiceCheckbox: React.FC<ServiceCheckboxProps> = ({
   checked,
   onChange,
   id,
+  transparent = false,
 }) => {
   return (
     <label
@@ -32,7 +34,7 @@ export const ServiceCheckbox: React.FC<ServiceCheckboxProps> = ({
       <div
         onClick={onChange}
         className={`w-6 h-6 rounded-sm border flex items-center justify-center transition-all shrink-0
-          ${checked ? "bg-[#C6A95F] border-none" : "bg-white border-none"}`}
+          ${checked ? "bg-[#C6A95F] border-none" : transparent ? "bg-transparent border-white" : "bg-white border-none"}`}
         aria-hidden="true"
       >
         {checked && (
