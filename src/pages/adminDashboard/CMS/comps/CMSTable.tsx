@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Search, Filter, Calendar, MoreVertical } from "lucide-react";
+import EditAndAddModal from "./EditAndAddModal";
 
 /* ================= TYPES ================= */
 
@@ -49,6 +50,8 @@ const ITEMS_PER_PAGE = 6;
 export default function CMSTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  
+  const [editModal,setEditModal]=useState(false);
 
   const filteredData = useMemo(() => {
     return cmsData.filter((i) =>
@@ -64,6 +67,13 @@ export default function CMSTable() {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return filteredData.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredData, page]);
+
+
+  
+const handleEdit = () => {
+
+  setEditModal(true);
+};
 
   return (
     <div className="min-h-screen text-white">
@@ -135,7 +145,9 @@ export default function CMSTable() {
               <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="text-lg font-semibold text-white flex-1">{item.title}</h3>
-                  <ActionMenu />
+                  <ActionMenu 
+                  onEdit={() => handleEdit()}
+                  />
                 </div>
                 <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.description}</p>
                 <div className="flex justify-between items-center">
@@ -181,7 +193,9 @@ export default function CMSTable() {
                       </TableCell>
                       <TableCell className="py-4 px-2">{item.date}</TableCell>
                       <TableCell className="py-4 px-2">
-                        <ActionMenu />
+                        <ActionMenu 
+                        onEdit={() => handleEdit()}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -193,7 +207,16 @@ export default function CMSTable() {
           <FooterPagination page={page} total={totalPages} setPage={setPage} />
         </div>
       </div>
+
+      {/* ===== MODALS ===== */}
+          <EditAndAddModal
+            open={editModal}
+            onOpenChange={setEditModal}
+            onConfirm={handleEdit}
+          />
     </div>
+
+    
   );
 }
 
@@ -240,14 +263,18 @@ function FooterPagination({
   );
 }
 
-function ActionMenu() {
+function ActionMenu({
+  onEdit,
+}:{
+  onEdit: () => void;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem>Edit</DropdownMenuItem>
+        <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
         <DropdownMenuItem>View</DropdownMenuItem>
         <DropdownMenuItem className="text-red-500">
           Delete
