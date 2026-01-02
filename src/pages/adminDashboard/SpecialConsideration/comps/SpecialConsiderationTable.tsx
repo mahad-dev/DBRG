@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Search, Filter, Map, MoreVertical } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import ApprovedDialog from "./ApproveModal";
 import RejectDialog from "./RejectModal";
 import RemarksDialog from "./RemarksModal";
@@ -206,13 +207,28 @@ export default function SpecialConsiderationTable() {
 
                 <TableBody>
                   {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <div className="flex justify-center items-center min-h-[400px]">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-28" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-48" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-5 w-5 rounded" />
+                        </TableCell>
+                      </TableRow>
+                    ))
                   ) : data.length === 0 ? (
                     <TableRow>
                       <TableCell

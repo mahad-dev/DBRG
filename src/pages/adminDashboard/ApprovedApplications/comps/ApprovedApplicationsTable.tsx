@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Search, Filter, Map, MoreVertical } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { userApi, type ApprovedApplication } from "@/services/userApi";
 import { toast } from "react-toastify";
 import DownloadReportModal from "./DownloadReportModal";
@@ -126,13 +127,22 @@ export default function ApprovedApplicationsTable() {
 
                 <TableBody>
                   {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <div className="flex justify-center items-center min-h-[300px]">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-28" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-5 w-5 rounded" />
+                        </TableCell>
+                      </TableRow>
+                    ))
                   ) : data.length === 0 ? (
                     <TableRow>
                       <TableCell
