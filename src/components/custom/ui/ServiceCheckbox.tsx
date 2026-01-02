@@ -3,7 +3,7 @@
 import React from "react";
 
 interface ServiceCheckboxProps {
-  label: string;
+  label: string | React.ReactNode;
   checked: boolean;
   onChange: () => void;
   id?: string;
