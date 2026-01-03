@@ -514,6 +514,15 @@ export default function Step1Applicability() {
                       setFieldValue('evidenceFileId', null);
                     }}
                   />
+                  {existingEvidencePath && !evidenceFile && (
+                    <a
+                      href={existingEvidencePath}
+                      target="_blank"
+                      className="mt-2 inline-block text-[#C6A95F] underline"
+                    >
+                      View Previous Document
+                    </a>
+                  )}
                   {touched.evidenceFile && errors.evidenceFile && (
                     <p className="text-red-500 text-sm mt-2">{errors.evidenceFile as string}</p>
                   )}
@@ -584,6 +593,15 @@ export default function Step1Applicability() {
                     setFieldValue('signedAMLFileId', null);
                   }}
                 />
+                {existingSignedAMLPath && !signedAMLFile && (
+                  <a
+                    href={existingSignedAMLPath}
+                    target="_blank"
+                    className="mt-2 inline-block text-[#C6A95F] underline"
+                  >
+                    View Previous Document
+                  </a>
+                )}
                 {touched.signedAMLFile && errors.signedAMLFile && (
                   <>
                     {console.log('❌ Formik error for signedAMLFile:', errors.signedAMLFile, 'touched:', touched.signedAMLFile)}

@@ -269,6 +269,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           taxRegistrationDocument: taxRegDocId,
           website: form.website,
           officialEmail: form.officialEmail,
+          phoneNumber: form.phoneNumber,
           primaryContactName: form.primaryContactName,
           primaryContactDesignation: form.primaryContactDesignation,
           primaryContactEmail: form.primaryContactEmail,
@@ -559,6 +560,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                   setFieldTouched('tradeLicenseFile', true);
                 }}
               />
+              {form.tradeLicenseDocumentPath && !uploadBoxes.tradeLicense && (
+                <a
+                  href={form.tradeLicenseDocumentPath}
+                  target="_blank"
+                  className="mt-2 inline-block text-[#C6A95F] underline"
+                >
+                  View Previous Document
+                </a>
+              )}
               {touched.tradeLicenseFile && errors.tradeLicenseFile && (
                 <p className="text-red-500 text-sm mt-2">{errors.tradeLicenseFile as string}</p>
               )}
@@ -729,6 +739,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             setFieldTouched('coiFile', true);
           }}
         />
+        {form.certificateOfIncorporationPath && !uploadBoxes.coi && (
+          <a
+            href={form.certificateOfIncorporationPath}
+            target="_blank"
+            className="mt-2 inline-block text-[#C6A95F] underline"
+          >
+            View Previous Document
+          </a>
+        )}
         {touched.coiFile && errors.coiFile && (
           <p className="text-red-500 text-sm mt-2">{errors.coiFile as string}</p>
         )}
@@ -796,6 +815,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             setFieldTouched('passportFile', true);
           }}
         />
+        {form.passportDocumentPath && !uploadBoxes.passport && (
+          <a
+            href={form.passportDocumentPath}
+            target="_blank"
+            className="mt-2 inline-block text-[#C6A95F] underline"
+          >
+            View Previous Document
+          </a>
+        )}
         {touched.passportFile && errors.passportFile && (
           <p className="text-red-500 text-sm mt-2">{errors.passportFile as string}</p>
         )}
@@ -863,6 +891,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             setFieldTouched('nationalIdFile', true);
           }}
         />
+        {form.nationalIdDocumentPath && !uploadBoxes.nationalId && (
+          <a
+            href={form.nationalIdDocumentPath}
+            target="_blank"
+            className="mt-2 inline-block text-[#C6A95F] underline"
+          >
+            View Previous Document
+          </a>
+        )}
         {touched.nationalIdFile && errors.nationalIdFile && (
           <p className="text-red-500 text-sm mt-2">{errors.nationalIdFile as string}</p>
         )}
@@ -930,6 +967,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             setFieldTouched('vatDocFile', true);
           }}
         />
+        {form.vatDocumentPath && !uploadBoxes.vatDoc && (
+          <a
+            href={form.vatDocumentPath}
+            target="_blank"
+            className="mt-2 inline-block text-[#C6A95F] underline"
+          >
+            View Previous Document
+          </a>
+        )}
         {touched.vatDocFile && errors.vatDocFile && (
           <p className="text-red-500 text-sm mt-2">{errors.vatDocFile as string}</p>
         )}
@@ -997,6 +1043,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             setFieldTouched('taxRegDocFile', true);
           }}
         />
+        {form.taxRegistrationDocumentPath && !uploadBoxes.taxRegDoc && (
+          <a
+            href={form.taxRegistrationDocumentPath}
+            target="_blank"
+            className="mt-2 inline-block text-[#C6A95F] underline"
+          >
+            View Previous Document
+          </a>
+        )}
         {touched.taxRegDocFile && errors.taxRegDocFile && (
           <p className="text-red-500 text-sm mt-2">{errors.taxRegDocFile as string}</p>
         )}
@@ -1182,6 +1237,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             setFieldTouched('addressProofFile', true);
           }}
         />
+        {form.addressProofDocumentPath && !uploadBoxes.addressProof && (
+          <a
+            href={form.addressProofDocumentPath}
+            target="_blank"
+            className="mt-2 inline-block text-[#C6A95F] underline"
+          >
+            View Previous Document
+          </a>
+        )}
         {touched.addressProofFile && errors.addressProofFile && (
           <p className="text-red-500 text-sm mt-2">{errors.addressProofFile as string}</p>
         )}
@@ -1985,6 +2049,15 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             setFieldTouched('tradeAssociationCertificateFile', true);
           }}
         />
+        {form.accreditationCertificatePath && !uploadBoxes.tradeAssociationCertificate && (
+          <a
+            href={form.accreditationCertificatePath}
+            target="_blank"
+            className="mt-2 inline-block text-[#C6A95F] underline"
+          >
+            View Previous Document
+          </a>
+        )}
         {touched.tradeAssociationCertificateFile && errors.tradeAssociationCertificateFile && (
           <p className="text-red-500 text-sm mt-2">{errors.tradeAssociationCertificateFile as string}</p>
         )}

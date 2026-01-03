@@ -229,6 +229,15 @@ export default function Step3BankRelationshipRequirement() {
                   setFieldValue('bankReferenceLetterFileId', null);
                 }}
               />
+              {formData.bankRelationReq?.bankReferenceLetterFilePath && !bankFile && (
+                <a
+                  href={formData.bankRelationReq.bankReferenceLetterFilePath}
+                  target="_blank"
+                  className="mt-2 inline-block text-[#C6A95F] underline"
+                >
+                  View Previous Document
+                </a>
+              )}
               {touched.bankReferenceLetterFile && errors.bankReferenceLetterFile && (
                 <p className="text-red-500 text-sm mt-2">{errors.bankReferenceLetterFile as string}</p>
               )}

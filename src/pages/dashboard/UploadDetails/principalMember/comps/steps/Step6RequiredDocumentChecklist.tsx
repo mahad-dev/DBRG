@@ -272,6 +272,15 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                     setFieldTouched(`${it.id}_file`, true);
                   }}
                 />
+                {(formData.memberRequiredDocuments as any)?.[pathMap[it.id]] && !files[it.id] && (
+                  <a
+                    href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
+                    target="_blank"
+                    className="mt-2 inline-block text-[#C6A95F] underline"
+                  >
+                    View Previous Document
+                  </a>
+                )}
                 {(touched as any)[`${it.id}_file`] && (errors as any)[`${it.id}_file`] && (
                   <p className="text-red-500 text-sm mt-2">{(errors as any)[`${it.id}_file`] as string}</p>
                 )}

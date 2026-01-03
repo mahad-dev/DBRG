@@ -292,6 +292,15 @@ export default function Step4FinancialThresholds() {
                     setFieldValue('bullionTurnoverFileId', null);
                   }}
                 />
+                {bullionTurnoverProofFileIdPath && !bullionFile && (
+                  <a
+                    href={bullionTurnoverProofFileIdPath}
+                    target="_blank"
+                    className="mt-2 inline-block text-[#C6A95F] underline"
+                  >
+                    View Previous Document
+                  </a>
+                )}
                 {touched.bullionTurnoverFile && errors.bullionTurnoverFile && (
                   <p className="text-red-500 text-sm mt-2">{errors.bullionTurnoverFile as string}</p>
                 )}
@@ -365,6 +374,15 @@ export default function Step4FinancialThresholds() {
                       setFieldValue('netWorthFileId', null);
                     }}
                   />
+                  {netWorthProofPath && !netWorthFile && (
+                    <a
+                      href={netWorthProofPath}
+                      target="_blank"
+                      className="mt-2 inline-block text-[#C6A95F] underline"
+                    >
+                      View Previous Document
+                    </a>
+                  )}
                   {touched.netWorthFile && errors.netWorthFile && (
                     <p className="text-red-500 text-sm mt-2">{errors.netWorthFile as string}</p>
                   )}
