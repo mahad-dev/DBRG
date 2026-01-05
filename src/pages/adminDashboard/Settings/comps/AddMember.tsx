@@ -38,8 +38,8 @@ const AddMember = () => {
   const [usersLoading, setUsersLoading] = useState(true);
   const [isAddExisting, setIsAddExisting] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
-
-  const initialValues = {
+  const [formikKey, setFormikKey] = useState(0);
+  const [initialValues, setInitialValues] = useState({
     name: '',
     phone: '',
     email: '',
@@ -47,7 +47,7 @@ const AddMember = () => {
     password: '',
     selectedPermissions: [] as number[],
     permissionLevels: {} as Record<number, string>,
-  };
+  });
 
   const handleSubmit = async (values: typeof initialValues) => {
     const userId = isAddExisting ? selectedUserId : '';
@@ -82,7 +82,7 @@ const AddMember = () => {
       try {
         const allPermissions = await userApi.getAllPermissions();
         const grouped = allPermissions
-          .filter(p => p.parentId === null) 
+          .filter(p => p.parentId === null)
           .map(parent => ({
             parent,
             children: allPermissions.filter(p => p.parentId === parent.id)
@@ -90,7 +90,7 @@ const AddMember = () => {
         setPermissions(grouped);
       } catch (error) {
         console.error('Failed to fetch permissions:', error);
-      } 
+      }
     };
 
     const fetchUsers = async () => {
@@ -109,8 +109,41 @@ const AddMember = () => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (selectedUserId && isAddExisting) {
+        try {
+          const response = await userApi.getUserById(selectedUserId);
+          const userData = response.data;
+
+          // Extract permission IDs from permissions array
+          const permissionIds = userData.permissions ? userData.permissions.map((p: Permission) => p.id) : [];
+
+          // Update form values with fetched user data
+          setInitialValues({
+            name: userData.fullName || '',
+            phone: userData.phoneNumber || '',
+            email: userData.email || '',
+            role: userData.role === 1 ? 'member' : 'admin',
+            password: '',
+            selectedPermissions: permissionIds,
+            permissionLevels: {},
+          });
+
+          // Increment key to force Formik to reinitialize with new values
+          setFormikKey(prev => prev + 1);
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+          toast.error('Failed to load user data');
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [selectedUserId, isAddExisting]);
+
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+    <Formik key={formikKey} initialValues={initialValues} onSubmit={handleSubmit} enableReinitialize>
       {({ values, handleChange, setFieldValue }) => (
         <Form>
           <div className="mt-5 font-inter overflow-visible">
@@ -159,7 +192,7 @@ const AddMember = () => {
                         ) : (
                           users.map((user) => (
                             <SelectItem key={user.userId} value={user.userId}>
-                              {user.name? user.name : user.userId} 
+                              {user.name ? `${user.name} (${user.email})` : user.email}
                             </SelectItem>
                           ))
                         )}

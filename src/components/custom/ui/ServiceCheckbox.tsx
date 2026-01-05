@@ -33,7 +33,7 @@ export const ServiceCheckbox: React.FC<ServiceCheckboxProps> = ({
     >
       <div
         onClick={onChange}
-        className={`w-6 h-6 rounded-sm border flex items-center justify-center transition-all shrink-0
+        className={`w-6 h-6 rounded-sm border flex items-center justify-center transition-all shrink-0 cursor-pointer
           ${checked ? "bg-[#C6A95F] border-none" : transparent ? "bg-transparent border-white" : "bg-white border-none"}`}
         aria-hidden="true"
       >

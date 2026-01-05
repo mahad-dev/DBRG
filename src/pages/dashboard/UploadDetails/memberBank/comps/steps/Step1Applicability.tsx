@@ -501,7 +501,7 @@ export default function Step1Applicability() {
                 ref={signedRef}
                 type="file"
                 hidden
-                accept="application/pdf,image/*"
+                accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 onChange={async (e) => {
                   const file = e.target.files?.[0] ?? null;
                   await handleFileUpload(

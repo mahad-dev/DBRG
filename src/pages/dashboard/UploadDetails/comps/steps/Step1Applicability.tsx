@@ -339,7 +339,7 @@ export default function Step1Applicability() {
               ref={evidenceRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={(e) => handleSelectFile(e, setEvidenceFile)}
             />
             <UploadBox
@@ -382,7 +382,7 @@ export default function Step1Applicability() {
             ref={signedRef}
             type="file"
             className="hidden"
-            accept="application/pdf,image/*"
+            accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
             onChange={(e) => handleSelectFile(e, setSignedAMLFile)}
           />
           <UploadBox

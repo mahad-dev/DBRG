@@ -57,6 +57,7 @@ const AdminLogin: React.FC = () => {
         userType: data.userType,
         membershipType: data.application?.result?.membershipType?.toString(),
         accessToken: data.accessToken,
+        permissions: data.permissions || [],
       };
 
       login(userData);

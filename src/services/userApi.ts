@@ -217,6 +217,65 @@ class UserApi {
       throw error;
     }
   }
+
+  async getUserById(userId: string): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.get('/User/GetUserById', {
+        params: { userId }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createPayment(data: {
+    userId?: string;
+    companyName: string;
+    date: string;
+    dueDate: string;
+    paymentStatus: number;
+    amount: number;
+    invoiceNumber: string;
+    vatNumber: string;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.post('/Payment/Create', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPaymentById(id: number): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.get('/Payment/GetById', {
+        params: { id }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePayment(data: {
+    id: string;
+    userId?: string;
+    companyName: string;
+    date: string;
+    dueDate: string;
+    paymentStatus: number;
+    amount: number;
+    invoiceNumber: string;
+    vatNumber: string;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.put('/Payment/Update', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const userApi = new UserApi();

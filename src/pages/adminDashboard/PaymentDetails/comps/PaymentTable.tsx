@@ -18,10 +18,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical } from "lucide-react";
+import { Search, Filter, MoreVertical, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import GenerateInvoiceModal from "./GenerateInvoice";
 import apiClient from "@/services/apiClient";
+import { useAuth } from "@/context/AuthContext";
 
 /* ================= TYPES ================= */
 
@@ -43,11 +44,11 @@ const ITEMS_PER_PAGE = 6;
 
 const getStatusText = (status: number): string => {
   switch (status) {
-    case 0:
-      return "Pending";
     case 1:
-      return "Completed";
+      return "Pending";
     case 2:
+      return "Completed";
+    case 3:
       return "Rejected";
     default:
       return "Pending";
@@ -72,15 +73,155 @@ const formatTime = (dateString: string): string => {
   });
 };
 
+/* ================= EXPORT FUNCTIONS ================= */
+
+const downloadCSV = (data: PaymentItem[]) => {
+  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const csvData = data.map(item => [
+    item.userId || "N/A",
+    item.companyName || "N/A",
+    formatDate(item.date),
+    formatTime(item.date),
+    getStatusText(item.paymentStatus),
+    item.amount ? `$${item.amount.toLocaleString()}` : "N/A",
+    item.invoiceNumber || "N/A",
+    item.vatNumber || "N/A"
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `payment_report_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadExcel = (data: PaymentItem[]) => {
+  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const excelData = data.map(item => [
+    item.userId || "N/A",
+    item.companyName || "N/A",
+    formatDate(item.date),
+    formatTime(item.date),
+    getStatusText(item.paymentStatus),
+    item.amount || "N/A",
+    item.invoiceNumber || "N/A",
+    item.vatNumber || "N/A"
+  ]);
+
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
+  html += '<body><table>';
+  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
+  html += '</table></body></html>';
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `payment_report_${new Date().toISOString().split('T')[0]}.xls`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadPDF = (data: PaymentItem[]) => {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Payment Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <h1>Payment Report</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th>Invoice Number</th>
+            <th>VAT Number</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  data.forEach(item => {
+    html += `
+      <tr>
+        <td>${item.userId || "N/A"}</td>
+        <td>${item.companyName || "N/A"}</td>
+        <td>${formatDate(item.date)}</td>
+        <td>${formatTime(item.date)}</td>
+        <td>${getStatusText(item.paymentStatus)}</td>
+        <td>${item.amount ? `$${item.amount.toLocaleString()}` : "N/A"}</td>
+        <td>${item.invoiceNumber || "N/A"}</td>
+        <td>${item.vatNumber || "N/A"}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+      <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `payment_report_${new Date().toISOString().split('T')[0]}.html`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 /* ================= COMPONENT ================= */
 
 export default function PaymentTable() {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [generateInvoice, setgenerateInvoice] = useState(false);
   const [data, setData] = useState<PaymentItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [editPaymentId, setEditPaymentId] = useState<number | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const { canCreate, canEdit } = useAuth();
+  const hasCreateAccess = canCreate('PAYMENTS');
+  const hasEditAccess = canEdit('PAYMENTS');
 
   /* ================= FETCH FROM API ================= */
   const fetchPayments = async () => {
@@ -89,6 +230,7 @@ export default function PaymentTable() {
       const res = await apiClient.get("/Payment/GetAll", {
         params: {
           Search: search || undefined,
+          Status: statusFilter,
           PageNumber: page,
           PageSize: ITEMS_PER_PAGE,
         },
@@ -105,14 +247,28 @@ export default function PaymentTable() {
 
   useEffect(() => {
     fetchPayments();
-  }, [page, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search, statusFilter]);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  const handleGenerateInvoice = () => {
+  const handleInvoiceSuccess = () => {
+    fetchPayments();
+  };
+
+  const handleEdit = (paymentId: number) => {
+    setEditPaymentId(paymentId);
+    setIsEditMode(true);
     setgenerateInvoice(true);
   };
 
+  const handleModalClose = (open: boolean) => {
+    setgenerateInvoice(open);
+    if (!open) {
+      setEditPaymentId(null);
+      setIsEditMode(false);
+    }
+  };
 
   return (
     <div className="min-h-screen text-white">
@@ -124,23 +280,40 @@ export default function PaymentTable() {
             Payment Management
           </h1>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
-            <Button className="bg-black text-[#C6A95F] border-[#C6A95F] border-2 w-full sm:w-auto" onClick={() => setgenerateInvoice(true)}>
-              Generate Invoice
-            </Button>
-            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
-              Add Payment
-            </Button>
-            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
-              Download Report
-            </Button>
+            {hasCreateAccess && (
+              <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer" onClick={() => setgenerateInvoice(true)}>
+                Add Payment
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Report
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem onClick={() => downloadPDF(data)} className="cursor-pointer">
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadCSV(data)} className="cursor-pointer">
+                  Download as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadExcel(data)} className="cursor-pointer">
+                  Download as Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
         {/* ===== MODALS ===== */}
                 <GenerateInvoiceModal
                   open={generateInvoice}
-                  onOpenChange={setgenerateInvoice}
-                  onConfirm={handleGenerateInvoice}
+                  onOpenChange={handleModalClose}
+                  onConfirm={handleInvoiceSuccess}
+                  paymentId={editPaymentId}
+                  isEditMode={isEditMode}
                 />
 
 
@@ -168,22 +341,55 @@ export default function PaymentTable() {
             </div>
 
             {/* Status Filter */}
-            <Button
-              variant="outline"
-              className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
-            >
-              <Filter className="w-4 h-4" />
-              Status
-            </Button>
-
-            {/* Date Filter */}
-            <Button
-              variant="outline"
-              className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
-            >
-              <Calendar className="w-4 h-4" />
-              Date
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+                >
+                  <Filter className="w-4 h-4" />
+                  {statusFilter === undefined ? "Status" : getStatusText(statusFilter)}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(undefined);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  All
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(1);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Pending
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(2);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Completed
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(3);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Rejected
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -215,17 +421,17 @@ export default function PaymentTable() {
               {data.map((item) => (
                 <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-white flex-1">{item.userId}</h3>
-                    <ActionMenu />
+                    <h3 className="text-lg font-semibold text-white flex-1">{item.userId || "N/A"}</h3>
+                    <ActionMenu canEdit={hasEditAccess} payment={item} onEdit={handleEdit} />
                   </div>
-                  <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.companyName}</p>
+                  <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.companyName || "N/A"}</p>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium px-2 py-1 rounded-full text-white">
                       {getStatusText(item.paymentStatus)}
                     </span>
                     <span className="text-sm text-white/60">{formatDate(item.date)} {formatTime(item.date)}</span>
                   </div>
-                  <div className="mt-2 text-sm font-semibold text-white">${item.amount.toLocaleString()}</div>
+                  <div className="mt-2 text-sm font-semibold text-white">{item.amount ? `$${item.amount.toLocaleString()}` : "N/A"}</div>
                 </div>
               ))}
             </div>
@@ -299,10 +505,10 @@ export default function PaymentTable() {
                             height={36}
                             className="rounded-full"
                           />
-                          {item.userId}
+                          {item.userId || "N/A"}
                         </TableCell>
                         <TableCell className="py-4 px-4 sm:px-16">
-                          {item.companyName}
+                          {item.companyName || "N/A"}
                         </TableCell>
                         <TableCell className="py-4 px-2">{formatDate(item.date)}</TableCell>
                         <TableCell className="py-4 px-2">{formatTime(item.date)}</TableCell>
@@ -311,9 +517,9 @@ export default function PaymentTable() {
                             {getStatusText(item.paymentStatus)}
                           </span>
                         </TableCell>
-                        <TableCell className="py-4 px-2 font-semibold">${item.amount.toLocaleString()}</TableCell>
+                        <TableCell className="py-4 px-2 font-semibold">{item.amount ? `$${item.amount.toLocaleString()}` : "N/A"}</TableCell>
                         <TableCell className="py-4 px-2">
-                          <ActionMenu/>
+                          <ActionMenu canEdit={hasEditAccess} payment={item} onEdit={handleEdit} />
                         </TableCell>
                       </TableRow>
                     ))
@@ -375,18 +581,23 @@ function FooterPagination({
   );
 }
 
-function ActionMenu() {
+function ActionMenu({ canEdit, payment, onEdit }: { canEdit: boolean; payment: PaymentItem; onEdit: (paymentId: number) => void }) {
+  const { hasPermission } = useAuth();
+  const canGet = hasPermission('PAYMENTS.GET');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem>View</DropdownMenuItem>
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem className="text-red-500">
-          Delete
-        </DropdownMenuItem>
+        {canGet && <DropdownMenuItem className="cursor-pointer">View</DropdownMenuItem>}
+        {canEdit && <DropdownMenuItem onClick={() => onEdit(payment.id)} className="cursor-pointer">Edit</DropdownMenuItem>}
+        {canEdit && (
+          <DropdownMenuItem className="text-red-500 cursor-pointer">
+            Delete
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

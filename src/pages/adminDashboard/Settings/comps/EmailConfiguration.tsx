@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import apiClient from "@/services/apiClient";
 import { toast } from "react-toastify";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 // Mapping for action dropdowns
 const actionMap: Record<number, string> = {
@@ -22,9 +24,81 @@ const actionMap: Record<number, string> = {
   3: "New Resource",
 };
 
+// Email validation helper - supports comma-separated emails
+const validateCommaSeparatedEmails = (value: string | undefined) => {
+  if (!value || value.trim() === "") return true;
+
+  const emails = value.split(",").map((email) => email.trim());
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return emails.every((email) => emailRegex.test(email));
+};
+
 const EmailConfiguration = () => {
-  const [emailConfigList, setEmailConfigList] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  // Formik setup with validation schema
+  const formik = useFormik({
+    initialValues: {
+      action1_notify: "",
+      action2_approval: "",
+      action2_finalApproval: "",
+      action3_approval: "",
+      action3_notify: "",
+    },
+    validateOnMount: false,
+    validationSchema: Yup.object({
+      action1_notify: Yup.string().test(
+        "valid-emails",
+        "Please enter valid email(s). Multiple emails should be comma-separated",
+        validateCommaSeparatedEmails
+      ),
+      action2_approval: Yup.string().test(
+        "valid-emails",
+        "Please enter valid email(s). Multiple emails should be comma-separated",
+        validateCommaSeparatedEmails
+      ),
+      action2_finalApproval: Yup.string().test(
+        "valid-emails",
+        "Please enter valid email(s). Multiple emails should be comma-separated",
+        validateCommaSeparatedEmails
+      ),
+      action3_approval: Yup.string().test(
+        "valid-emails",
+        "Please enter valid email(s). Multiple emails should be comma-separated",
+        validateCommaSeparatedEmails
+      ),
+      action3_notify: Yup.string().test(
+        "valid-emails",
+        "Please enter valid email(s). Multiple emails should be comma-separated",
+        validateCommaSeparatedEmails
+      ),
+    }),
+    onSubmit: async (values) => {
+      try {
+        const body = [
+          {
+            action: 1,
+            notify: values.action1_notify || "",
+          },
+          {
+            action: 2,
+            approval: values.action2_approval || "",
+            finalApproval: values.action2_finalApproval || "",
+          },
+          {
+            action: 3,
+            approval: values.action3_approval || "",
+            notify: values.action3_notify || "",
+          },
+        ];
+
+        await apiClient.post("/EmailConfig/SetEmailConfig", body);
+        toast.success("Email configuration updated successfully");
+      } catch (error) {
+        console.error("Error updating email configuration:", error);
+        toast.error("Failed to update email configuration");
+      }
+    },
+  });
 
   // GET API
   useEffect(() => {
@@ -32,7 +106,19 @@ const EmailConfiguration = () => {
       try {
         const response = await apiClient.get("/EmailConfig/GetEmailConfig");
         if (response.data?.status && response.data?.data) {
-          setEmailConfigList(response.data.data);
+          const data = response.data.data;
+
+          const action1 = data.find((c: any) => c.action === 1);
+          const action2 = data.find((c: any) => c.action === 2);
+          const action3 = data.find((c: any) => c.action === 3);
+
+          formik.setValues({
+            action1_notify: action1?.notify || "",
+            action2_approval: action2?.approval || "",
+            action2_finalApproval: action2?.finalApproval || "",
+            action3_approval: action3?.approval || "",
+            action3_notify: action3?.notify || "",
+          });
         }
       } catch (error) {
         console.error("Error fetching email configuration:", error);
@@ -42,54 +128,6 @@ const EmailConfiguration = () => {
 
     fetchEmailConfig();
   }, []);
-
-  // POST API
-  const handleUpdate = async () => {
-    setLoading(true);
-
-    try {
-      const body = emailConfigList.map((config) => {
-        const payload: any = { action: config.action };
-
-        if (config.action === 1) {
-          // Action 1: Only notify
-          payload.notify = config.notify || "";
-        } else if (config.action === 2) {
-          // Action 2: Only approval and finalApproval
-          payload.approval = config.approval || "";
-          payload.finalApproval = config.finalApproval || "";
-        } else if (config.action === 3) {
-          // Action 3: Only approval and notify
-          payload.approval = config.approval || "";
-          payload.notify = config.notify || "";
-        }
-
-        return payload;
-      });
-
-      await apiClient.post("/EmailConfig/SetEmailConfig", body);
-
-      toast.success("Email configuration updated successfully");
-    } catch (error) {
-      console.error("Error updating email configuration:", error);
-      toast.error("Failed to update email configuration");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const memberApplication = emailConfigList.find((c) => c.action === 1);
-  const memberApproved = emailConfigList.find((c) => c.action === 2);
-  const newResource = emailConfigList.find((c) => c.action === 3);
-
-  // Update email configuration
-  const updateEmailConfig = (action: number, field: string, value: string) => {
-    setEmailConfigList((prev) =>
-      prev.map((config) =>
-        config.action === action ? { ...config, [field]: value } : config
-      )
-    );
-  };
 
   return (
     <div className="font-inter mt-5 overflow-visible">
@@ -101,144 +139,176 @@ const EmailConfiguration = () => {
         </CardHeader>
 
         <CardContent className="space-y-6 overflow-visible">
-          {/* New Member Application */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-white">Action</Label>
-              <Select value={String(memberApplication?.action || "")} disabled>
-                <SelectTrigger className="max-w-md bg-white! text-black border-none">
-                  <SelectValue className="bg-white">
-                    {actionMap[memberApplication?.action]}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">
-                    {actionMap[memberApplication?.action]}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white">Notify</Label>
-              <Input
-                type="text"
-                value={memberApplication?.notify || ""}
-                onChange={(e) => updateEmailConfig(1, "notify", e.target.value)}
-                className="w-full max-w-lg bg-white text-black border-none"
-              />
-            </div>
-          </div>
-
-          <Separator className="bg-gray-600" />
-
-          {/* New Member Approved */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-white">Action</Label>
-              <Select value={String(memberApproved?.action || "")} disabled>
-                <SelectTrigger className="max-w-md bg-white text-black border-none">
-                  <SelectValue>
-                    {actionMap[memberApproved?.action]}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2">
-                    {actionMap[memberApproved?.action]}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            
-              <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={formik.handleSubmit}>
+            {/* New Member Application */}
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-white">First Approval</Label>
-                <Input
-                  type="email"
-                  value={memberApproved?.approval || ""}
-                  onChange={(e) =>
-                    updateEmailConfig(2, "approval", e.target.value)
-                  }
-                  className="w-full bg-white text-black border-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-white">Final Approval</Label>
-                <Input
-                  type="email"
-                  value={memberApproved?.finalApproval || ""}
-                  onChange={(e) =>
-                    updateEmailConfig(2, "finalApproval", e.target.value)
-                  }
-                  className="w-full bg-white text-black border-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-gray-600" />
-
-          {/* New Resource */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-white">Action</Label>
-              <Select value={String(newResource?.action || "")} disabled>
-                <SelectTrigger className="max-w-md bg-white text-black border-none">
-                  <SelectValue>{actionMap[newResource?.action]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="3">
-                    {actionMap[newResource?.action]}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white">Approval</Label>
-                <Input
-                  type="email"
-                  value={newResource?.approval || ""}
-                  onChange={(e) =>
-                    updateEmailConfig(3, "approval", e.target.value)
-                  }
-                  className="w-full bg-white text-black border-none"
-                />
+                <Label className="text-white">Action</Label>
+                <Select value="1" disabled>
+                  <SelectTrigger className="max-w-md bg-white! text-black border-none">
+                    <SelectValue className="bg-white">
+                      {actionMap[1]}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">{actionMap[1]}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <Label className="text-white">Notify</Label>
                 <Input
-                  type="email"
-                  value={newResource?.notify || ""}
-                  onChange={(e) => updateEmailConfig(3, "notify", e.target.value)}
-                  className="w-full bg-white text-black border-none"
+                  type="text"
+                  name="action1_notify"
+                  value={formik.values.action1_notify}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full max-w-lg bg-white text-black border-none"
+                  placeholder="email@example.com, email2@example.com"
                 />
+                {formik.touched.action1_notify &&
+                  formik.errors.action1_notify && (
+                    <p className="text-red-500 text-sm">
+                      {formik.errors.action1_notify}
+                    </p>
+                  )}
               </div>
             </div>
-          </div>
 
-          {/* Button */}
-          <div className="flex justify-end pt-4">
-            <Button
-              variant="site_btn"
-              onClick={handleUpdate}
-              disabled={loading}
-              className="px-6"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                "Update"
-              )}
-            </Button>
-          </div>
+            <Separator className="bg-gray-600 my-6" />
+
+            {/* New Member Approved */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-white">Action</Label>
+                <Select value="2" disabled>
+                  <SelectTrigger className="max-w-md bg-white text-black border-none">
+                    <SelectValue>{actionMap[2]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2">{actionMap[2]}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white">First Approval</Label>
+                  <Input
+                    type="text"
+                    name="action2_approval"
+                    value={formik.values.action2_approval}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    className="w-full bg-white text-black border-none"
+                    placeholder="email@example.com, email2@example.com"
+                  />
+                  {formik.touched.action2_approval &&
+                    formik.errors.action2_approval && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.action2_approval}
+                      </p>
+                    )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Final Approval</Label>
+                  <Input
+                    type="text"
+                    name="action2_finalApproval"
+                    value={formik.values.action2_finalApproval}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    className="w-full bg-white text-black border-none"
+                    placeholder="email@example.com, email2@example.com"
+                  />
+                  {formik.touched.action2_finalApproval &&
+                    formik.errors.action2_finalApproval && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.action2_finalApproval}
+                      </p>
+                    )}
+                </div>
+              </div>
+            </div>
+
+            <Separator className="bg-gray-600 my-6" />
+
+            {/* New Resource */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-white">Action</Label>
+                <Select value="3" disabled>
+                  <SelectTrigger className="max-w-md bg-white text-black border-none">
+                    <SelectValue>{actionMap[3]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">{actionMap[3]}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white">Approval</Label>
+                  <Input
+                    type="text"
+                    name="action3_approval"
+                    value={formik.values.action3_approval}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    className="w-full bg-white text-black border-none"
+                    placeholder="email@example.com, email2@example.com"
+                  />
+                  {formik.touched.action3_approval &&
+                    formik.errors.action3_approval && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.action3_approval}
+                      </p>
+                    )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Notify</Label>
+                  <Input
+                    type="text"
+                    name="action3_notify"
+                    value={formik.values.action3_notify}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    className="w-full bg-white text-black border-none"
+                    placeholder="email@example.com, email2@example.com"
+                  />
+                  {formik.touched.action3_notify &&
+                    formik.errors.action3_notify && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.action3_notify}
+                      </p>
+                    )}
+                </div>
+              </div>
+            </div>
+
+            {/* Button */}
+            <div className="flex justify-end pt-4">
+              <Button
+                type="submit"
+                variant="site_btn"
+                disabled={formik.isSubmitting}
+                className="px-6"
+              >
+                {formik.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

@@ -30,7 +30,7 @@ export const ServiceRadio: React.FC<ServiceRadioProps> = ({
     >
       <div
         onClick={onChange}
-        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0
+        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer
           ${checked ? "bg-[#C6A95F] border-[#C6A95F]" : "bg-transparent border-white"}`}
         aria-hidden="true"
       >

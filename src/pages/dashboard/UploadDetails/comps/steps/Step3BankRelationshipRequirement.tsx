@@ -141,7 +141,7 @@ export default function Step3BankRelationshipRequirement() {
           ref={bankRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, setBankFile)}
         />
         <UploadBox

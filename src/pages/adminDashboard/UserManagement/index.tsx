@@ -1,9 +1,10 @@
 import UserManagementTable from "./comps/UserManagementTable";
+import WithPermission from "@/components/WithPermission";
 
 export default function UserManagement() {
   return (
-    <div>
+    <WithPermission module="USER_MANAGEMENT">
       <UserManagementTable />
-    </div>
-  )
+    </WithPermission>
+  );
 }

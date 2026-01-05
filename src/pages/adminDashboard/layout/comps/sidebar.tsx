@@ -26,7 +26,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
-  const { logout } = useAuth();
+  const { logout, canView, permissions } = useAuth();
   const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
@@ -36,13 +36,18 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
     setLogoutDialogOpen(false);
   };
 
+  // Debug: Log permissions
+  console.log('Sidebar - Permissions:', permissions);
+  console.log('Can view USER_MANAGEMENT:', canView('USER_MANAGEMENT'));
+  console.log('Can view PAYMENTS:', canView('PAYMENTS'));
+
   return (
     <>
       {/* MOBILE OVERLAY */}
       <div
         onClick={() => setMobileOpen(false)}
         className={cn(
-          "fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ease-in-out",
+          "fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ease-in-out cursor-pointer",
           mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       />
@@ -70,46 +75,59 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               to="/admin/dashboard"
             />
 
-            <NavItem
-              icon={<Users size={24} />}
-              label="User Management"
-              to="/admin/dashboard/user-management"
-            />
+            {canView('USER_MANAGEMENT') && (
+              <NavItem
+                icon={<Users size={24} />}
+                label="User Management"
+                to="/admin/dashboard/user-management"
+              />
+            )}
 
-            <NavItem
-              icon={<MessageSquare size={24} />}
-              label="Send Notification"
-              to="/admin/dashboard/send-notification"
-            />
+            {canView('NOTIFICATION_MANAGEMENT') && (
+              <NavItem
+                icon={<MessageSquare size={24} />}
+                label="Send Notification"
+                to="/admin/dashboard/send-notification"
+              />
+            )}
 
-            <NavItem
-              icon={<BookOpen size={24} />}
-              label="CMS"
-              to="/admin/dashboard/cms"
-            />
+            {canView('CMS') && (
+              <NavItem
+                icon={<BookOpen size={24} />}
+                label="CMS"
+                to="/admin/dashboard/cms"
+              />
+            )}
 
-            <NavItem
-              icon={<CreditCard size={24} />}
-              label="Payment Details"
-              to="/admin/dashboard/payment-details"
-            />
+            {canView('PAYMENTS') && (
+              <NavItem
+                icon={<CreditCard size={24} />}
+                label="Payment Details"
+                to="/admin/dashboard/payment-details"
+              />
+            )}
 
             <NavItem
               icon={<Handshake size={24} />}
               label="Special Consideration"
               to="/admin/dashboard/special-consideration"
             />
-            <NavItem
-              icon={<Handshake size={24} />}
-              label="Applications"
-              to="/admin/dashboard/applications"
-            />
 
-            <NavItem
-              icon={<CheckCircle size={24} />}
-              label="Approved Applications"
-              to="/admin/dashboard/approved-applications"
-            />
+            {canView('APPLICATION_MANAGEMENT') && (
+              <NavItem
+                icon={<Handshake size={24} />}
+                label="Applications"
+                to="/admin/dashboard/applications"
+              />
+            )}
+
+            {canView('APPLICATION_MANAGEMENT') && (
+              <NavItem
+                icon={<CheckCircle size={24} />}
+                label="Approved Applications"
+                to="/admin/dashboard/approved-applications"
+              />
+            )}
 
             <Button
               variant="ghost"

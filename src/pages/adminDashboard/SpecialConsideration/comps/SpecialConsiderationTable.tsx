@@ -18,12 +18,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Map, MoreVertical } from "lucide-react";
+import { Search, Filter, MapPin, MoreVertical, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import ApprovedDialog from "./ApproveModal";
 import RejectDialog from "./RejectModal";
 import RemarksDialog from "./RemarksModal";
 import apiClient from "@/services/apiClient";
+import { COUNTRIES } from "@/constants/countries";
 
 /* ================= TYPES ================= */
 type ConsiderationRequest = {
@@ -64,6 +65,132 @@ const formatDate = (dateString: string): string => {
 
 const PAGE_SIZE = 10;
 
+/* ================= EXPORT FUNCTIONS ================= */
+
+const downloadCSV = (data: ConsiderationRequest[]) => {
+  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status"];
+  const csvData = data.map(item => [
+    item.name || "N/A",
+    item.companyName || "N/A",
+    item.membershipType?.toString() || "N/A",
+    item.country || "N/A",
+    item.message || "N/A",
+    getStatusText(item.status)
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `special_consideration_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadExcel = (data: ConsiderationRequest[]) => {
+  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status"];
+  const excelData = data.map(item => [
+    item.name || "N/A",
+    item.companyName || "N/A",
+    item.membershipType || "N/A",
+    item.country || "N/A",
+    item.message || "N/A",
+    getStatusText(item.status)
+  ]);
+
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
+  html += '<body><table>';
+  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
+  html += '</table></body></html>';
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `special_consideration_${new Date().toISOString().split('T')[0]}.xls`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadPDF = (data: ConsiderationRequest[]) => {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Special Consideration Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <h1>Special Consideration Report</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Company Name</th>
+            <th>Membership Category</th>
+            <th>Country</th>
+            <th>Message</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  data.forEach(item => {
+    html += `
+      <tr>
+        <td>${item.name || "N/A"}</td>
+        <td>${item.companyName || "N/A"}</td>
+        <td>${item.membershipType || "N/A"}</td>
+        <td>${item.country || "N/A"}</td>
+        <td>${item.message || "N/A"}</td>
+        <td>${getStatusText(item.status)}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+      <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `special_consideration_${new Date().toISOString().split('T')[0]}.html`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 /* ================= COMPONENT ================= */
 export default function SpecialConsiderationTable() {
   const [data, setData] = useState<ConsiderationRequest[]>([]);
@@ -72,6 +199,8 @@ export default function SpecialConsiderationTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
+  const [countryFilter, setCountryFilter] = useState<string | undefined>(undefined);
 
   const [approveModal, setApproveModal] = useState(false);
   const [rejectModal, setRejectModal] = useState(false);
@@ -86,6 +215,8 @@ export default function SpecialConsiderationTable() {
       const res = await apiClient.get("/SpecialConsideration/GetApplications", {
         params: {
           Search: search || undefined,
+          Status: statusFilter,
+          Country: countryFilter,
           PageNumber: page,
           PageSize: PAGE_SIZE,
         },
@@ -102,7 +233,7 @@ export default function SpecialConsiderationTable() {
 
   useEffect(() => {
     fetchRequests();
-  }, [page, search]);
+  }, [page, search, statusFilter, countryFilter]);
 
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
@@ -160,8 +291,9 @@ export default function SpecialConsiderationTable() {
 
           {/* ===== SEARCH & FILTER ===== */}
           <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-            <div className="flex gap-3 w-full md:w-auto">
-              <div className="flex items-center gap-3 h-11 px-3 rounded-lg border border-white/20 bg-white/10 w-full md:w-64">
+            <div className="flex gap-3">
+              <div className="flex items-center w-full md:max-w-[380px] gap-2 bg-white/10 rounded-lg px-4 h-11 border border-[#3A3A3A]">
+                <Search className="w-4 h-4" />
                 <Input
                   placeholder="Search"
                   value={search}
@@ -169,25 +301,113 @@ export default function SpecialConsiderationTable() {
                     setSearch(e.target.value);
                     setPage(1);
                   }}
-                  className="bg-transparent border-none text-white focus-visible:ring-0"
+                  className="bg-transparent border-none text-white focus-visible:ring-0 placeholder:text-white/50"
                 />
-                <Search className="w-4 h-4 text-white" />
               </div>
 
-              <Button variant="outline" className="border-white/20">
-                <Filter className="w-4 h-4 mr-2" />
-                Status
-              </Button>
+              <div className="flex gap-2">
+                {/* Status Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="border-[#3A3A3A] h-11 cursor-pointer">
+                      <Filter className="w-4 h-4 mr-1" />
+                      {statusFilter ? getStatusText(statusFilter) : "Status"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-white">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter(undefined);
+                        setPage(1);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      All Statuses
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter(1);
+                        setPage(1);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      Pending
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter(2);
+                        setPage(1);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      Accepted
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter(3);
+                        setPage(1);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      Rejected
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              <Button variant="outline" className="border-white/20">
-                <Map className="w-4 h-4 mr-2" />
-                Country
-              </Button>
+                {/* Country Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="border-[#3A3A3A] h-11 w-[250px] cursor-pointer justify-start">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      <span className="truncate">{countryFilter || "Country"}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-white w-[250px] max-h-[300px] overflow-y-auto">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setCountryFilter(undefined);
+                        setPage(1);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      All Countries
+                    </DropdownMenuItem>
+                    {COUNTRIES.map((country) => (
+                      <DropdownMenuItem
+                        key={country}
+                        onClick={() => {
+                          setCountryFilter(country);
+                          setPage(1);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {country}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
 
-            <Button className="bg-[#C6A95F] hover:bg-[#bfa14f]">
-              Download Report
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-[#C6A95F] hover:bg-[#bfa14f] cursor-pointer">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Report
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem onClick={() => downloadPDF(data)} className="cursor-pointer">
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadCSV(data)} className="cursor-pointer">
+                  Download as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadExcel(data)} className="cursor-pointer">
+                  Download as Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* ===== TABLE ===== */}
@@ -242,17 +462,17 @@ export default function SpecialConsiderationTable() {
                     data.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
+                          {item.name ? (item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name) : "N/A"}
                         </TableCell>
                         <TableCell>
-                          {item.companyName && item.companyName.length > 30 ? `${item.companyName.substring(0, 30)}...` : item.companyName ?? "—"}
+                          {item.companyName ? (item.companyName.length > 30 ? `${item.companyName.substring(0, 30)}...` : item.companyName) : "N/A"}
                         </TableCell>
-                        <TableCell>{item.membershipType}</TableCell>
+                        <TableCell>{item.membershipType || "N/A"}</TableCell>
                         <TableCell>
-                          {item.country && item.country.length > 30 ? `${item.country.substring(0, 30)}...` : item.country ?? "—"}
+                          {item.country ? (item.country.length > 30 ? `${item.country.substring(0, 30)}...` : item.country) : "N/A"}
                         </TableCell>
                         <TableCell>
-                          {item.message.length > 50 ? `${item.message.substring(0, 50)}...` : item.message}
+                          {item.message ? (item.message.length > 50 ? `${item.message.substring(0, 50)}...` : item.message) : "N/A"}
                         </TableCell>
                         <TableCell>
                           <ActionMenu
@@ -370,11 +590,11 @@ function ActionMenu({
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem onClick={onApprove}>Approve</DropdownMenuItem>
-        <DropdownMenuItem onClick={onReject}>Reject</DropdownMenuItem>
-        <DropdownMenuItem>Ask for more details</DropdownMenuItem>
-        <DropdownMenuItem>View Application</DropdownMenuItem>
-        <DropdownMenuItem onClick={onAddRemarks}>Add Remarks</DropdownMenuItem>
+        <DropdownMenuItem onClick={onApprove} className="cursor-pointer">Approve</DropdownMenuItem>
+        <DropdownMenuItem onClick={onReject} className="cursor-pointer">Reject</DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer">Ask for more details</DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer">View Application</DropdownMenuItem>
+        <DropdownMenuItem onClick={onAddRemarks} className="cursor-pointer">Add Remarks</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

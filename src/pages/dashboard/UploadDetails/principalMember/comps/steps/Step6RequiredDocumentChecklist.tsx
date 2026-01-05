@@ -248,7 +248,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                   ref={refs[it.id]}
                   type="file"
                   className="hidden"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={async (e) => {
                     const file = e.target.files?.[0] ?? null;
                     await handleFileUpload(it.id, file, setFieldValue);
@@ -340,7 +340,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                       }}
                       type="file"
                       className="hidden"
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       onChange={async (e) => {
                         const file = e.target.files?.[0] ?? null;
                         await handleOtherFormFileUpload(of.id, file, setFieldValue);
@@ -367,7 +367,11 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
 
             {/* Add Button */}
             <Button
-              onClick={() => addOtherForm("")}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                addOtherForm("");
+              }}
               variant={'site_btn'}
               className="px-6 py-3 rounded-md w-full sm:w-auto"
             >

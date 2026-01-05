@@ -47,7 +47,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
       <div
         onClick={() => setMobileOpen(false)}
         className={cn(
-          "fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ease-in-out",
+          "fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ease-in-out cursor-pointer",
           mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       />

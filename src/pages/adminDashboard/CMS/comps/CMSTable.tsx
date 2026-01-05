@@ -18,8 +18,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical } from "lucide-react";
+import { Search, Filter, Calendar, MoreVertical, Download } from "lucide-react";
 import EditAndAddModal from "./EditAndAddModal";
+import { useAuth } from "@/context/AuthContext";
 
 /* ================= TYPES ================= */
 
@@ -45,12 +46,133 @@ const cmsData: CMSItem[] = [
 
 const ITEMS_PER_PAGE = 6;
 
+/* ================= EXPORT FUNCTIONS ================= */
+
+const downloadCSV = (data: CMSItem[]) => {
+  const headers = ["Title", "Description", "Status", "Date"];
+  const csvData = data.map(item => [
+    item.title || "N/A",
+    item.description || "N/A",
+    item.status || "N/A",
+    item.date || "N/A"
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `cms_report_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadExcel = (data: CMSItem[]) => {
+  const headers = ["Title", "Description", "Status", "Date"];
+  const excelData = data.map(item => [
+    item.title || "N/A",
+    item.description || "N/A",
+    item.status || "N/A",
+    item.date || "N/A"
+  ]);
+
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
+  html += '<body><table>';
+  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
+  html += '</table></body></html>';
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `cms_report_${new Date().toISOString().split('T')[0]}.xls`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadPDF = (data: CMSItem[]) => {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>CMS Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <h1>CMS Report</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  data.forEach(item => {
+    html += `
+      <tr>
+        <td>${item.title || "N/A"}</td>
+        <td>${item.description || "N/A"}</td>
+        <td>${item.status || "N/A"}</td>
+        <td>${item.date || "N/A"}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+      <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `cms_report_${new Date().toISOString().split('T')[0]}.html`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 /* ================= COMPONENT ================= */
 
 export default function CMSTable() {
+  const { canCreate, canEdit } = useAuth();
+  const hasCreateAccess = canCreate('CMS');
+  const hasEditAccess = canEdit('CMS');
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  
+
   const [editModal,setEditModal]=useState(false);
 
   const filteredData = useMemo(() => {
@@ -85,12 +207,30 @@ const handleEdit = () => {
             CMS Management
           </h1>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
-            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
-              Add
-            </Button>
-            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
-              Download Report
-            </Button>
+            {hasCreateAccess && (
+              <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer">
+                Add
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Report
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem onClick={() => downloadPDF(paginated)} className="cursor-pointer">
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadCSV(paginated)} className="cursor-pointer">
+                  Download as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadExcel(paginated)} className="cursor-pointer">
+                  Download as Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -144,21 +284,19 @@ const handleEdit = () => {
             {paginated.map((item) => (
               <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
                 <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-semibold text-white flex-1">{item.title}</h3>
-                  <ActionMenu 
-                  onEdit={() => handleEdit()}
-                  />
+                  <h3 className="text-lg font-semibold text-white flex-1">{item.title || "N/A"}</h3>
+                  <ActionMenu onEdit={() => handleEdit()} canEdit={hasEditAccess} />
                 </div>
-                <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.description}</p>
+                <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.description || "N/A"}</p>
                 <div className="flex justify-between items-center">
                   <span className={`text-sm font-medium px-2 py-1 rounded-full ${
                     item.status === 'Published' ? 'bg-green-500/20 text-green-300' :
                     item.status === 'Draft' ? 'bg-yellow-500/20 text-yellow-300' :
                     'bg-red-500/20 text-red-300'
                   }`}>
-                    {item.status}
+                    {item.status || "N/A"}
                   </span>
-                  <span className="text-sm text-white/60">{item.date}</span>
+                  <span className="text-sm text-white/60">{item.date || "N/A"}</span>
                 </div>
               </div>
             ))}
@@ -184,18 +322,16 @@ const handleEdit = () => {
                 <TableBody>
                   {paginated.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="py-4 px-2">{item.title}</TableCell>
+                      <TableCell className="py-4 px-2">{item.title || "N/A"}</TableCell>
                       <TableCell className="py-4 px-4 sm:px-16">
-                        {item.description}
+                        {item.description || "N/A"}
                       </TableCell>
                       <TableCell className="py-4 px-2">
-                        {item.status}
+                        {item.status || "N/A"}
                       </TableCell>
-                      <TableCell className="py-4 px-2">{item.date}</TableCell>
+                      <TableCell className="py-4 px-2">{item.date || "N/A"}</TableCell>
                       <TableCell className="py-4 px-2">
-                        <ActionMenu 
-                        onEdit={() => handleEdit()}
-                        />
+                        <ActionMenu onEdit={() => handleEdit()} canEdit={hasEditAccess} />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -265,20 +401,27 @@ function FooterPagination({
 
 function ActionMenu({
   onEdit,
+  canEdit,
 }:{
   onEdit: () => void;
+  canEdit: boolean;
 }) {
+  const { hasPermission } = useAuth();
+  const canGet = hasPermission('CMS.GET');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-        <DropdownMenuItem>View</DropdownMenuItem>
-        <DropdownMenuItem className="text-red-500">
-          Delete
-        </DropdownMenuItem>
+        {canGet && <DropdownMenuItem className="cursor-pointer">View</DropdownMenuItem>}
+        {canEdit && <DropdownMenuItem onClick={onEdit} className="cursor-pointer">Edit</DropdownMenuItem>}
+        {canEdit && (
+          <DropdownMenuItem className="text-red-500 cursor-pointer">
+            Delete
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
