@@ -3,10 +3,11 @@
 import React from "react";
 
 interface ServiceCheckboxProps {
-  label: string;
+  label: string | React.ReactNode;
   checked: boolean;
   onChange: () => void;
   id?: string;
+  transparent?: boolean;
 }
 
 export const ServiceCheckbox: React.FC<ServiceCheckboxProps> = ({
@@ -14,6 +15,7 @@ export const ServiceCheckbox: React.FC<ServiceCheckboxProps> = ({
   checked,
   onChange,
   id,
+  transparent = false,
 }) => {
   return (
     <label
@@ -31,8 +33,8 @@ export const ServiceCheckbox: React.FC<ServiceCheckboxProps> = ({
     >
       <div
         onClick={onChange}
-        className={`w-6 h-6 rounded-sm border flex items-center justify-center transition-all shrink-0
-          ${checked ? "bg-[#C6A95F] border-none" : "bg-white border-none"}`}
+        className={`w-6 h-6 rounded-sm border flex items-center justify-center transition-all shrink-0 cursor-pointer
+          ${checked ? "bg-[#C6A95F] border-none" : transparent ? "bg-transparent border-white" : "bg-white border-none"}`}
         aria-hidden="true"
       >
         {checked && (

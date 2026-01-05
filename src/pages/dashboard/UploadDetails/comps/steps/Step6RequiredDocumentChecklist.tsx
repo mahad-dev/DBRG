@@ -161,7 +161,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                   ref={refs[it.id]}
                   type="file"
                   className="hidden"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={(e) =>
                     handleSelectFile(e, (f) => setItemFile(it.id, f))
                   }
@@ -241,7 +241,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                       }}
                       type="file"
                       className="hidden"
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       onChange={(e) =>
                         handleSelectFile(e, (f) => setOtherFormFile(of.id, f))
                       }

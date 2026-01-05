@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/context/AuthContext"
 
 export default function Notifications() {
+  const { canCreate } = useAuth();
   return (
     <div className="max-w-[640px]">
       {/* Page Title */}
@@ -78,9 +80,11 @@ export default function Notifications() {
 
           {/* Actions */}
           <div className="flex gap-4 pt-2">
-            <Button className="bg-[#C9A85D] text-black hover:bg-[#b8964f] rounded-lg px-8">
-              Send
-            </Button>
+            {canCreate('NOTIFICATION_MANAGEMENT') && (
+              <Button className="bg-[#C9A85D] text-black hover:bg-[#b8964f] rounded-lg px-8">
+                Send
+              </Button>
+            )}
 
             <Button
               variant="outline"

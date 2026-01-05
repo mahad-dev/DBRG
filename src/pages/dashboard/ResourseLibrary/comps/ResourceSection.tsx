@@ -90,7 +90,7 @@ export default function ResourceSection({ title, items }: ResourceSectionProps) 
             onClick={scrollLeft}
             disabled={!canLeft}
             className={`p-2 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] text-white
-              ${!canLeft ? "opacity-40 cursor-not-allowed" : "hover:bg-[#2A2A2A]"}`}
+              ${!canLeft ? "opacity-40 cursor-not-allowed" : "hover:bg-[#2A2A2A] cursor-pointer"}`}
           >
             <ArrowLeft size={18} />
           </button>
@@ -99,7 +99,7 @@ export default function ResourceSection({ title, items }: ResourceSectionProps) 
             onClick={scrollRight}
             disabled={!canRight}
             className={`p-2 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] text-white
-              ${!canRight ? "opacity-40 cursor-not-allowed" : "hover:bg-[#2A2A2A]"}`}
+              ${!canRight ? "opacity-40 cursor-not-allowed" : "hover:bg-[#2A2A2A] cursor-pointer"}`}
           >
             <ArrowRight size={18} />
           </button>

@@ -470,7 +470,7 @@ export default function Step3Regulatory() {
                     'amlPolicyFile'
                   );
                 }}
-                accept="application/pdf,image/*"
+                accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               />
               <UploadBox
                 title="AML/CFT policy document"
@@ -662,7 +662,7 @@ export default function Step3Regulatory() {
                       'declarationFile'
                     );
                   }}
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 />
                 <UploadBox
                   title="Upload: Declaration of no penalty/AML notice"
@@ -775,7 +775,7 @@ export default function Step3Regulatory() {
                       'supplyChainDueDiligenceFile'
                     );
                   }}
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 />
                 <UploadBox
                   title="Supply chain due diligence policy"
@@ -858,7 +858,7 @@ export default function Step3Regulatory() {
                       'responsibleSourcingFile'
                     );
                   }}
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 />
                 <UploadBox
                   title="Responsible Sourcing Audit Evidence"

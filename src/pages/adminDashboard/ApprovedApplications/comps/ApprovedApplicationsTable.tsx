@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -18,23 +19,161 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Map, MoreVertical } from "lucide-react";
+import { Search, Filter, MapPin, MoreVertical, Download } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { userApi, type ApprovedApplication } from "@/services/userApi";
 import { toast } from "react-toastify";
 import DownloadReportModal from "./DownloadReportModal";
+import { useAuth } from "@/context/AuthContext";
+import { COUNTRIES } from "@/constants/countries";
 
 /* ================= TYPES ================= */
 type Applicant = ApprovedApplication;
 
 const PAGE_SIZE = 6;
 
+/* ================= EXPORT FUNCTIONS ================= */
+
+const downloadCSV = (data: Applicant[]) => {
+  const headers = ["Name", "Company", "Country"];
+  const csvData = data.map(item => [
+    item.userId || "N/A",
+    item.company || "N/A",
+    item.country || "N/A"
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `approved_applications_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadExcel = (data: Applicant[]) => {
+  const headers = ["Name", "Company", "Country"];
+  const excelData = data.map(item => [
+    item.userId || "N/A",
+    item.company || "N/A",
+    item.country || "N/A"
+  ]);
+
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
+  html += '<body><table>';
+  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
+  html += '</table></body></html>';
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `approved_applications_${new Date().toISOString().split('T')[0]}.xls`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadPDF = (data: Applicant[]) => {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Approved Applications Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <h1>Approved Applications Report</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Country</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  data.forEach(item => {
+    html += `
+      <tr>
+        <td>${item.userId || "N/A"}</td>
+        <td>${item.company || "N/A"}</td>
+        <td>${item.country || "N/A"}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+      <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `approved_applications_${new Date().toISOString().split('T')[0]}.html`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+/* ================= HELPER FUNCTIONS ================= */
+const getStatusText = (status: number): string => {
+  switch (status) {
+    case 0:
+      return "Pending";
+    case 1:
+      return "In Progress";
+    case 2:
+      return "Accepted";
+    case 3:
+      return "Rejected";
+    default:
+      return "Unknown";
+  }
+};
+
+
 /* ================= COMPONENT ================= */
 export default function ApprovedApplicationsTable() {
+  const { canEdit } = useAuth();
+  const hasEditAccess = canEdit('APPLICATION_MANAGEMENT');
   const [data, setData] = useState<Applicant[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
+  const [countryFilter, setCountryFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
 
@@ -46,6 +185,8 @@ export default function ApprovedApplicationsTable() {
       setLoading(true);
       const response = await userApi.getApprovedApplications({
         Search: search || undefined,
+        Status: statusFilter,
+        Country: countryFilter,
         PageNumber: page,
         PageSize: PAGE_SIZE,
       });
@@ -63,7 +204,7 @@ export default function ApprovedApplicationsTable() {
   useEffect(() => {
     fetchApplicants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+  }, [page, search, statusFilter, countryFilter]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -76,39 +217,132 @@ export default function ApprovedApplicationsTable() {
             Approved Applications
           </h1>
 
-          {/* ===== SEARCH ===== */}
-          <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-            <div className="flex gap-3 w-full md:w-auto">
-              <div className="flex items-center gap-3 h-11 px-3 rounded-lg border border-white/20 bg-white/10 w-full md:w-64">
-                <Input
-                  placeholder="Search"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  className="bg-transparent border-none text-white focus-visible:ring-0"
-                />
-                <Search className="w-4 h-4 text-white" />
-              </div>
-
-              <Button variant="outline" className="border-white/20">
-                <Filter className="w-4 h-4 mr-2" />
-                Status
-              </Button>
-
-              <Button variant="outline" className="border-white/20">
-                <Map className="w-4 h-4 mr-2" />
-                Country
-              </Button>
+          {/* ===== SEARCH & FILTERS ===== */}
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex items-center w-full md:max-w-[380px] gap-2 bg-white/10 rounded-lg px-4 h-11 border border-[#3A3A3A]">
+              <Search className="w-4 h-4" />
+              <Input
+                placeholder="Search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                className="bg-transparent border-none text-white focus-visible:ring-0"
+              />
             </div>
 
-            <Button
-              className="bg-[#C6A95F] hover:bg-[#bfa14f]"
-              onClick={() => setDownloadModalOpen(true)}
-            >
-              Download Report
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              {/* Status Filter */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 border-[#3A3A3A] cursor-pointer">
+                    <Filter className="w-4 h-4 mr-1" />
+                    {statusFilter === undefined ? "Status" : getStatusText(statusFilter)}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-white">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setStatusFilter(undefined);
+                      setPage(1);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    All
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setStatusFilter(0);
+                      setPage(1);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Pending
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setStatusFilter(1);
+                      setPage(1);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    In Progress
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setStatusFilter(2);
+                      setPage(1);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Accepted
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setStatusFilter(3);
+                      setPage(1);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Rejected
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Country Filter */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 border-[#3A3A3A] cursor-pointer">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    {countryFilter || "Country"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-white max-h-[300px] overflow-y-auto w-[250px]">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setCountryFilter(undefined);
+                      setPage(1);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    All Countries
+                  </DropdownMenuItem>
+                  {COUNTRIES.map((country) => (
+                    <DropdownMenuItem
+                      key={country}
+                      onClick={() => {
+                        setCountryFilter(country);
+                        setPage(1);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {country}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="h-11 bg-[#C6A95F] hover:bg-[#bfa14f] cursor-pointer">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Report
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white">
+                  <DropdownMenuItem onClick={() => downloadPDF(data)} className="cursor-pointer">
+                    Download as PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => downloadCSV(data)} className="cursor-pointer">
+                    Download as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => downloadExcel(data)} className="cursor-pointer">
+                    Download as Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* ===== TABLE ===== */}
@@ -126,13 +360,22 @@ export default function ApprovedApplicationsTable() {
 
                 <TableBody>
                   {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <div className="flex justify-center items-center min-h-[300px]">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-28" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-5 w-5 rounded" />
+                        </TableCell>
+                      </TableRow>
+                    ))
                   ) : data.length === 0 ? (
                     <TableRow>
                       <TableCell
@@ -146,16 +389,16 @@ export default function ApprovedApplicationsTable() {
                     data.map((item) => (
                       <TableRow key={item.userId}>
                         <TableCell className="max-w-[200px] truncate">
-                          {item.userId}
+                          {item.userId || "N/A"}
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate">
-                          {item.company ?? "—"}
+                          {item.company || "N/A"}
                         </TableCell>
                         <TableCell className="max-w-[150px] truncate">
-                          {item.country ?? "—"}
+                          {item.country || "N/A"}
                         </TableCell>
                         <TableCell className="w-20">
-                          <ActionMenu />
+                          <ActionMenu canEdit={hasEditAccess} userId={item.userId} />
                         </TableCell>
                       </TableRow>
                     ))
@@ -219,19 +462,31 @@ function FooterPagination({
 }
 
 /* ================= ACTION MENU ================= */
-function ActionMenu() {
+function ActionMenu({ canEdit, userId }: { canEdit: boolean; userId: string }) {
+  const { hasPermission } = useAuth();
+  const canGet = hasPermission('APPLICATION_MANAGEMENT.GET');
+  const navigate = useNavigate();
+
+  const handleViewApplication = () => {
+    navigate(`/admin/dashboard/applications/view?userId=${userId}`);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem>
-          Revoke
-        </DropdownMenuItem>
-        <DropdownMenuItem >
-          View Details
-        </DropdownMenuItem>
+        {canGet && (
+          <DropdownMenuItem onClick={handleViewApplication} className="cursor-pointer">
+            View Details
+          </DropdownMenuItem>
+        )}
+        {canEdit && (
+          <DropdownMenuItem className="cursor-pointer">
+            Revoke
+          </DropdownMenuItem>
+        )}
 
       </DropdownMenuContent>
     </DropdownMenu>

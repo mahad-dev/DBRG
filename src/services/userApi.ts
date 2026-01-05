@@ -1,4 +1,13 @@
+import type { ReactNode } from 'react';
 import apiClient from './apiClient';
+
+export interface Permission {
+  id: number;
+  name: string;
+  key: string;
+  parentId: number | null;
+  parent: Permission | null;
+}
 
 export interface GetUsersParams {
   Status?: number;
@@ -9,6 +18,7 @@ export interface GetUsersParams {
 }
 
 export interface User {
+  email: ReactNode;
   userId: string;
   name: string;
   company: string | null;
@@ -177,6 +187,91 @@ class UserApi {
         totalCount: apiData.totalCount,
         totalPages: totalPages,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllPermissions(): Promise<Permission[]> {
+    try {
+      const response = await apiClient.get('/User/GetAllPermissions');
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateUser(data: {
+    userId: string;
+    name: string;
+    phone: string;
+    email: string;
+    role: number;
+    password: string;
+    permissionIds: number[];
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.post('/User/UpdateUser', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getUserById(userId: string): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.get('/User/GetUserById', {
+        params: { userId }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createPayment(data: {
+    userId?: string;
+    companyName: string;
+    date: string;
+    dueDate: string;
+    paymentStatus: number;
+    amount: number;
+    invoiceNumber: string;
+    vatNumber: string;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.post('/Payment/Create', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPaymentById(id: number): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.get('/Payment/GetById', {
+        params: { id }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePayment(data: {
+    id: string;
+    userId?: string;
+    companyName: string;
+    date: string;
+    dueDate: string;
+    paymentStatus: number;
+    amount: number;
+    invoiceNumber: string;
+    vatNumber: string;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.put('/Payment/Update', data);
+      return response.data;
     } catch (error) {
       throw error;
     }

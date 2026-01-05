@@ -256,7 +256,7 @@ export default function Step4FinancialThresholds() {
                   ref={bullionRef}
                   type="file"
                   className="hidden"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={async (e) => {
                     const file = e.target.files?.[0] ?? null;
                     await handleFileUpload(
@@ -292,6 +292,15 @@ export default function Step4FinancialThresholds() {
                     setFieldValue('bullionTurnoverFileId', null);
                   }}
                 />
+                {bullionTurnoverProofFileIdPath && !bullionFile && (
+                  <a
+                    href={bullionTurnoverProofFileIdPath}
+                    target="_blank"
+                    className="mt-2 inline-block text-[#C6A95F] underline"
+                  >
+                    View Previous Document
+                  </a>
+                )}
                 {touched.bullionTurnoverFile && errors.bullionTurnoverFile && (
                   <p className="text-red-500 text-sm mt-2">{errors.bullionTurnoverFile as string}</p>
                 )}
@@ -324,7 +333,7 @@ export default function Step4FinancialThresholds() {
                   ref={netWorthRef}
                   type="file"
                   className="hidden"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={async (e) => {
                     const file = e.target.files?.[0] ?? null;
                     await handleFileUpload(
@@ -365,6 +374,15 @@ export default function Step4FinancialThresholds() {
                       setFieldValue('netWorthFileId', null);
                     }}
                   />
+                  {netWorthProofPath && !netWorthFile && (
+                    <a
+                      href={netWorthProofPath}
+                      target="_blank"
+                      className="mt-2 inline-block text-[#C6A95F] underline"
+                    >
+                      View Previous Document
+                    </a>
+                  )}
                   {touched.netWorthFile && errors.netWorthFile && (
                     <p className="text-red-500 text-sm mt-2">{errors.netWorthFile as string}</p>
                   )}

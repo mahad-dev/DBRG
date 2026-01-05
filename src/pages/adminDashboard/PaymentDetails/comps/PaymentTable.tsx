@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -18,54 +18,257 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical } from "lucide-react";
+import { Search, Filter, MoreVertical, Download } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import GenerateInvoiceModal from "./GenerateInvoice";
+import apiClient from "@/services/apiClient";
+import { useAuth } from "@/context/AuthContext";
 
 /* ================= TYPES ================= */
 
 type PaymentItem = {
   id: number;
-  name: string;
-  company: string;
+  userId: string;
+  companyName: string;
   date: string;
-  time: string;
-  status: "Pending" | "Completed" | "Rejected";
-  amount: string;
+  dueDate: string;
+  paymentStatus: number;
+  amount: number;
+  invoiceNumber: string;
+  vatNumber: string;
 };
 
-/* ================= DATA ================= */
-
-const paymentData: PaymentItem[] = Array.from({ length: 25 }).map((_, i) => ({
-  id: i + 1,
-  name: ["Sanjana Shah", "John Doe", "Jane Smith", "Alice Johnson", "Bob Brown"][i % 5],
-  company: ["Shah Investment", "Doe Corp", "Smith LLC", "Johnson Inc", "Brown Enterprises"][i % 5],
-  date: ["01/06/2025", "02/06/2025", "03/06/2025", "04/06/2025", "05/06/2025"][i % 5],
-  time: ["09:34 AM", "10:15 AM", "11:45 AM", "02:30 PM", "04:20 PM"][i % 5],
-  status: ["Pending", "Completed", "Rejected"][i % 3] as "Pending" | "Completed" | "Rejected",
-  amount: ["1,00,000 $", "55,000 $", "98,098 $", "10,000 $", "75,500 $"][i % 5],
-}));
-
 const ITEMS_PER_PAGE = 6;
+
+/* ================= HELPER FUNCTIONS ================= */
+
+const getStatusText = (status: number): string => {
+  switch (status) {
+    case 1:
+      return "Pending";
+    case 2:
+      return "Completed";
+    case 3:
+      return "Rejected";
+    default:
+      return "Pending";
+  }
+};
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const formatTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+/* ================= EXPORT FUNCTIONS ================= */
+
+const downloadCSV = (data: PaymentItem[]) => {
+  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const csvData = data.map(item => [
+    item.userId || "N/A",
+    item.companyName || "N/A",
+    formatDate(item.date),
+    formatTime(item.date),
+    getStatusText(item.paymentStatus),
+    item.amount ? `$${item.amount.toLocaleString()}` : "N/A",
+    item.invoiceNumber || "N/A",
+    item.vatNumber || "N/A"
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `payment_report_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadExcel = (data: PaymentItem[]) => {
+  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const excelData = data.map(item => [
+    item.userId || "N/A",
+    item.companyName || "N/A",
+    formatDate(item.date),
+    formatTime(item.date),
+    getStatusText(item.paymentStatus),
+    item.amount || "N/A",
+    item.invoiceNumber || "N/A",
+    item.vatNumber || "N/A"
+  ]);
+
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
+  html += '<body><table>';
+  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
+  html += '</table></body></html>';
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `payment_report_${new Date().toISOString().split('T')[0]}.xls`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadPDF = (data: PaymentItem[]) => {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Payment Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <h1>Payment Report</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th>Invoice Number</th>
+            <th>VAT Number</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  data.forEach(item => {
+    html += `
+      <tr>
+        <td>${item.userId || "N/A"}</td>
+        <td>${item.companyName || "N/A"}</td>
+        <td>${formatDate(item.date)}</td>
+        <td>${formatTime(item.date)}</td>
+        <td>${getStatusText(item.paymentStatus)}</td>
+        <td>${item.amount ? `$${item.amount.toLocaleString()}` : "N/A"}</td>
+        <td>${item.invoiceNumber || "N/A"}</td>
+        <td>${item.vatNumber || "N/A"}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+      <div class="footer">
+        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `payment_report_${new Date().toISOString().split('T')[0]}.html`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 /* ================= COMPONENT ================= */
 
 export default function PaymentTable() {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(1);
+  const [generateInvoice, setgenerateInvoice] = useState(false);
+  const [data, setData] = useState<PaymentItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [editPaymentId, setEditPaymentId] = useState<number | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const { canCreate, canEdit } = useAuth();
+  const hasCreateAccess = canCreate('PAYMENTS');
+  const hasEditAccess = canEdit('PAYMENTS');
 
-  const filteredData = useMemo(() => {
-    return paymentData.filter((i) =>
-      `${i.name} ${i.company} ${i.status} ${i.amount}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-  }, [search]);
+  /* ================= FETCH FROM API ================= */
+  const fetchPayments = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get("/Payment/GetAll", {
+        params: {
+          Search: search || undefined,
+          Status: statusFilter,
+          PageNumber: page,
+          PageSize: ITEMS_PER_PAGE,
+        },
+      });
 
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+      setData(res.data.data.items || []);
+      setTotalCount(res.data.data.totalRecords || 0);
+    } catch (error) {
+      console.error("Fetch Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const paginated = useMemo(() => {
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    return filteredData.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredData, page]);
+  useEffect(() => {
+    fetchPayments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search, statusFilter]);
+
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  const handleInvoiceSuccess = () => {
+    fetchPayments();
+  };
+
+  const handleEdit = (paymentId: number) => {
+    setEditPaymentId(paymentId);
+    setIsEditMode(true);
+    setgenerateInvoice(true);
+  };
+
+  const handleModalClose = (open: boolean) => {
+    setgenerateInvoice(open);
+    if (!open) {
+      setEditPaymentId(null);
+      setIsEditMode(false);
+    }
+  };
 
   return (
     <div className="min-h-screen text-white">
@@ -77,14 +280,42 @@ export default function PaymentTable() {
             Payment Management
           </h1>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
-            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
-              Add Payment
-            </Button>
-            <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto">
-              Download Report
-            </Button>
+            {hasCreateAccess && (
+              <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer" onClick={() => setgenerateInvoice(true)}>
+                Add Payment
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Report
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem onClick={() => downloadPDF(data)} className="cursor-pointer">
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadCSV(data)} className="cursor-pointer">
+                  Download as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadExcel(data)} className="cursor-pointer">
+                  Download as Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+
+        {/* ===== MODALS ===== */}
+                <GenerateInvoiceModal
+                  open={generateInvoice}
+                  onOpenChange={handleModalClose}
+                  onConfirm={handleInvoiceSuccess}
+                  paymentId={editPaymentId}
+                  isEditMode={isEditMode}
+                />
+
 
         {/* ===== SEARCH & FILTER ===== */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -110,46 +341,104 @@ export default function PaymentTable() {
             </div>
 
             {/* Status Filter */}
-            <Button
-              variant="outline"
-              className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
-            >
-              <Filter className="w-4 h-4" />
-              Status
-            </Button>
-
-            {/* Date Filter */}
-            <Button
-              variant="outline"
-              className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
-            >
-              <Calendar className="w-4 h-4" />
-              Date
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+                >
+                  <Filter className="w-4 h-4" />
+                  {statusFilter === undefined ? "Status" : getStatusText(statusFilter)}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(undefined);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  All
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(1);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Pending
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(2);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Completed
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setStatusFilter(3);
+                    setPage(1);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Rejected
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
         {/* ===== MOBILE CARDS ===== */}
         <div className="block sm:hidden">
-          <div className="space-y-4">
-            {paginated.map((item) => (
-              <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-semibold text-white flex-1">{item.name}</h3>
-                  <ActionMenu />
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+                <div key={i} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
+                  <div className="flex justify-between items-start mb-3">
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-5 w-5 rounded-full" />
+                  </div>
+                  <Skeleton className="h-4 w-48 mb-3" />
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <Skeleton className="h-4 w-20 mt-2" />
                 </div>
-                <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.company}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium px-2 py-1 rounded-full text-white">
-                    {item.status}
-                  </span>
-                  <span className="text-sm text-white/60">{item.date} {item.time}</span>
+              ))}
+            </div>
+          ) : data.length === 0 ? (
+            <div className="border border-white/20 rounded-lg p-8 bg-white/5 text-center">
+              <p className="text-white/60">No payments found</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {data.map((item) => (
+                <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-lg font-semibold text-white flex-1">{item.userId || "N/A"}</h3>
+                    <ActionMenu canEdit={hasEditAccess} payment={item} onEdit={handleEdit} />
+                  </div>
+                  <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.companyName || "N/A"}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium px-2 py-1 rounded-full text-white">
+                      {getStatusText(item.paymentStatus)}
+                    </span>
+                    <span className="text-sm text-white/60">{formatDate(item.date)} {formatTime(item.date)}</span>
+                  </div>
+                  <div className="mt-2 text-sm font-semibold text-white">{item.amount ? `$${item.amount.toLocaleString()}` : "N/A"}</div>
                 </div>
-                <div className="mt-2 text-sm font-semibold text-white">{item.amount}</div>
-              </div>
-            ))}
-          </div>
-          <FooterPagination page={page} total={totalPages} setPage={setPage} />
+              ))}
+            </div>
+          )}
+          {!loading && data.length > 0 && (
+            <FooterPagination page={page} total={totalPages} setPage={setPage} />
+          )}
         </div>
 
         {/* ===== DESKTOP TABLE ===== */}
@@ -170,42 +459,82 @@ export default function PaymentTable() {
                 </TableHeader>
 
                 <TableBody>
-                  {paginated.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="py-4 px-2 flex items-center gap-3">
-                        <img
-                          src="/static/UserImg.png"
-                          alt="user"
-                          width={36}
-                          height={36}
-                          className="rounded-full"
-                        />
-                        {item.name}
-                      </TableCell>
-                      <TableCell className="py-4 px-4 sm:px-16">
-                        {item.company}
-                      </TableCell>
-                      <TableCell className="py-4 px-2">{item.date}</TableCell>
-                      <TableCell className="py-4 px-2">{item.time}</TableCell>
-                      <TableCell className="py-4 px-2">
-                        <span className="font-medium text-white">
-                          {item.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-4 px-2 font-semibold">{item.amount}</TableCell>
-                      <TableCell className="py-4 px-2">
-                        <ActionMenu />
+                  {loading ? (
+                    Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="py-4 px-2">
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="w-9 h-9 rounded-full" />
+                            <Skeleton className="h-4 w-32" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4 px-4 sm:px-16">
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
+                          <Skeleton className="h-5 w-5 rounded" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : data.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-12 text-center">
+                        <p className="text-white/60">No payments found</p>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    data.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="py-4 px-2 flex items-center gap-3">
+                          <img
+                            src="/static/UserImg.png"
+                            alt="user"
+                            width={36}
+                            height={36}
+                            className="rounded-full"
+                          />
+                          {item.userId || "N/A"}
+                        </TableCell>
+                        <TableCell className="py-4 px-4 sm:px-16">
+                          {item.companyName || "N/A"}
+                        </TableCell>
+                        <TableCell className="py-4 px-2">{formatDate(item.date)}</TableCell>
+                        <TableCell className="py-4 px-2">{formatTime(item.date)}</TableCell>
+                        <TableCell className="py-4 px-2">
+                          <span className="font-medium text-white">
+                            {getStatusText(item.paymentStatus)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4 px-2 font-semibold">{item.amount ? `$${item.amount.toLocaleString()}` : "N/A"}</TableCell>
+                        <TableCell className="py-4 px-2">
+                          <ActionMenu canEdit={hasEditAccess} payment={item} onEdit={handleEdit} />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
           </ScrollArea>
 
-          <FooterPagination page={page} total={totalPages} setPage={setPage} />
+          {!loading && data.length > 0 && (
+            <FooterPagination page={page} total={totalPages} setPage={setPage} />
+          )}
         </div>
       </div>
+
     </div>
   );
 }
@@ -216,6 +545,7 @@ function FooterPagination({
   page,
   total,
   setPage,
+
 }: {
   page: number;
   total: number;
@@ -251,18 +581,23 @@ function FooterPagination({
   );
 }
 
-function ActionMenu() {
+function ActionMenu({ canEdit, payment, onEdit }: { canEdit: boolean; payment: PaymentItem; onEdit: (paymentId: number) => void }) {
+  const { hasPermission } = useAuth();
+  const canGet = hasPermission('PAYMENTS.GET');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem>View</DropdownMenuItem>
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem className="text-red-500">
-          Delete
-        </DropdownMenuItem>
+        {canGet && <DropdownMenuItem className="cursor-pointer">View</DropdownMenuItem>}
+        {canEdit && <DropdownMenuItem onClick={() => onEdit(payment.id)} className="cursor-pointer">Edit</DropdownMenuItem>}
+        {canEdit && (
+          <DropdownMenuItem className="text-red-500 cursor-pointer">
+            Delete
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

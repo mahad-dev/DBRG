@@ -8,12 +8,15 @@ export interface GetMembersParams {
 }
 
 export interface Member {
-  id: number;
+  id: string;
   company: string;
-  location: string;
-  type: string;
-  description: string;
-  avatar: string;
+  name: string;
+  membershipType: number;
+  country: string | null;
+  email: string;
+  phone: string | null;
+  profilePictureId: number | null;
+  profilePicturePath: string;
 }
 
 export interface GetMembersApiResponse {

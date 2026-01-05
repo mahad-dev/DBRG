@@ -16,8 +16,6 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
   const isSaving = state.isSaving;
   const [pendingUploads, setPendingUploads] = useState<number>(0);
 
-  console.log("Step6RequiredDocumentChecklist formData?.memberRequiredDocuments:", formData?.memberRequiredDocuments);
-
   const {
     items,
     checked,
@@ -183,7 +181,20 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
 
   // Formik initial values
   const initialValues = {
-    checked: checked,
+    checked: {
+      trade_license: checked.trade_license ?? false,
+      audited_fs: checked.audited_fs ?? false,
+      net_worth: checked.net_worth ?? false,
+      amlCftPolicy: checked.amlCftPolicy ?? false,
+      supplyChainPolicy: checked.supplyChainPolicy ?? false,
+      noUnresolvedAmlNoticesDeclaration: checked.noUnresolvedAmlNoticesDeclaration ?? false,
+      board_resolution: checked.board_resolution ?? false,
+      ownership_structure: checked.ownership_structure ?? false,
+      certified_true_copy: checked.certified_true_copy ?? false,
+      assurance_report: checked.assurance_report ?? false,
+      ubo_proof: checked.ubo_proof ?? false,
+      certified_ids: checked.certified_ids ?? false,
+    },
     otherForms: otherForms,
     ...items.reduce((acc, item) => {
       acc[`${item.id}_file`] = files[item.id];
@@ -198,12 +209,12 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
       initialValues={initialValues}
       validationSchema={principalMemberStep6Schema}
       onSubmit={handleSubmit}
-      validateOnChange={false}
+      validateOnChange={true}
       validateOnBlur={true}
       validateOnMount={false}
       enableReinitialize={true}
     >
-      {({ errors, touched, setFieldValue, submitForm }) => (
+      {({ errors, touched, setFieldValue, setFieldTouched, submitForm }) => (
         <Form>
     <div className="w-full min-h-screen bg-[#353535] rounded-lg p-6 md:p-8 shadow-lg text-white font-gilroy">
       <h2 className="text-[30px] sm:text-[22px] font-bold text-[#C6A95F] leading-[100%] mb-6">
@@ -216,17 +227,28 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
             <div className="flex flex-col w-full">
               <ServiceCheckbox
                 id={it.id}
-                label={it.label}
+                label={
+                  <span>
+                    {it.label} <span className="text-red-500">*</span>
+                  </span>
+                }
                 checked={!!checked[it.id]}
-                onChange={() => setItemChecked(it.id, !checked[it.id])}
+                onChange={() => {
+                  setItemChecked(it.id, !checked[it.id]);
+                  setFieldValue(`checked.${it.id}`, !checked[it.id]);
+                  setFieldTouched(`checked.${it.id}`, true);
+                }}
               />
+              {(touched as any)?.checked?.[it.id] && (errors as any)?.checked?.[it.id] && (
+                <p className="text-red-500 text-sm mt-1">{(errors as any).checked[it.id] as string}</p>
+              )}
 
               <div className="mt-2 w-full md:w-[420px]">
                 <input
                   ref={refs[it.id]}
                   type="file"
                   className="hidden"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={async (e) => {
                     const file = e.target.files?.[0] ?? null;
                     await handleFileUpload(it.id, file, setFieldValue);
@@ -247,8 +269,18 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                     setItemDocumentId(it.id, null);
                     setFieldValue(`${it.id}_file`, null);
                     setFieldValue(`${it.id}_fileId`, null);
+                    setFieldTouched(`${it.id}_file`, true);
                   }}
                 />
+                {(formData.memberRequiredDocuments as any)?.[pathMap[it.id]] && !files[it.id] && (
+                  <a
+                    href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
+                    target="_blank"
+                    className="mt-2 inline-block text-[#C6A95F] underline"
+                  >
+                    View Previous Document
+                  </a>
+                )}
                 {(touched as any)[`${it.id}_file`] && (errors as any)[`${it.id}_file`] && (
                   <p className="text-red-500 text-sm mt-2">{(errors as any)[`${it.id}_file`] as string}</p>
                 )}
@@ -308,7 +340,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                       }}
                       type="file"
                       className="hidden"
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       onChange={async (e) => {
                         const file = e.target.files?.[0] ?? null;
                         await handleOtherFormFileUpload(of.id, file, setFieldValue);
@@ -335,7 +367,11 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
 
             {/* Add Button */}
             <Button
-              onClick={() => addOtherForm("")}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                addOtherForm("");
+              }}
               variant={'site_btn'}
               className="px-6 py-3 rounded-md w-full sm:w-auto"
             >

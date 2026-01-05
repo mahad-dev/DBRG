@@ -108,7 +108,7 @@ export default function Header() {
             <img src="/DBRG-logo.svg" className="w-full h-full" />
           </Link>
 
-          <button onClick={() => setMobileOpen(true)}>
+          <button onClick={() => setMobileOpen(true)} className="cursor-pointer">
             <Menu className="text-[#C6A95F] w-8 h-8" />
           </button>
         </div>
@@ -135,7 +135,7 @@ export default function Header() {
               <p className="text-[#C6A95F] text-xl font-semibold">DBRG</p>
             </div>
 
-            <button onClick={() => setMobileOpen(false)}>
+            <button onClick={() => setMobileOpen(false)} className="cursor-pointer">
               <X className="text-[#C6A95F] w-7 h-7" />
             </button>
           </div>

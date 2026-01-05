@@ -173,7 +173,7 @@ export const UploadBox: React.FC<UploadBoxProps> = ({
             <button
               type="button"
               onClick={onRemove}
-              className="w-full sm:w-[163px] h-9 px-3 rounded-lg border border-white/20 bg-transparent text-white text-[14px] hover:bg-white/5 transition"
+              className="w-full sm:w-[163px] h-9 px-3 rounded-lg border border-white/20 bg-transparent text-white text-[14px] hover:bg-white/5 transition cursor-pointer"
             >
               Remove
             </button>

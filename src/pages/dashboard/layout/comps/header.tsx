@@ -15,7 +15,7 @@ export default function Header({ setMobileOpen }: HeaderProps) {
       {/* LEFT: HAMBURGER (MOBILE ONLY) */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden text-white"
+        className="lg:hidden text-white cursor-pointer"
         aria-label="Open sidebar"
       >
         <Menu size={32} color="#C6A95F" />

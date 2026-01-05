@@ -312,7 +312,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.licenseRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, "tradeLicense")}
         />
 
@@ -431,7 +431,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.coiRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, "coi")}
         />
 
@@ -465,7 +465,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.passportRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, "passport")}
         />
 
@@ -499,7 +499,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.nationalIdRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, "nationalId")}
         />
 
@@ -533,7 +533,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.vatRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, "vatDoc")}
         />
 
@@ -567,7 +567,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.taxRegRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, "taxRegDoc")}
         />
 
@@ -677,7 +677,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.addressProofRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) => handleSelectFile(e, "addressProof")}
         />
 
@@ -1208,7 +1208,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           ref={fileRefs.accreditationRef}
           type="file"
           className="hidden"
-          accept="application/pdf,image/*"
+          accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
           onChange={(e) =>
             handleSelectFile(e, "tradeAssociationCertificate")
           }

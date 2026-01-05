@@ -525,7 +525,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.licenseRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "tradeLicenseFile", setFieldValue, setFieldTouched);
@@ -690,7 +690,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.coiRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "coiFile", setFieldValue, setFieldTouched);
@@ -756,7 +756,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.passportRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "passportFile", setFieldValue, setFieldTouched);
@@ -822,7 +822,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.nationalIdRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "nationalIdFile", setFieldValue, setFieldTouched);
@@ -888,7 +888,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.vatRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "vatDocFile", setFieldValue, setFieldTouched);
@@ -954,7 +954,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.taxRegRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "taxRegDocFile", setFieldValue, setFieldTouched);
@@ -1134,7 +1134,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.addressProofRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "addressProofFile", setFieldValue, setFieldTouched);
@@ -1351,7 +1351,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                   }}
                   type="file"
                   className="hidden"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={async (e) => {
                     const file = e.target.files?.[0] ?? null;
                     // Immediately update UI
@@ -1632,7 +1632,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                   }}
                   type="file"
                   className="hidden"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={async (e) => {
                     const file = e.target.files?.[0] ?? null;
                     // Immediately update UI
@@ -2123,7 +2123,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               ref={fileRefs.accreditationRef}
               type="file"
               className="hidden"
-              accept="application/pdf,image/*"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 await handleFileUpload(file, "tradeAssociationCertificateFile", setFieldValue, setFieldTouched);

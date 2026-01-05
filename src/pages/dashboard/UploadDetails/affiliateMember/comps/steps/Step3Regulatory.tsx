@@ -390,7 +390,7 @@ export default function Step3Regulatory() {
                         const file = e.target.files?.[0] || null;
                         handleFileUpload(file, hook.setAmlPolicyFile, hook.setAmlPolicyDocumentId, setFieldValue, 'amlPolicyFile');
                       }}
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     />
                     <UploadBox
                       title="AML/CFT policy document"
@@ -530,7 +530,7 @@ export default function Step3Regulatory() {
                           const file = e.target.files?.[0] || null;
                           handleFileUpload(file, hook.setDeclarationFile, hook.setDeclarationDocumentId, setFieldValue, 'declarationFile');
                         }}
-                        accept="application/pdf,image/*"
+                        accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       />
                       <UploadBox
                         title="Upload: Declaration of no penalty/AML notice"
@@ -612,7 +612,7 @@ export default function Step3Regulatory() {
                           const file = e.target.files?.[0] || null;
                           handleFileUpload(file, hook.setSupplyChainDueDiligenceFile, hook.setSupplyChainDocumentId, setFieldValue, 'supplyChainDueDiligenceFile');
                         }}
-                        accept="application/pdf,image/*"
+                        accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       />
                       <UploadBox
                         title="Supply chain due diligence policy"
@@ -675,7 +675,7 @@ export default function Step3Regulatory() {
                           const file = e.target.files?.[0] || null;
                           handleFileUpload(file, hook.setResponsibleSourcingFile, hook.setResponsibleSourcingDocumentId, setFieldValue, 'responsibleSourcingFile');
                         }}
-                        accept="application/pdf,image/*"
+                        accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       />
                       <UploadBox
                         title="Responsible Sourcing Audit Evidence"

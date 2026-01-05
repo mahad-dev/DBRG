@@ -1,8 +1,26 @@
 import * as Yup from 'yup';
 
 /**
+ * Allowed file types for document uploads
+ */
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
+
+/**
+ * Maximum file size in bytes (10MB)
+ */
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+/**
  * Validates UploadBox fields - handles both new File uploads and existing paths
  * Required file validation: must have either new file OR existing path
+ * Also validates file type and size for new uploads
  *
  * Usage:
  * - In Formik initialValues: include both file and filePath
@@ -51,14 +69,43 @@ export const requiredFile = (fieldName: string) => {
       console.log('✅ Validation result:', fieldName, isValid ? 'PASS' : 'FAIL');
 
       return isValid;
+    })
+    .test('file-type', `${fieldName} must be PDF, JPEG, PNG, GIF, or WebP`, function (value) {
+      // Only validate type for new File uploads
+      if (!value || !(value instanceof File)) return true;
+
+      const isValidType = ALLOWED_FILE_TYPES.includes(value.type);
+      console.log('🔍 File type validation:', fieldName, value.type, isValidType ? 'PASS' : 'FAIL');
+
+      return isValidType;
+    })
+    .test('file-size', `${fieldName} must be less than 10MB`, function (value) {
+      // Only validate size for new File uploads
+      if (!value || !(value instanceof File)) return true;
+
+      const isValidSize = value.size <= MAX_FILE_SIZE;
+      console.log('🔍 File size validation:', fieldName, `${(value.size / 1024 / 1024).toFixed(2)}MB`, isValidSize ? 'PASS' : 'FAIL');
+
+      return isValidSize;
     });
 };
 
 /**
- * Optional file validation (no requirement)
+ * Optional file validation (no requirement, but validates type and size if file is provided)
  */
 export const optionalFile = () =>
-  Yup.mixed().nullable();
+  Yup.mixed()
+    .nullable()
+    .test('file-type', 'File must be PDF, JPEG, PNG, GIF, or WebP', function (value) {
+      // Only validate type for new File uploads
+      if (!value || !(value instanceof File)) return true;
+      return ALLOWED_FILE_TYPES.includes(value.type);
+    })
+    .test('file-size', 'File must be less than 10MB', function (value) {
+      // Only validate size for new File uploads
+      if (!value || !(value instanceof File)) return true;
+      return value.size <= MAX_FILE_SIZE;
+    });
 
 /**
  * File type validation (for specific file types)

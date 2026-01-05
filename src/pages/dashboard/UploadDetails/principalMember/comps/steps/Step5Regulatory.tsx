@@ -390,7 +390,7 @@ export default function Step5Regulatory() {
                           'amlPolicyFile'
                         );
                       }}
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     />
                     <UploadBox
                       title="AML/CFT policy document"
@@ -413,6 +413,15 @@ export default function Step5Regulatory() {
                         setFieldValue('amlPolicyFile', null);
                       }}
                     />
+                    {formData.regulatorCompliance?.amlCftPolicyDocumentFilePath && !hook.amlPolicyFile && (
+                      <a
+                        href={formData.regulatorCompliance.amlCftPolicyDocumentFilePath}
+                        target="_blank"
+                        className="mt-2 inline-block text-[#C6A95F] underline"
+                      >
+                        View Previous Document
+                      </a>
+                    )}
                     {touched.amlPolicyFile && errors.amlPolicyFile && (
                       <p className="text-red-500 text-sm mt-2">{errors.amlPolicyFile as string}</p>
                     )}
@@ -526,7 +535,7 @@ export default function Step5Regulatory() {
                             'declarationFile'
                           );
                         }}
-                        accept="application/pdf,image/*"
+                        accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       />
                       <UploadBox
                         title="Upload: Declaration of no penalty/AML notice"
@@ -549,6 +558,15 @@ export default function Step5Regulatory() {
                           setFieldValue('declarationFile', null);
                         }}
                       />
+                      {formData.regulatorCompliance?.declarationNoPenaltyFilePath && !hook.declarationFile && (
+                        <a
+                          href={formData.regulatorCompliance.declarationNoPenaltyFilePath}
+                          target="_blank"
+                          className="mt-2 inline-block text-[#C6A95F] underline"
+                        >
+                          View Previous Document
+                        </a>
+                      )}
                       {touched.declarationFile && errors.declarationFile && (
                         <p className="text-red-500 text-sm mt-2">{errors.declarationFile as string}</p>
                       )}
@@ -608,7 +626,7 @@ export default function Step5Regulatory() {
                             'supplyChainDueDiligenceFile'
                           );
                         }}
-                        accept="application/pdf,image/*"
+                        accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       />
                       <UploadBox
                         title="Supply chain due diligence policy"
@@ -631,6 +649,15 @@ export default function Step5Regulatory() {
                           setFieldValue('supplyChainDueDiligenceFile', null);
                         }}
                       />
+                      {formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath && !hook.supplyChainDueDiligenceFile && (
+                        <a
+                          href={formData.regulatorCompliance.supplyChainPolicyDocumentFilePath}
+                          target="_blank"
+                          className="mt-2 inline-block text-[#C6A95F] underline"
+                        >
+                          View Previous Document
+                        </a>
+                      )}
                       {touched.supplyChainDueDiligenceFile && errors.supplyChainDueDiligenceFile && (
                         <p className="text-red-500 text-sm mt-2">{errors.supplyChainDueDiligenceFile as string}</p>
                       )}
@@ -672,7 +699,7 @@ export default function Step5Regulatory() {
                             'responsibleSourcingFile'
                           );
                         }}
-                        accept="application/pdf,image/*"
+                        accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       />
                       <UploadBox
                         title="Responsible Sourcing Audit Evidence"
@@ -695,6 +722,15 @@ export default function Step5Regulatory() {
                           setFieldValue('responsibleSourcingFile', null);
                         }}
                       />
+                      {formData.regulatorCompliance?.assuranceReportFilePath && !hook.responsibleSourcingFile && (
+                        <a
+                          href={formData.regulatorCompliance.assuranceReportFilePath}
+                          target="_blank"
+                          className="mt-2 inline-block text-[#C6A95F] underline"
+                        >
+                          View Previous Document
+                        </a>
+                      )}
                       {touched.responsibleSourcingFile && errors.responsibleSourcingFile && (
                         <p className="text-red-500 text-sm mt-2">{errors.responsibleSourcingFile as string}</p>
                       )}

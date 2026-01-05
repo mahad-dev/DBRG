@@ -1,11 +1,12 @@
-import ApplicantsTable from './comps/NewApplication'
+import ApplicantsTable from './comps/NewApplication';
+import WithPermission from "@/components/WithPermission";
 
 const Applications = () => {
   return (
-    <div>
+    <WithPermission module="APPLICATION_MANAGEMENT">
       <ApplicantsTable />
-    </div>
-  )
-}
+    </WithPermission>
+  );
+};
 
-export default Applications
+export default Applications;

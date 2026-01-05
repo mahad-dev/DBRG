@@ -185,28 +185,40 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
     // File fields for each item
     trade_license_file: files.trade_license,
     trade_license_fileId: documentIds.trade_license,
+    trade_license_filePath: documentPaths.trade_license,
     assurance_report_file: files.assurance_report,
     assurance_report_fileId: documentIds.assurance_report,
+    assurance_report_filePath: documentPaths.assurance_report,
     audited_fs_file: files.audited_fs,
     audited_fs_fileId: documentIds.audited_fs,
+    audited_fs_filePath: documentPaths.audited_fs,
     net_worth_file: files.net_worth,
     net_worth_fileId: documentIds.net_worth,
+    net_worth_filePath: documentPaths.net_worth,
     amlCftPolicy_file: files.amlCftPolicy,
     amlCftPolicy_fileId: documentIds.amlCftPolicy,
+    amlCftPolicy_filePath: documentPaths.amlCftPolicy,
     supplyChainPolicy_file: files.supplyChainPolicy,
     supplyChainPolicy_fileId: documentIds.supplyChainPolicy,
+    supplyChainPolicy_filePath: documentPaths.supplyChainPolicy,
     noUnresolvedAmlNoticesDeclaration_file: files.noUnresolvedAmlNoticesDeclaration,
     noUnresolvedAmlNoticesDeclaration_fileId: documentIds.noUnresolvedAmlNoticesDeclaration,
+    noUnresolvedAmlNoticesDeclaration_filePath: documentPaths.noUnresolvedAmlNoticesDeclaration,
     board_resolution_file: files.board_resolution,
     board_resolution_fileId: documentIds.board_resolution,
+    board_resolution_filePath: documentPaths.board_resolution,
     ownership_structure_file: files.ownership_structure,
     ownership_structure_fileId: documentIds.ownership_structure,
+    ownership_structure_filePath: documentPaths.ownership_structure,
     certified_true_copy_file: files.certified_true_copy,
     certified_true_copy_fileId: documentIds.certified_true_copy,
+    certified_true_copy_filePath: documentPaths.certified_true_copy,
     ubo_proof_file: files.ubo_proof,
     ubo_proof_fileId: documentIds.ubo_proof,
+    ubo_proof_filePath: documentPaths.ubo_proof,
     certified_ids_file: files.certified_ids,
     certified_ids_fileId: documentIds.certified_ids,
+    certified_ids_filePath: documentPaths.certified_ids,
     // Checkboxes
     checked,
     // Other forms
@@ -219,8 +231,8 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
       validationSchema={affiliateMemberStep6Schema}
       onSubmit={handleSave}
       enableReinitialize
-      validateOnChange={false}
-      validateOnBlur={false}
+      validateOnChange={true}
+      validateOnBlur={true}
       validateOnMount={false}
     >
       {({ errors, touched, setFieldValue, setFieldTouched, submitForm }) => {
@@ -238,7 +250,11 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
             <div className="flex flex-col w-full">
               <ServiceCheckbox
                 id={it.id}
-                label={it.label}
+                label={
+                  <span>
+                    {it.label} <span className="text-red-500">*</span>
+                  </span>
+                }
                 checked={!!checked[it.id]}
                 onChange={() => {
                   const newValue = !checked[it.id];
@@ -247,6 +263,9 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                   setFieldTouched(`checked.${it.id}`, true);
                 }}
               />
+              {(errors as any)?.checked?.[it.id] && (touched as any)?.checked?.[it.id] && (
+                <p className="text-red-500 text-sm mt-1">{(errors as any).checked[it.id] as string}</p>
+              )}
 
               {/* Only show upload box if not checkbox-only items */}
               {!checkboxOnlyItems.includes(it.id) && (
@@ -255,7 +274,7 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                     ref={refs[it.id]}
                     type="file"
                     className="hidden"
-                    accept="application/pdf,image/*"
+                    accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={(e) => {
                       handleSelectFile(e, async (f) => {
                         setItemFile(it.id, f);
@@ -357,7 +376,7 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                       }}
                       type="file"
                       className="hidden"
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                       onChange={(e) => {
                         handleSelectFile(e, async (f) => {
                           setOtherFormFile(of.id, f);
@@ -390,7 +409,11 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
 
             {/* Add Button */}
             <Button
-              onClick={() => addOtherForm("")}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                addOtherForm("");
+              }}
               variant={'site_btn'}
               className="px-6 py-3 rounded-md w-full sm:w-auto"
             >

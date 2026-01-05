@@ -14,6 +14,43 @@ import { memberDirectoryApi, type Member } from "@/services/memberDirectoryApi";
 import { toast } from "react-toastify";
 import ContactMemberModal from "./ContactMemberModal";
 
+// Helper function to get initials from name or email
+const getInitials = (name: string, email: string): string => {
+  if (name && name.trim()) {
+    const nameParts = name.trim().split(' ');
+    if (nameParts.length >= 2) {
+      return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+    }
+    return name.trim().substring(0, 2).toUpperCase();
+  }
+  // Fallback to email first letter
+  return email.substring(0, 1).toUpperCase();
+};
+
+// Helper function to generate random background color
+const getRandomColor = (id: string): string => {
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+    '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
+    '#E76F51', '#2A9D8F', '#E9C46A', '#F4A261', '#264653',
+    '#8338EC', '#3A86FF', '#FB5607', '#FF006E', '#FFBE0B'
+  ];
+  // Use id to consistently generate same color for same member
+  const index = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+  return colors[index];
+};
+
+// Helper function to get membership type name
+const getMembershipTypeName = (type: number): string => {
+  switch (type) {
+    case 1: return "Principal Member";
+    case 2: return "Contributing Member";
+    case 3: return "Affiliate Member";
+    case 4: return "Associate Member";
+    default: return "Member";
+  }
+};
+
 export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?: () => void }) {
   const [search, setSearch] = useState("");
   const [country] = useState("");
@@ -160,39 +197,54 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
           members.map((member) => (
             <Card
               key={member.id}
-              className="bg-[#FFFFFF26] border-none rounded-2xl text-white w-full"
+              className="bg-[#FFFFFF26] border-none rounded-2xl text-white w-full h-full flex flex-col"
             >
-              <CardContent className="flex flex-col gap-4">
+              <CardContent className="flex flex-col gap-4 px-6 flex-1">
                 {/* Top Section */}
                 <div className="flex items-center gap-4">
-                  <img
-                    src={member.avatar || "/static/company1.jpg"}
-                    alt="avatar"
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="font-plusjakarta font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-[#C6A95F]">
-                      {member.company}
+                  {member.profilePicturePath ? (
+                    <img
+                      src={member.profilePicturePath}
+                      alt={member.name}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center font-semibold text-white text-lg flex-shrink-0"
+                      style={{ backgroundColor: getRandomColor(member.id) }}
+                    >
+                      {getInitials(member.name, member.email)}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-plusjakarta font-semibold text-[16px] leading-[150%] tracking-[-0.02em] text-[#C6A95F] truncate">
+                      {member.name}
                     </p>
-                    <p className="font-plusjakarta font-normal text-[12px] leading-[100%] tracking-[-0.01em] text-[#54577A]">
-                      {member.location}
+                    <p className="font-plusjakarta font-normal text-[12px] leading-[100%] tracking-[-0.01em] text-white/70 truncate">
+                      {member.email}
                     </p>
                   </div>
                 </div>
 
-                {/* Membership */}
-                <div>
-                  <p className="font-plusjakarta font-semibold text-[14px] leading-[200%] tracking-normal text-white">
-                    {member.type || "Membership Type"}
+                {/* Company and Country */}
+                <div className="flex-1">
+                  <p className="font-plusjakarta font-semibold text-[14px] leading-[150%] tracking-normal text-white truncate">
+                    {member.company || "N/A"}
                   </p>
+                  <p className="font-plusjakarta font-normal text-[12px] leading-[100%] tracking-[-0.01em] text-white/60 mt-1 truncate">
+                    {member.country || "N/A"}
+                  </p>
+                </div>
 
-                  <p className="font-inter font-normal text-[14px] md:text-[16px] leading-[1.2] tracking-normal text-white mt-1">
-                    {member.description}
+                {/* Membership Type */}
+                <div>
+                  <p className="font-plusjakarta font-medium text-[14px] leading-[150%] tracking-normal text-[#C6A95F]">
+                    {getMembershipTypeName(member.membershipType)}
                   </p>
                 </div>
 
                 {/* Buttons */}
-                <div className="flex flex-wrap items-center justify-between mt-2 gap-3 w-full">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full mt-auto">
                   <Button
                     onClick={() => {
                       setSelectedMember(member);
@@ -200,9 +252,9 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
                     }}
                     className="
                       font-inter font-normal text-[14px] leading-[100%] tracking-normal
-                      text-center w-full md:w-[132px] h-[37px]
+                      text-center flex-1 h-[37px]
                       rounded-[10px] p-2.5
-                      bg-[#C6A95F] text-black
+                      bg-[#C6A95F] text-black hover:bg-[#C6A95F]/90
                     "
                   >
                     Contact Member
@@ -211,8 +263,8 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
                   <Button
                     className="
                       font-inter font-normal text-[14px] leading-[100%] tracking-normal text-black text-center
-                      bg-white
-                      w-full md:w-[115px] h-[37px] rounded-[10px] p-2.5
+                      bg-white hover:bg-white/90
+                      flex-1 h-[37px] rounded-[10px] p-2.5
                     "
                   >
                     View Profile
@@ -265,8 +317,8 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
       {/* Contact Member Modal */}
       {selectedMember && (
         <ContactMemberModal
-          memberId={selectedMember.id.toString()}
-          memberName={selectedMember.company}
+          memberId={selectedMember.id}
+          memberName={selectedMember.name}
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
         />
