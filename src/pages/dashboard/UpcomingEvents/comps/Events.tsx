@@ -42,70 +42,7 @@ export default function Events() {
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
       image: "/static/event4.jpg",
     },
-    {
-      id: 5,
-      title: "Expo 2025",
-      date: "09/07/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event1.jpg",
-    },
-    {
-      id: 6,
-      title: "Tech Conference",
-      date: "15/08/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event2.jpg",
-    },
-    {
-      id: 7,
-      title: "Startup Meetup",
-      date: "22/09/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event3.jpg",
-    },
-    {
-      id: 8,
-      title: "AI Workshop",
-      date: "05/10/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event4.jpg",
-    },
-     {
-      id: 9,
-      title: "Expo 2025",
-      date: "09/07/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event1.jpg",
-    },
-    {
-      id: 10,
-      title: "Tech Conference",
-      date: "15/08/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event2.jpg",
-    },
-    {
-      id: 11,
-      title: "Startup Meetup",
-      date: "22/09/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event3.jpg",
-    },
-    {
-      id: 12,
-      title: "AI Workshop",
-      date: "05/10/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event4.jpg",
-    },
+    
   ];
 
   return (
