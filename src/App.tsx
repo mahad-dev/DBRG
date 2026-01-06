@@ -16,6 +16,7 @@ const App: FC = () => {
         closeOnClick
         pauseOnHover
         draggable
+        limit={1}
       />
 
       <AppRouter />
