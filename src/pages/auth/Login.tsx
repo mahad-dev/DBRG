@@ -55,8 +55,9 @@ const Login: React.FC = () => {
         name: data.name || data.email.split('@')[0] || 'User',
         email: data.email,
         userType: data.userType,
-        membershipType: data.application?.result?.membershipType?.toString(),
+        membershipType: data.application?.membershipType?.toString(),
         accessToken: data.accessToken,
+        application: data.application || null,
       };
 
       login(userData);

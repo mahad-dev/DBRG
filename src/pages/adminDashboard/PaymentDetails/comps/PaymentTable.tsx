@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import GenerateInvoiceModal from "./GenerateInvoice";
 import apiClient from "@/services/apiClient";
 import { useAuth } from "@/context/AuthContext";
+import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
 
 /* ================= TYPES ================= */
 
@@ -88,20 +89,7 @@ const downloadCSV = (data: PaymentItem[]) => {
     item.vatNumber || "N/A"
   ]);
 
-  const csvContent = [
-    headers.join(","),
-    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `payment_report_${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  generateCSVReport(headers, csvData, "payment_report");
 };
 
 const downloadExcel = (data: PaymentItem[]) => {
@@ -112,99 +100,33 @@ const downloadExcel = (data: PaymentItem[]) => {
     formatDate(item.date),
     formatTime(item.date),
     getStatusText(item.paymentStatus),
-    item.amount || "N/A",
+    item.amount ? `$${item.amount.toLocaleString()}` : "N/A",
     item.invoiceNumber || "N/A",
     item.vatNumber || "N/A"
   ]);
 
-  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
-  html += '<body><table>';
-  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
-  html += '</table></body></html>';
-
-  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `payment_report_${new Date().toISOString().split('T')[0]}.xls`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  generateExcelReport(headers, excelData, "payment_report");
 };
 
 const downloadPDF = (data: PaymentItem[]) => {
-  let html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Payment Report</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
-        td { padding: 10px; border: 1px solid #ddd; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <h1>Payment Report</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Company</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Amount</th>
-            <th>Invoice Number</th>
-            <th>VAT Number</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
+  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const pdfData = data.map(item => [
+    item.userId || "N/A",
+    item.companyName || "N/A",
+    formatDate(item.date),
+    formatTime(item.date),
+    getStatusText(item.paymentStatus),
+    item.amount ? `$${item.amount.toLocaleString()}` : "N/A",
+    item.invoiceNumber || "N/A",
+    item.vatNumber || "N/A"
+  ]);
 
-  data.forEach(item => {
-    html += `
-      <tr>
-        <td>${item.userId || "N/A"}</td>
-        <td>${item.companyName || "N/A"}</td>
-        <td>${formatDate(item.date)}</td>
-        <td>${formatTime(item.date)}</td>
-        <td>${getStatusText(item.paymentStatus)}</td>
-        <td>${item.amount ? `$${item.amount.toLocaleString()}` : "N/A"}</td>
-        <td>${item.invoiceNumber || "N/A"}</td>
-        <td>${item.vatNumber || "N/A"}</td>
-      </tr>
-    `;
+  generatePDFReport({
+    title: "Payment Report",
+    headers,
+    data: pdfData,
+    filename: "payment_report"
   });
-
-  html += `
-        </tbody>
-      </table>
-      <div class="footer">
-        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([html], { type: 'text/html' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `payment_report_${new Date().toISOString().split('T')[0]}.html`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 /* ================= COMPONENT ================= */

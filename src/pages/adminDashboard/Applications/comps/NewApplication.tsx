@@ -27,6 +27,7 @@ import apiClient from "@/services/apiClient";
 import RemarksDialog from "./ApplicationRemarksModal";
 import { useAuth } from "@/context/AuthContext";
 import { COUNTRIES } from "@/constants/countries";
+import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
 /* ================= TYPES ================= */
 type Applicant = {
   id: number;
@@ -39,125 +40,6 @@ type Applicant = {
 };
 
 const PAGE_SIZE = 6;
-
-/* ================= EXPORT FUNCTIONS ================= */
-
-const downloadCSV = (data: Applicant[]) => {
-  const headers = ["Name", "Company", "Country", "Status"];
-  const csvData = data.map(item => [
-    item.name || "N/A",
-    item.company || "N/A",
-    item.country || "N/A",
-    item.status === 0 ? "Pending" : item.status === 1 ? "In Progress" : item.status === 2 ? "Accepted" : "Rejected"
-  ]);
-
-  const csvContent = [
-    headers.join(","),
-    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `new_applications_${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-const downloadExcel = (data: Applicant[]) => {
-  const headers = ["Name", "Company", "Country", "Status"];
-  const excelData = data.map(item => [
-    item.name || "N/A",
-    item.company || "N/A",
-    item.country || "N/A",
-    item.status === 0 ? "Pending" : item.status === 1 ? "In Progress" : item.status === 2 ? "Accepted" : "Rejected"
-  ]);
-
-  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
-  html += '<body><table>';
-  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
-  html += '</table></body></html>';
-
-  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `new_applications_${new Date().toISOString().split('T')[0]}.xls`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-const downloadPDF = (data: Applicant[]) => {
-  let html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>New Applications Report</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
-        td { padding: 10px; border: 1px solid #ddd; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <h1>New Applications Report</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Company</th>
-            <th>Country</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
-
-  data.forEach(item => {
-    const statusText = item.status === 0 ? "Pending" : item.status === 1 ? "In Progress" : item.status === 2 ? "Accepted" : "Rejected";
-    html += `
-      <tr>
-        <td>${item.name || "N/A"}</td>
-        <td>${item.company || "N/A"}</td>
-        <td>${item.country || "N/A"}</td>
-        <td>${statusText}</td>
-      </tr>
-    `;
-  });
-
-  html += `
-        </tbody>
-      </table>
-      <div class="footer">
-        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([html], { type: 'text/html' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `new_applications_${new Date().toISOString().split('T')[0]}.html`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
 
 /* ================= HELPER FUNCTIONS ================= */
 const getStatusText = (status: number): string => {
@@ -175,6 +57,48 @@ const getStatusText = (status: number): string => {
   }
 };
 
+/* ================= EXPORT FUNCTIONS ================= */
+
+const downloadCSV = (data: Applicant[]) => {
+  const headers = ["Name", "Company", "Country", "Status"];
+  const csvData = data.map(item => [
+    item.name || "N/A",
+    item.company || "N/A",
+    item.country || "N/A",
+    getStatusText(item.status)
+  ]);
+
+  generateCSVReport(headers, csvData, "new_applications");
+};
+
+const downloadExcel = (data: Applicant[]) => {
+  const headers = ["Name", "Company", "Country", "Status"];
+  const excelData = data.map(item => [
+    item.name || "N/A",
+    item.company || "N/A",
+    item.country || "N/A",
+    getStatusText(item.status)
+  ]);
+
+  generateExcelReport(headers, excelData, "new_applications");
+};
+
+const downloadPDF = (data: Applicant[]) => {
+  const headers = ["Name", "Company", "Country", "Status"];
+  const pdfData = data.map(item => [
+    item.name || "N/A",
+    item.company || "N/A",
+    item.country || "N/A",
+    getStatusText(item.status)
+  ]);
+
+  generatePDFReport({
+    title: "New Applications Report",
+    headers,
+    data: pdfData,
+    filename: "new_applications"
+  });
+};
 
 /* ================= COMPONENT ================= */
 export default function ApplicantsTable() {

@@ -28,12 +28,16 @@ interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   to: string;
+  disabled?: boolean;
 }
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
-  const { logout } = useAuth();
+  const { logout, application } = useAuth();
   const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  // Check if application is completed
+  const isApplicationCompleted = application?.isCompleted ?? false;
 
   const handleLogout = () => {
     logout();
@@ -77,13 +81,50 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 
           {/* NAVIGATION */}
           <div className="flex flex-col gap-2 mb-10">
-            <NavItem icon={<Home size={26} />} label="Home" to="/dashboard" />
-            <NavItem icon={<BookOpen size={26} />} label="Upload Details" to="/dashboard/member-type/principal-member/upload-details" />
-            <NavItem icon={<Clock3 size={26} />} label="Track Status" to="/dashboard/track-status" />
-            <NavItem icon={<BookOpen size={26} />} label="Upcoming Events" to="/dashboard/upcoming-events" />
-            <NavItem icon={<Users size={26} />} label="Members Directory" to="/dashboard/members-directory" />
-            <NavItem icon={<Bell size={26} />} label="Notifications" to="/dashboard/notifications" />
-            <NavItem icon={<Library size={26} />} label="Resource Library" to="/dashboard/resource-library" />
+            <NavItem
+              icon={<Home size={26} />}
+              label="Home"
+              to="/dashboard"
+              disabled={!isApplicationCompleted}
+            />
+            {/* Show Upload Details only if application is not completed */}
+            {!isApplicationCompleted && (
+              <NavItem
+                icon={<BookOpen size={26} />}
+                label="Upload Details"
+                to="/dashboard/member-type/principal-member/upload-details"
+              />
+            )}
+            <NavItem
+              icon={<Clock3 size={26} />}
+              label="Track Status"
+              to="/dashboard/track-status"
+              disabled={!isApplicationCompleted}
+            />
+            <NavItem
+              icon={<BookOpen size={26} />}
+              label="Upcoming Events"
+              to="/dashboard/upcoming-events"
+              disabled={!isApplicationCompleted}
+            />
+            <NavItem
+              icon={<Users size={26} />}
+              label="Members Directory"
+              to="/dashboard/members-directory"
+              disabled={!isApplicationCompleted}
+            />
+            <NavItem
+              icon={<Bell size={26} />}
+              label="Notifications"
+              to="/dashboard/notifications"
+              disabled={!isApplicationCompleted}
+            />
+            <NavItem
+              icon={<Library size={26} />}
+              label="Resource Library"
+              to="/dashboard/resource-library"
+              disabled={!isApplicationCompleted}
+            />
             <Button
               variant="ghost"
               className="flex justify-start items-center gap-4 text-[18px] px-5 py-4 rounded-xl w-full font-semibold text-white hover:bg-[#1E1E1E]"
@@ -133,7 +174,21 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   );
 }
 
-function NavItem({ icon, label, to }: NavItemProps) {
+function NavItem({ icon, label, to, disabled = false }: NavItemProps) {
+  if (disabled) {
+    return (
+      <div
+        className={cn(
+          "flex justify-start items-center gap-4 text-[18px] px-5 py-4 rounded-xl w-full font-semibold",
+          "text-gray-500 cursor-not-allowed opacity-50"
+        )}
+      >
+        {icon}
+        <span className="tracking-tight">{label}</span>
+      </div>
+    );
+  }
+
   return (
     <NavLink
       to={to}

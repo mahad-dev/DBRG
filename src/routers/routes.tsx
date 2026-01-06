@@ -20,6 +20,7 @@ import AdminLogin from "@/pages/auth/AdminLogin";
 import type { ReactElement } from "react";
 import Login from "@/pages/auth/Login";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ApplicationGuard from "@/components/ApplicationGuard";
 
 import AdminDashboardLayout from "@/pages/adminDashboard/layout";
 import UserManagement from "@/pages/adminDashboard/UserManagement";
@@ -75,17 +76,17 @@ const layoutRoutes: RouteConfig[] = [
 USER DASHBOARD ROUTES (/dashboard)
 --------------------------------------------------------- */
 const dashboardLayoutRoutes: RouteConfig[] = [
-  { path: "", element: <Dashboard />, name: "Dashboard" },
-  { path: "upcoming-events", element: <UpcomingEvents />, name: "UpcomingEvents" },
-  { path: "track-status", element: <TrackingStatus />, name: "TrackingStatus" },
-  { path: "members-directory", element: <MemberDirectory />, name: "MemberDirectory" },
-  { path: "resource-library", element: <ResourceLibrary />, name: "ResourceLibrary" },
-  { path: "notifications", element: <Notifications />, name: "Notifications" },
-  { path: "upload-details", element: <UploadDetails />, name: "UploadDetails" },
-  { path: "member-type/principal-member/upload-details", element: <UploadDetailsPrincipalMember />, name: "UploadDetailsPrincipalMember" },
-  { path: "member-type/member-bank/upload-details", element: <UploadDetailsMemberBank />, name: "UploadDetailsMemberBank" },
-  { path: "member-type/contributing-member/upload-details", element: <UploadDetailsContributingMember />, name: "UploadDetailsContributingMember" },
-  { path: "member-type/affiliate-member/upload-details", element: <UploadDetailsAffiliateMember />, name: "UploadDetailsAffiliateMember" },
+  { path: "", element: <ApplicationGuard><Dashboard /></ApplicationGuard>, name: "Dashboard" },
+  { path: "upcoming-events", element: <ApplicationGuard><UpcomingEvents /></ApplicationGuard>, name: "UpcomingEvents" },
+  { path: "track-status", element: <ApplicationGuard><TrackingStatus /></ApplicationGuard>, name: "TrackingStatus" },
+  { path: "members-directory", element: <ApplicationGuard><MemberDirectory /></ApplicationGuard>, name: "MemberDirectory" },
+  { path: "resource-library", element: <ApplicationGuard><ResourceLibrary /></ApplicationGuard>, name: "ResourceLibrary" },
+  { path: "notifications", element: <ApplicationGuard><Notifications /></ApplicationGuard>, name: "Notifications" },
+  { path: "upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetails /></ApplicationGuard>, name: "UploadDetails" },
+  { path: "member-type/principal-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsPrincipalMember /></ApplicationGuard>, name: "UploadDetailsPrincipalMember" },
+  { path: "member-type/member-bank/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsMemberBank /></ApplicationGuard>, name: "UploadDetailsMemberBank" },
+  { path: "member-type/contributing-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsContributingMember /></ApplicationGuard>, name: "UploadDetailsContributingMember" },
+  { path: "member-type/affiliate-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsAffiliateMember /></ApplicationGuard>, name: "UploadDetailsAffiliateMember" },
 ];
 
 /* ---------------------------------------------------------
