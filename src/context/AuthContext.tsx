@@ -9,6 +9,23 @@ export interface Permission {
   parent: Permission | null;
 }
 
+export interface Application {
+  memberId: string;
+  member: any;
+  lastCompletedSection: number;
+  isCompleted: boolean;
+  submittedDate: string;
+  createdDate: string;
+  status: number;
+  membershipType: number;
+  statusUpdatedDate: string;
+  askDetailsDate: string | null;
+  askMoreDetailsRequest: string | null;
+  askMoreDetailsResponse: string | null;
+  adminComments: string | null;
+  id: number;
+}
+
 interface User {
   userId: string;
   name: string;
@@ -17,6 +34,7 @@ interface User {
   membershipType?: string;
   accessToken?: string;
   permissions?: Permission[];
+  application?: Application;
 }
 
 interface AuthContextType {
@@ -24,6 +42,7 @@ interface AuthContextType {
   user: User | null;
   role: 'member' | 'admin' | null;
   permissions: Permission[];
+  application: Application | null;
   hasPermission: (permissionKey: string) => boolean;
   canCreate: (module: string) => boolean;
   canEdit: (module: string) => boolean;
@@ -64,6 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const userType = localStorage.getItem('userType');
     const membershipType = localStorage.getItem('membershipType');
     const permissionsStr = localStorage.getItem('permissions');
+    const applicationStr = localStorage.getItem('application');
 
     let parsedPermissions: Permission[] = [];
     if (permissionsStr) {
@@ -75,6 +95,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
 
+    let parsedApplication: Application | undefined = undefined;
+    if (applicationStr) {
+      try {
+        parsedApplication = JSON.parse(applicationStr);
+        console.log('Loaded application from localStorage:', parsedApplication);
+      } catch (error) {
+        console.error('Failed to parse application from localStorage:', error);
+      }
+    }
+
     if (token && userId && email && userType) {
       return {
         userId,
@@ -83,6 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userType: parseInt(userType),
         membershipType: membershipType || undefined,
         permissions: parsedPermissions,
+        application: parsedApplication,
       };
     }
     return null;
@@ -111,6 +142,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return [];
   });
 
+  const [application, setApplication] = useState<Application | null>(() => {
+    const applicationStr = localStorage.getItem('application');
+    if (applicationStr) {
+      try {
+        const parsed = JSON.parse(applicationStr);
+        console.log('Initial application loaded:', parsed);
+        return parsed;
+      } catch (error) {
+        console.error('Failed to parse application:', error);
+        return null;
+      }
+    }
+    return null;
+  });
+
   useEffect(() => {
     // Optional: Re-check or update if needed, but since we initialize synchronously, this might not be necessary
   }, []);
@@ -120,6 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(true);
     setRole(userData.userType === 2 ? 'admin' : 'member');
     setPermissions(userData.permissions || []);
+    setApplication(userData.application || null);
 
     // Store in localStorage
     if (userData.accessToken) {
@@ -151,6 +198,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('Failed to save permissions:', error);
       }
     }
+    if (userData.application) {
+      try {
+        const applicationJson = JSON.stringify(userData.application);
+        localStorage.setItem('application', applicationJson);
+        console.log('Saved application to localStorage:', userData.application);
+      } catch (error) {
+        console.error('Failed to save application:', error);
+      }
+    }
   };
 
   const logout = () => {
@@ -158,6 +214,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(false);
     setRole(null);
     setPermissions([]);
+    setApplication(null);
 
     // Clear localStorage
     localStorage.removeItem('accessToken');
@@ -167,6 +224,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('userType');
     localStorage.removeItem('membershipType');
     localStorage.removeItem('permissions');
+    localStorage.removeItem('application');
   };
 
   // Permission helper functions
@@ -199,6 +257,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     role,
     permissions,
+    application,
     hasPermission,
     canCreate,
     canEdit,

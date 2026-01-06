@@ -25,6 +25,7 @@ import RejectDialog from "./RejectModal";
 import RemarksDialog from "./RemarksModal";
 import apiClient from "@/services/apiClient";
 import { COUNTRIES } from "@/constants/countries";
+import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
 
 /* ================= TYPES ================= */
 type ConsiderationRequest = {
@@ -78,20 +79,7 @@ const downloadCSV = (data: ConsiderationRequest[]) => {
     getStatusText(item.status)
   ]);
 
-  const csvContent = [
-    headers.join(","),
-    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `special_consideration_${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  generateCSVReport(headers, csvData, "special_consideration");
 };
 
 const downloadExcel = (data: ConsiderationRequest[]) => {
@@ -99,96 +87,32 @@ const downloadExcel = (data: ConsiderationRequest[]) => {
   const excelData = data.map(item => [
     item.name || "N/A",
     item.companyName || "N/A",
-    item.membershipType || "N/A",
+    item.membershipType?.toString() || "N/A",
     item.country || "N/A",
     item.message || "N/A",
     getStatusText(item.status)
   ]);
 
-  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
-  html += '<body><table>';
-  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
-  html += '</table></body></html>';
-
-  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `special_consideration_${new Date().toISOString().split('T')[0]}.xls`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  generateExcelReport(headers, excelData, "special_consideration");
 };
 
 const downloadPDF = (data: ConsiderationRequest[]) => {
-  let html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Special Consideration Report</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
-        td { padding: 10px; border: 1px solid #ddd; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <h1>Special Consideration Report</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Company Name</th>
-            <th>Membership Category</th>
-            <th>Country</th>
-            <th>Message</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
+  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status"];
+  const pdfData = data.map(item => [
+    item.name || "N/A",
+    item.companyName || "N/A",
+    item.membershipType?.toString() || "N/A",
+    item.country || "N/A",
+    item.message || "N/A",
+    getStatusText(item.status)
+  ]);
 
-  data.forEach(item => {
-    html += `
-      <tr>
-        <td>${item.name || "N/A"}</td>
-        <td>${item.companyName || "N/A"}</td>
-        <td>${item.membershipType || "N/A"}</td>
-        <td>${item.country || "N/A"}</td>
-        <td>${item.message || "N/A"}</td>
-        <td>${getStatusText(item.status)}</td>
-      </tr>
-    `;
+  generatePDFReport({
+    title: "Special Consideration Report",
+    headers,
+    data: pdfData,
+    filename: "special_consideration"
   });
-
-  html += `
-        </tbody>
-      </table>
-      <div class="footer">
-        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([html], { type: 'text/html' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `special_consideration_${new Date().toISOString().split('T')[0]}.html`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 /* ================= COMPONENT ================= */

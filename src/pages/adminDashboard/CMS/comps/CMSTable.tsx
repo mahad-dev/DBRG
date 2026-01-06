@@ -21,6 +21,7 @@ import {
 import { Search, Filter, Calendar, MoreVertical, Download } from "lucide-react";
 import EditAndAddModal from "./EditAndAddModal";
 import { useAuth } from "@/context/AuthContext";
+import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
 
 /* ================= TYPES ================= */
 
@@ -57,20 +58,7 @@ const downloadCSV = (data: CMSItem[]) => {
     item.date || "N/A"
   ]);
 
-  const csvContent = [
-    headers.join(","),
-    ...csvData.map(row => row.map(cell => `"${cell}"`).join(","))
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `cms_report_${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  generateCSVReport(headers, csvData, "cms_report");
 };
 
 const downloadExcel = (data: CMSItem[]) => {
@@ -82,86 +70,24 @@ const downloadExcel = (data: CMSItem[]) => {
     item.date || "N/A"
   ]);
 
-  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  html += '<head><meta charset="utf-8" /><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; }</style></head>';
-  html += '<body><table>';
-  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-  html += excelData.map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
-  html += '</table></body></html>';
-
-  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `cms_report_${new Date().toISOString().split('T')[0]}.xls`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  generateExcelReport(headers, excelData, "cms_report");
 };
 
 const downloadPDF = (data: CMSItem[]) => {
-  let html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>CMS Report</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #C6A95F; text-align: center; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #C6A95F; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
-        td { padding: 10px; border: 1px solid #ddd; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <h1>CMS Report</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Status</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
+  const headers = ["Title", "Description", "Status", "Date"];
+  const pdfData = data.map(item => [
+    item.title || "N/A",
+    item.description || "N/A",
+    item.status || "N/A",
+    item.date || "N/A"
+  ]);
 
-  data.forEach(item => {
-    html += `
-      <tr>
-        <td>${item.title || "N/A"}</td>
-        <td>${item.description || "N/A"}</td>
-        <td>${item.status || "N/A"}</td>
-        <td>${item.date || "N/A"}</td>
-      </tr>
-    `;
+  generatePDFReport({
+    title: "CMS Report",
+    headers,
+    data: pdfData,
+    filename: "cms_report"
   });
-
-  html += `
-        </tbody>
-      </table>
-      <div class="footer">
-        <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([html], { type: 'text/html' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `cms_report_${new Date().toISOString().split('T')[0]}.html`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 /* ================= COMPONENT ================= */
