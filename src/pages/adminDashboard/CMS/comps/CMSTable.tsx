@@ -38,11 +38,6 @@ type CMSItem = {
 const cmsData: CMSItem[] = [
   { id: 1, title: "Event", description: "Lorem ipsum dolor consectetur ...", status: "Draft", date: "09/07/2025" },
   { id: 2, title: "News Latter", description: "Lorem ipsum dolor consectetur ...", status: "Published", date: "18/06/2025" },
-  { id: 3, title: "Report", description: "Lorem ipsum dolor consectetur ...", status: "Published", date: "18/06/2025" },
-  { id: 4, title: "FAQ", description: "Lorem ipsum dolor consectetur ...", status: "Unpublished", date: "09/07/2025" },
-  { id: 5, title: "Sanjana Shah", description: "Lorem ipsum dolor consectetur ...", status: "Draft", date: "18/06/2025" },
-  { id: 6, title: "FAQ", description: "Lorem ipsum dolor consectetur ...", status: "Published", date: "18/06/2025" },
-  { id: 7, title: "Report", description: "Lorem ipsum dolor consectetur ...", status: "Draft", date: "03/07/2025" },
 ];
 
 const ITEMS_PER_PAGE = 6;

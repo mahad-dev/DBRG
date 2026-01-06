@@ -9,7 +9,7 @@ import ResourceSection from "./ResourceSection";
 export default function ResourceLibrary() {
   const [search, setSearch] = useState("");
 
-  const resources = Array.from({ length: 30 }).map(() => ({
+  const resources = Array.from({ length: 3}).map(() => ({
     title: "Title ( Company Upcoming PDF )",
     type: "PDF",
     date: "09/07/2025",

@@ -27,22 +27,6 @@ export default function UpcomingEvents() {
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
       image: "/static/event2.jpg",
     },
-    {
-      id: 3,
-      title: "Startup Meetup",
-      date: "22/09/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event3.jpg",
-    },
-    {
-      id: 4,
-      title: "AI Workshop",
-      date: "05/10/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event4.jpg",
-    },
   ];
 
   return (
