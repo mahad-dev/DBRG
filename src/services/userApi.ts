@@ -118,7 +118,23 @@ class UserApi {
       throw error;
     }
   }
+  async getUsersWithoutFilter(params: GetUsersParams = {}): Promise<GetUsersResponse> {
+    try {
+      const response = await apiClient.get<GetUsersApiResponse>('/User/GetUsers');
 
+      // Transform API response to match our component's expected structure
+      const apiData = response.data.data;
+      const totalPages = Math.ceil(apiData.totalCount / (params.PageSize || 6));
+
+      return {
+        data: apiData.items,
+        totalCount: apiData.totalCount,
+        totalPages: totalPages,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
   async replaceCompanyDelegate(data: ReplaceCompanyDelegateRequest): Promise<ApiResponse> {
     try {
       const response = await apiClient.put<ApiResponse>('/User/ReplaceCompanyDelegate', data);

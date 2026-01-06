@@ -96,7 +96,7 @@ const AddMember = () => {
     const fetchUsers = async () => {
       try {
         setUsersLoading(true);
-        const response = await userApi.getUsers();
+        const response = await userApi.getUsersWithoutFilter();
         setUsers(response.data);
       } catch (error) {
         console.error('Failed to fetch users:', error);
