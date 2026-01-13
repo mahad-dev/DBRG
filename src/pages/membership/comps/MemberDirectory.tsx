@@ -73,6 +73,7 @@ export default function MemberDirectory() {
           <Button
           variant={"site_btn"}
             className="
+              cursor-pointer
               font-gilroy-semibold
               text-[16px] sm:text-[18px] md:text-[20px]
               w-[200px] sm:w-[230px] md:w-[260px]

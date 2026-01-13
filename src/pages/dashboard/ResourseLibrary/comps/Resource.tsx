@@ -40,7 +40,7 @@ export default function ResourceLibrary() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white" />
         </div>
 
-        <Button className="h-14 bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl flex items-center gap-2 px-6">
+        <Button className="h-14 bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl flex items-center gap-2 px-6 cursor-pointer">
           <SlidersHorizontal /> Filter
         </Button>
       </div>

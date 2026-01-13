@@ -67,14 +67,14 @@ export default function ContactMemberModal({
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-white text-white"
+              className="cursor-pointer border-white text-white"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-[#C6A95F] text-black"
+              className="cursor-pointer disabled:cursor-not-allowed bg-[#C6A95F] text-black"
             >
               {loading ? "Sending..." : "Send"}
             </Button>

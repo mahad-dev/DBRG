@@ -200,7 +200,7 @@ const Signup: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-6 text-lg rounded-xl bg-[#C6A95F] hover:bg-[#b9974f]"
+                  className="w-full py-6 text-lg rounded-xl bg-[#C6A95F] hover:bg-[#b9974f] cursor-pointer"
                 >
                   {loading ? "Creating Account..." : "Create Account"}
                 </Button>
@@ -209,7 +209,7 @@ const Signup: React.FC = () => {
           </Formik>
 
           <div className="mt-6 text-center">
-            <Link to="/login" className="text-[#C6A95F] hover:underline text-sm">
+            <Link to="/login" className="text-[#C6A95F] hover:underline text-sm cursor-pointer">
               Already have an account? Login
             </Link>
           </div>

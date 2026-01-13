@@ -37,6 +37,7 @@ import UploadDetailsMemberBank from "@/pages/dashboard/UploadDetails/memberBank"
 import UploadDetailsContributingMember from "../pages/dashboard/UploadDetails/contributingMember";
 import UploadDetailsAffiliateMember from "@/pages/dashboard/UploadDetails/affiliateMember";
 import UploadDetailsPrincipalMember from "@/pages/dashboard/UploadDetails/principalMember";
+import EventDetails from "@/pages/dashboard/UpcomingEvents/EventDetails";
 
 // Route configuration type
 export interface RouteConfig {
@@ -78,6 +79,7 @@ USER DASHBOARD ROUTES (/dashboard)
 const dashboardLayoutRoutes: RouteConfig[] = [
   { path: "", element: <ApplicationGuard><Dashboard /></ApplicationGuard>, name: "Dashboard" },
   { path: "upcoming-events", element: <ApplicationGuard><UpcomingEvents /></ApplicationGuard>, name: "UpcomingEvents" },
+  { path: "upcoming-events/:id", element: <ApplicationGuard><EventDetails /></ApplicationGuard>, name: "EventDetails" },
   { path: "track-status", element: <ApplicationGuard><TrackingStatus /></ApplicationGuard>, name: "TrackingStatus" },
   { path: "members-directory", element: <ApplicationGuard><MemberDirectory /></ApplicationGuard>, name: "MemberDirectory" },
   { path: "resource-library", element: <ApplicationGuard><ResourceLibrary /></ApplicationGuard>, name: "ResourceLibrary" },

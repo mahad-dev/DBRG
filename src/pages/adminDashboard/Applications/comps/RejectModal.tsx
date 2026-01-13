@@ -47,10 +47,10 @@ export default function RejectDialog({ open, onOpenChange, onConfirm }: RejectDi
           </div>
         </div>
         <DialogFooter className="flex justify-center gap-4 pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 cursor-pointer">
             Cancel
           </Button>
-          <Button onClick={handleConfirm} variant={"site_btn"} className="flex-1">
+          <Button onClick={handleConfirm} variant={"site_btn"} className="flex-1 cursor-pointer">
             Reject
           </Button>
         </DialogFooter>

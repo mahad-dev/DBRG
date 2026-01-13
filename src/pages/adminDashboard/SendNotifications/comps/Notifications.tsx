@@ -62,17 +62,17 @@ export default function Notifications() {
             <Label className="text-white">Select Channel</Label>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <Checkbox className="data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] [&_svg]:data-[state=checked]:text-white" />
+                <Checkbox className="cursor-pointer data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] [&_svg]:data-[state=checked]:text-white" />
                 <span className="text-white">All</span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Checkbox className="data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] data-[state=checked]:[&_svg]:text-white" />
+                <Checkbox className="cursor-pointer data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] data-[state=checked]:[&_svg]:text-white" />
                 <span className="text-white">Email</span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Checkbox className="data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] data-[state=checked]:[&_svg]:text-white" />
+                <Checkbox className="cursor-pointer data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] data-[state=checked]:[&_svg]:text-white" />
                 <span className="text-white">WhatsApp</span>
               </div>
             </div>
@@ -81,14 +81,14 @@ export default function Notifications() {
           {/* Actions */}
           <div className="flex gap-4 pt-2">
             {canCreate('NOTIFICATION_MANAGEMENT') && (
-              <Button className="bg-[#C9A85D] text-black hover:bg-[#b8964f] rounded-lg px-8">
+              <Button className="cursor-pointer bg-[#C9A85D] text-black hover:bg-[#b8964f] rounded-lg px-8">
                 Send
               </Button>
             )}
 
             <Button
               variant="outline"
-              className="bg-white text-black border-none rounded-lg px-8"
+              className="cursor-pointer bg-white text-black border-none rounded-lg px-8"
             >
               Preview
             </Button>

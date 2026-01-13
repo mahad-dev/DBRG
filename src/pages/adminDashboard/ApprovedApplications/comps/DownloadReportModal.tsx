@@ -103,7 +103,7 @@ export default function DownloadReportModal({
                   id={field.id}
                   checked={field.checked}
                   onCheckedChange={() => toggleField(field.id)}
-                  className="border-[#C6A95F] data-[state=checked]:bg-[#C6A95F] data-[state=checked]:text-black"
+                  className="cursor-pointer border-[#C6A95F] data-[state=checked]:bg-[#C6A95F] data-[state=checked]:text-black"
                 />
                 <label
                   htmlFor={field.id}
@@ -120,14 +120,14 @@ export default function DownloadReportModal({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="flex-1"
+            className="cursor-pointer flex-1"
           >
             Cancel
           </Button>
           <Button
             onClick={handleDownload}
             variant="site_btn"
-            className="flex-1"
+            className="cursor-pointer flex-1"
           >
             Download Report
           </Button>

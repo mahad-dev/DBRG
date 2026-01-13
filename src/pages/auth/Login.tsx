@@ -143,7 +143,7 @@ const Login: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 sm:py-6 text-lg rounded-xl bg-[#C6A95F] hover:bg-[#b9974f] transition-all duration-300 shadow-lg"
+                  className="w-full py-4 sm:py-6 text-lg rounded-xl bg-[#C6A95F] hover:bg-[#b9974f] transition-all duration-300 shadow-lg cursor-pointer"
                 >
                   {loading ? "Logging in..." : "Login"}
                 </Button>
@@ -155,7 +155,7 @@ const Login: React.FC = () => {
           <div className="mt-5 text-center">
             <Link
               to="/signup"
-              className="text-[#C6A95F] hover:underline text-sm sm:text-base"
+              className="text-[#C6A95F] hover:underline text-sm sm:text-base cursor-pointer"
             >
               Don't have an account? Sign up
             </Link>

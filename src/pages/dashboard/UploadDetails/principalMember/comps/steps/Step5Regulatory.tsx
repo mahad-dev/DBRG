@@ -417,7 +417,7 @@ export default function Step5Regulatory() {
                       <a
                         href={formData.regulatorCompliance.amlCftPolicyDocumentFilePath}
                         target="_blank"
-                        className="mt-2 inline-block text-[#C6A95F] underline"
+                        className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                       >
                         View Previous Document
                       </a>
@@ -562,7 +562,7 @@ export default function Step5Regulatory() {
                         <a
                           href={formData.regulatorCompliance.declarationNoPenaltyFilePath}
                           target="_blank"
-                          className="mt-2 inline-block text-[#C6A95F] underline"
+                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                         >
                           View Previous Document
                         </a>
@@ -653,7 +653,7 @@ export default function Step5Regulatory() {
                         <a
                           href={formData.regulatorCompliance.supplyChainPolicyDocumentFilePath}
                           target="_blank"
-                          className="mt-2 inline-block text-[#C6A95F] underline"
+                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                         >
                           View Previous Document
                         </a>
@@ -726,7 +726,7 @@ export default function Step5Regulatory() {
                         <a
                           href={formData.regulatorCompliance.assuranceReportFilePath}
                           target="_blank"
-                          className="mt-2 inline-block text-[#C6A95F] underline"
+                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                         >
                           View Previous Document
                         </a>
@@ -755,7 +755,7 @@ export default function Step5Regulatory() {
                 onClick={submitForm}
                 disabled={isSaving || pendingUploads > 0}
                 variant="site_btn"
-                className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+                className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold cursor-pointer disabled:cursor-not-allowed"
               >
                 {pendingUploads > 0 ? 'Uploading...' : isSaving ? 'Saving...' : 'Save / Next'}
               </Button>

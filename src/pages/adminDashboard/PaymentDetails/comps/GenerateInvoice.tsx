@@ -329,7 +329,7 @@ export default function GenerateInvoiceModal({
                       variant="outline"
                       disabled={isSubmitting}
                       className={cn(
-                        "w-45 h-9 justify-between bg-white text-black",
+                        "cursor-pointer disabled:cursor-not-allowed w-45 h-9 justify-between bg-white text-black",
                         formik.touched.date && formik.errors.date && "border-red-500"
                       )}
                     >
@@ -363,7 +363,7 @@ export default function GenerateInvoiceModal({
                       variant="outline"
                       disabled={isSubmitting}
                       className={cn(
-                        "w-45 h-9 justify-between bg-white text-black",
+                        "cursor-pointer disabled:cursor-not-allowed w-45 h-9 justify-between bg-white text-black",
                         formik.touched.dueDate && formik.errors.dueDate && "border-red-500"
                       )}
                     >
@@ -447,7 +447,7 @@ export default function GenerateInvoiceModal({
             <div>
               <Button
                 type="submit"
-                className="self-start mt-10"
+                className="cursor-pointer disabled:cursor-not-allowed self-start mt-10"
                 variant="site_btn"
                 disabled={isSubmitting}
               >

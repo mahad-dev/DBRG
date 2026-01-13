@@ -74,7 +74,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               <img src="/DBRG-logo.svg" alt="DBRG" className="w-14 h-14" />
               <span className="text-[32px] font-bold text-[#C6A95F]">DBRG</span>
             </div>
-            <Button variant="ghost" onClick={() => setMobileOpen(false)}>
+            <Button variant="ghost" onClick={() => setMobileOpen(false)} className="cursor-pointer">
               <ArrowRight size={26} color="#C6A95F" />
             </Button>
           </div>
@@ -127,7 +127,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
             />
             <Button
               variant="ghost"
-              className="flex justify-start items-center gap-4 text-[18px] px-5 py-4 rounded-xl w-full font-semibold text-white hover:bg-[#1E1E1E]"
+              className="flex justify-start items-center gap-4 text-[18px] px-5 py-4 rounded-xl w-full font-semibold text-white hover:bg-[#1E1E1E] cursor-pointer"
               onClick={() => setLogoutDialogOpen(true)}
             >
               <LogOut size={26} />
@@ -156,7 +156,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
                 Having trouble in learning? Contact us for more questions.
               </p>
 
-              <Button className="w-[156px] h-10 mt-6 bg-black text-white rounded-[10px]">
+              <Button className="w-[156px] h-10 mt-6 bg-black text-white rounded-[10px] cursor-pointer">
                 Go To Help Center
               </Button>
             </CardContent>
@@ -195,7 +195,7 @@ function NavItem({ icon, label, to, disabled = false }: NavItemProps) {
       end={to === "/dashboard"}
       className={({ isActive }) =>
         cn(
-          "flex justify-start items-center gap-4 text-[18px] px-5 py-4 rounded-xl w-full font-semibold",
+          "flex justify-start items-center gap-4 text-[18px] px-5 py-4 rounded-xl w-full font-semibold cursor-pointer",
           isActive ? "bg-[#C6A95F] text-black" : "text-white hover:bg-[#1E1E1E]"
         )
       }

@@ -166,7 +166,7 @@ const AddMember = () => {
                       type="button"
                       variant="outline"
                       onClick={() => setIsAddExisting(!isAddExisting)}
-                      className="text-white border-white hover:bg-white hover:text-black"
+                      className="cursor-pointer text-white border-white hover:bg-white hover:text-black"
                     >
                       {isAddExisting ? 'Add Member' : 'Add an existing user'}
                     </Button>
@@ -324,7 +324,7 @@ const AddMember = () => {
                 <div className="flex justify-end pt-4">
                   <Button
                     type="submit"
-                    className="bg-[#C6A95F] text-white hover:bg-[#b99a52]"
+                    className="cursor-pointer disabled:cursor-not-allowed bg-[#C6A95F] text-white hover:bg-[#b99a52]"
                     disabled={loading}
                   >
                     {loading ? 'Updating...' : 'Update'}

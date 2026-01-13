@@ -276,7 +276,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                   <a
                     href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
                     target="_blank"
-                    className="mt-2 inline-block text-[#C6A95F] underline"
+                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                   >
                     View Previous Document
                   </a>
@@ -373,7 +373,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                 addOtherForm("");
               }}
               variant={'site_btn'}
-              className="px-6 py-3 rounded-md w-full sm:w-auto"
+              className="px-6 py-3 rounded-md w-full sm:w-auto cursor-pointer"
             >
               Add Form
             </Button>
@@ -395,7 +395,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
             onClick={submitForm}
             disabled={isSaving || pendingUploads > 0}
             variant="site_btn"
-            className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+            className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold cursor-pointer disabled:cursor-not-allowed"
           >
             {pendingUploads > 0 ? 'Uploading...' : isSaving ? 'Saving...' : 'Save / Next'}
           </Button>

@@ -11,7 +11,7 @@ interface HeaderProps {
 export default function Header({ setMobileOpen }: HeaderProps) {
   const name = localStorage.getItem("name");
   return (
-    <header className="w-full lg:border md:border-white rounded-xl lg:px-4 lg:py-3 flex items-center justify-between">
+    <header className="w-full lg:border md:border-white rounded-xl lg:px-4 lg:py-1.5 flex items-center justify-between">
       {/* LEFT: HAMBURGER (MOBILE ONLY) */}
       <button
         onClick={() => setMobileOpen(true)}
@@ -22,12 +22,12 @@ export default function Header({ setMobileOpen }: HeaderProps) {
       </button>
 
       {/* SEARCH BAR — only on desktop */}
-      <div className="hidden lg:flex items-center bg-[#FFFFFF26] px-4 py-2 rounded-xl w-[450px]">
+      <div className="hidden lg:flex items-center bg-[#FFFFFF26] px-3 py-1 rounded-lg w-[300px]">
         <Input
           placeholder="Search"
-          className="bg-transparent border-0 focus-visible:ring-0 text-white placeholder-white text-[18px]"
+          className="bg-transparent border-0 focus-visible:ring-0 text-white placeholder-white text-[14px]"
         />
-        <Search size={20} className="text-white -ml-6" />
+        <Search size={16} className="text-white -ml-6" />
       </div>
       <div className="flex items-center gap-2 lg:hidden">
         <img src="/DBRG-logo.svg" alt="DBRG" className="w-[42px] h-[47px]" />

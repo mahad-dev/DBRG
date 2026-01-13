@@ -186,7 +186,7 @@ export default function ReplaceDelegateModal({
                   type="submit"
                   disabled={isSubmitting}
                   variant={"site_btn"}
-                  className="h-12 rounded-[10px] px-12"
+                  className="cursor-pointer disabled:cursor-not-allowed h-12 rounded-[10px] px-12"
                 >
                   {isSubmitting ? "Saving Changes..." : "Save Changes"}
                 </Button>

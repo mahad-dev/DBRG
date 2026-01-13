@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -39,6 +40,7 @@ type ConsiderationRequest = {
   applicationDate: string;
   remarks: string | null;
   statusChangedDate?: string | null;
+  userId?: string;
 };
 
 /* ================= UTILITY FUNCTIONS ================= */
@@ -50,6 +52,21 @@ const getStatusText = (status: number): string => {
       return "Accepted";
     case 3:
       return "Rejected";
+    default:
+      return "Unknown";
+  }
+};
+
+const getMembershipCategoryText = (type: number): string => {
+  switch (type) {
+    case 1:
+      return "Principal Member";
+    case 2:
+      return "Member Bank";
+    case 3:
+      return "Contributing Member";
+    case 4:
+      return "Affiliate Member";
     default:
       return "Unknown";
   }
@@ -69,42 +86,45 @@ const PAGE_SIZE = 10;
 /* ================= EXPORT FUNCTIONS ================= */
 
 const downloadCSV = (data: ConsiderationRequest[]) => {
-  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status"];
+  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status", "Remarks"];
   const csvData = data.map(item => [
     item.name || "N/A",
     item.companyName || "N/A",
-    item.membershipType?.toString() || "N/A",
+    getMembershipCategoryText(item.membershipType),
     item.country || "N/A",
     item.message || "N/A",
-    getStatusText(item.status)
+    getStatusText(item.status),
+    item.remarks || "N/A"
   ]);
 
   generateCSVReport(headers, csvData, "special_consideration");
 };
 
 const downloadExcel = (data: ConsiderationRequest[]) => {
-  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status"];
+  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status", "Remarks"];
   const excelData = data.map(item => [
     item.name || "N/A",
     item.companyName || "N/A",
-    item.membershipType?.toString() || "N/A",
+    getMembershipCategoryText(item.membershipType),
     item.country || "N/A",
     item.message || "N/A",
-    getStatusText(item.status)
+    getStatusText(item.status),
+    item.remarks || "N/A"
   ]);
 
   generateExcelReport(headers, excelData, "special_consideration");
 };
 
 const downloadPDF = (data: ConsiderationRequest[]) => {
-  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status"];
+  const headers = ["Name", "Company Name", "Membership Category", "Country", "Message", "Status", "Remarks"];
   const pdfData = data.map(item => [
     item.name || "N/A",
     item.companyName || "N/A",
-    item.membershipType?.toString() || "N/A",
+    getMembershipCategoryText(item.membershipType),
     item.country || "N/A",
     item.message || "N/A",
-    getStatusText(item.status)
+    getStatusText(item.status),
+    item.remarks || "N/A"
   ]);
 
   generatePDFReport({
@@ -117,6 +137,7 @@ const downloadPDF = (data: ConsiderationRequest[]) => {
 
 /* ================= COMPONENT ================= */
 export default function SpecialConsiderationTable() {
+  const navigate = useNavigate();
   const [data, setData] = useState<ConsiderationRequest[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
 
@@ -345,6 +366,7 @@ export default function SpecialConsiderationTable() {
                     <TableHead>Membership Category</TableHead>
                     <TableHead>Country</TableHead>
                     <TableHead>Message</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -369,6 +391,9 @@ export default function SpecialConsiderationTable() {
                           <Skeleton className="h-4 w-48" />
                         </TableCell>
                         <TableCell className="py-4 px-2">
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                        <TableCell className="py-4 px-2">
                           <Skeleton className="h-5 w-5 rounded" />
                         </TableCell>
                       </TableRow>
@@ -376,7 +401,7 @@ export default function SpecialConsiderationTable() {
                   ) : data.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={7}
                         className="text-center py-10 text-muted-foreground"
                       >
                         No data found
@@ -391,7 +416,7 @@ export default function SpecialConsiderationTable() {
                         <TableCell>
                           {item.companyName ? (item.companyName.length > 30 ? `${item.companyName.substring(0, 30)}...` : item.companyName) : "N/A"}
                         </TableCell>
-                        <TableCell>{item.membershipType || "N/A"}</TableCell>
+                        <TableCell>{getMembershipCategoryText(item.membershipType)}</TableCell>
                         <TableCell>
                           {item.country ? (item.country.length > 30 ? `${item.country.substring(0, 30)}...` : item.country) : "N/A"}
                         </TableCell>
@@ -399,7 +424,19 @@ export default function SpecialConsiderationTable() {
                           {item.message ? (item.message.length > 50 ? `${item.message.substring(0, 50)}...` : item.message) : "N/A"}
                         </TableCell>
                         <TableCell>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            item.status === 1 ? 'bg-yellow-500/20 text-yellow-500' :
+                            item.status === 2 ? 'bg-green-500/20 text-green-500' :
+                            item.status === 3 ? 'bg-red-500/20 text-red-500' :
+                            'bg-gray-500/20 text-gray-500'
+                          }`}>
+                            {getStatusText(item.status)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
                           <ActionMenu
+                            status={item.status}
+                            userId={item.userId}
                             onApprove={() => {
                               setSelectedRequest(item);
                               setApproveModal(true);
@@ -411,6 +448,11 @@ export default function SpecialConsiderationTable() {
                             onAddRemarks={() => {
                               setSelectedRequest(item);
                               setRemarksModal(true);
+                            }}
+                            onViewApplication={() => {
+                              if (item.userId) {
+                                navigate(`/admin/dashboard/applications/view?userId=${item.userId}`);
+                              }
                             }}
                           />
                         </TableCell>
@@ -453,7 +495,7 @@ export default function SpecialConsiderationTable() {
         status={getStatusText(selectedRequest?.status || 0)}
         approvalOrRejectionDate={selectedRequest?.statusChangedDate ? formatDate(selectedRequest.statusChangedDate) : undefined}
         applicationDate={formatDate(selectedRequest?.applicationDate || "")}
-        membershipCategory={selectedRequest?.membershipType?.toString()}
+        membershipCategory={getMembershipCategoryText(selectedRequest?.membershipType || 0)}
         requestMessage={selectedRequest?.message}
         remarks={selectedRequest?.remarks ?? undefined}
       />
@@ -482,6 +524,7 @@ function FooterPagination({
           size="sm"
           disabled={page === 1}
           onClick={() => setPage(page - 1)}
+          className="cursor-pointer disabled:cursor-not-allowed"
         >
           Previous
         </Button>
@@ -490,6 +533,7 @@ function FooterPagination({
           size="sm"
           disabled={page === total}
           onClick={() => setPage(page + 1)}
+          className="cursor-pointer disabled:cursor-not-allowed"
         >
           Next
         </Button>
@@ -500,24 +544,54 @@ function FooterPagination({
 
 /* ================= ACTION MENU ================= */
 function ActionMenu({
+  status,
+  userId,
   onApprove,
   onReject,
   onAddRemarks,
+  onViewApplication,
 }: {
+  status: number;
+  userId?: string;
   onApprove: () => void;
   onReject: () => void;
   onAddRemarks: () => void;
+  onViewApplication: () => void;
 }) {
+  // Status: 1 = Pending, 2 = Accepted, 3 = Rejected
+  const isPending = status === 1;
+  const isAccepted = status === 2;
+  const isRejected = status === 3;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem onClick={onApprove} className="cursor-pointer">Approve</DropdownMenuItem>
-        <DropdownMenuItem onClick={onReject} className="cursor-pointer">Reject</DropdownMenuItem>
+        {/* Show Approve only if status is Pending or Rejected */}
+        {!isAccepted && (
+          <DropdownMenuItem onClick={onApprove} className="cursor-pointer">
+            Approve
+          </DropdownMenuItem>
+        )}
+
+        {/* Show Reject only if status is Pending or Accepted */}
+        {!isRejected && (
+          <DropdownMenuItem onClick={onReject} className="cursor-pointer">
+            Reject
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuItem className="cursor-pointer">Ask for more details</DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">View Application</DropdownMenuItem>
+
+        {/* Show View Application only if userId is available */}
+        {userId && (
+          <DropdownMenuItem onClick={onViewApplication} className="cursor-pointer">
+            View Application
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuItem onClick={onAddRemarks} className="cursor-pointer">Add Remarks</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

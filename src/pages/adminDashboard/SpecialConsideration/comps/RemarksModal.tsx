@@ -110,7 +110,7 @@ export default function RemarksDialog({
               )}
             />
             <Button
-              className="self-start mt-16"
+              className="self-start mt-16 cursor-pointer"
               onClick={handleSubmit}
               variant="site_btn"
             >

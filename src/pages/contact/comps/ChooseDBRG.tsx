@@ -50,7 +50,7 @@ export default function WhyContactDBRG() {
           {/* BUTTON */}
           <Button
             variant="site_btn"
-            className="mt-4 w-[150px] sm:w-40 h-[52px] sm:h-14 rounded-[10px] px-4 py-2.5 flex items-center justify-center gap-2.5 text-[18px] sm:text-[20px] font-semibold text-center"
+            className="cursor-pointer mt-4 w-[150px] sm:w-40 h-[52px] sm:h-14 rounded-[10px] px-4 py-2.5 flex items-center justify-center gap-2.5 text-[18px] sm:text-[20px] font-semibold text-center"
             style={{ fontFamily: "Inter", lineHeight: "100%" }}
           >
             Contact Us
