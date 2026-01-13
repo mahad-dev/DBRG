@@ -131,7 +131,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 
             <Button
               variant="ghost"
-              className="flex items-center gap-4 px-4 py-3 rounded-xl transition-all tracking-tight text-white hover:bg-[#1A1A1A] w-full justify-start"
+              className="flex items-center gap-4 px-4 py-3 rounded-xl transition-all tracking-tight text-white hover:bg-[#1A1A1A] w-full justify-start cursor-pointer"
               onClick={() => setLogoutDialogOpen(true)}
             >
               <LogOut size={24} />
@@ -175,7 +175,7 @@ function NavItem({
       end
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-4 px-4 py-3 rounded-xl transition-all tracking-tight",
+          "flex items-center gap-4 px-4 py-3 rounded-xl transition-all tracking-tight cursor-pointer",
           isActive
             ? "bg-white text-black font-semibold"
             : "text-white hover:bg-[#1A1A1A]"

@@ -28,12 +28,12 @@ export default function Notification() {
       <div className="flex flex-col sm:flex-row gap-4 mt-6 w-full">
         <Button
           variant={"site_btn"}
-          className="w-full sm:w-[110px] h-[37px] rounded-[10px] px-4 py-2.5 font-inter font-normal text-sm leading-none text-center"
+          className="cursor-pointer w-full sm:w-[110px] h-[37px] rounded-[10px] px-4 py-2.5 font-inter font-normal text-sm leading-none text-center"
         >
           Mark as Read
         </Button>
 
-        <Button className="w-full sm:w-[110px] h-[37px] bg-white text-black rounded-[10px] px-4 py-2.5 font-inter font-normal text-sm leading-none text-center">
+        <Button className="cursor-pointer w-full sm:w-[110px] h-[37px] bg-white text-black rounded-[10px] px-4 py-2.5 font-inter font-normal text-sm leading-none text-center">
           Delete
         </Button>
       </div>

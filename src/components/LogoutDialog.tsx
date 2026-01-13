@@ -25,10 +25,10 @@ export default function LogoutDialog({ open, onOpenChange, onConfirm }: LogoutDi
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             Cancel
           </Button>
-          <Button onClick={onConfirm} variant={"site_btn"}>
+          <Button onClick={onConfirm} variant={"site_btn"} className="cursor-pointer">
             Log Out
           </Button>
         </DialogFooter>

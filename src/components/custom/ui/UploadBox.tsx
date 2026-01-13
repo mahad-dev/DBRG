@@ -164,7 +164,7 @@ export const UploadBox: React.FC<UploadBoxProps> = ({
         <div className="flex flex-col w-full sm:w-auto gap-2">
           <Button
             onClick={onClick}
-            className="w-full sm:w-[163px] h-11 bg-black text-white rounded-[10px] text-[18px] border border-white/20 hover:bg-[#111]"
+            className="cursor-pointer w-full sm:w-[163px] h-11 bg-black text-white rounded-[10px] text-[18px] border border-white/20 hover:bg-[#111]"
           >
             {file ? "Replace File" : "Upload File"}
           </Button>

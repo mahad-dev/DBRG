@@ -218,7 +218,7 @@ export default function ContactForm() {
                 type="submit"
                 variant="site_btn"
                 disabled={isSubmitting}
-                className="w-[145px] sm:w-40 h-[52px] sm:h-14 rounded-[10px] text-[18px] sm:text-[20px] p-2.5 flex items-center justify-center gap-2.5"
+                className="w-[145px] sm:w-40 h-[52px] sm:h-14 rounded-[10px] text-[18px] sm:text-[20px] p-2.5 flex items-center justify-center gap-2.5 cursor-pointer disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Sending..." : "Submit"}
               </Button>
@@ -242,7 +242,7 @@ export default function ContactForm() {
           <div className="mt-8">
             <Button
               variant="site_btn"
-              className="bg-[#C6A95F] text-black hover:bg-yellow-400 px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
+              className="bg-[#C6A95F] text-black hover:bg-yellow-400 px-6 py-3 rounded-lg font-semibold transition-colors duration-200 cursor-pointer"
               onClick={() => setIsModalOpen(false)}
             >
               Close

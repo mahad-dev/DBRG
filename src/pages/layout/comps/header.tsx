@@ -51,7 +51,7 @@ export default function Header() {
         {/* Desktop Header */}
         <div className="hidden xl:flex justify-center w-full">
           <div className="w-[95%] max-w-[1600px] mt-4 flex items-center justify-between px-8 py-4 bg-transparent">
-            <Link to="/" className="w-[54px] h-[61px]">
+            <Link to="/" className="w-[54px] h-[61px] cursor-pointer">
               <img src="/DBRG-logo.svg" className="w-full h-full" />
             </Link>
 
@@ -72,7 +72,7 @@ export default function Header() {
                       <NavigationMenuLink asChild>
                         <Link
                           to={link}
-                          className={`transition-colors font-inter text-[20px] leading-[100%] ${
+                          className={`transition-colors font-inter text-[20px] leading-[100%] cursor-pointer ${
                             active
                               ? "text-[#C6A95F] font-medium"
                               : "text-white font-normal hover:text-[#C6A95F]"
@@ -91,7 +91,7 @@ export default function Header() {
               <BecomeMemberButton />
               <Button
                 variant="site_btn_transparent"
-                className="w-[110px] h-[46px] rounded-[10px] border border-current"
+                className="w-[110px] h-[46px] rounded-[10px] border border-current cursor-pointer"
                 onClick={()=>{
                   navigate('/login')
                 }}
@@ -104,7 +104,7 @@ export default function Header() {
 
         {/* Mobile Header */}
         <div className="xl:hidden flex items-center justify-between px-4 py-4 mt-2 w-full">
-          <Link to="/" className="w-[50px] h-[55px]">
+          <Link to="/" className="w-[50px] h-[55px] cursor-pointer">
             <img src="/DBRG-logo.svg" className="w-full h-full" />
           </Link>
 
@@ -149,7 +149,7 @@ export default function Header() {
                   key={label}
                   to={link}
                   onClick={() => setMobileOpen(false)}
-                  className={`text-lg font-inter ${
+                  className={`text-lg font-inter cursor-pointer ${
                     active ? "text-[#C6A95F]" : "text-white"
                   }`}
                 >

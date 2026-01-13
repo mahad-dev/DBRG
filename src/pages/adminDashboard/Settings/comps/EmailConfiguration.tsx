@@ -296,7 +296,7 @@ const EmailConfiguration = () => {
                 type="submit"
                 variant="site_btn"
                 disabled={formik.isSubmitting}
-                className="px-6"
+                className="cursor-pointer disabled:cursor-not-allowed px-6"
               >
                 {formik.isSubmitting ? (
                   <>

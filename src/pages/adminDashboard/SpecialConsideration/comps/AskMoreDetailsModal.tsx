@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";
 
-interface RemarksDialogProps {
+interface AskMoreDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (remarks: string) => void;
+  onConfirm: (details: string) => void;
   userName?: string;
   companyName?: string;
   status?: string;
   applicationDate?: string;
-  approvalOrRejectionDate?: string;
   membershipCategory?: string;
   requestMessage?: string;
-  remarks?: string;
 }
 
 const InfoRow = ({ label, value }: { label: string; value: string | undefined }) => (
@@ -28,7 +27,7 @@ const InfoRow = ({ label, value }: { label: string; value: string | undefined })
   </p>
 );
 
-export default function RemarksDialog({
+export default function AskMoreDetailsModal({
   open,
   onOpenChange,
   onConfirm,
@@ -36,15 +35,22 @@ export default function RemarksDialog({
   companyName,
   status,
   applicationDate,
-  approvalOrRejectionDate,
   membershipCategory,
   requestMessage,
-  remarks
-}: RemarksDialogProps) {
-  const handleSubmit = () => {
-    const textarea = document.querySelector('textarea[placeholder="Add Remarks"]') as HTMLTextAreaElement;
-    const remarks = textarea?.value || '';
-    onConfirm(remarks);
+}: AskMoreDetailsModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    const textarea = document.querySelector('textarea[placeholder="Please provide additional information..."]') as HTMLTextAreaElement;
+    const details = textarea?.value || '';
+    if (details.trim()) {
+      setIsLoading(true);
+      try {
+        await onConfirm(details);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   return (
@@ -67,7 +73,6 @@ export default function RemarksDialog({
           <div className="text-right space-y-1 text-xs">
             <InfoRow label="Status" value={status} />
             <InfoRow label="Date of Application" value={applicationDate} />
-            <InfoRow label="Date of Approval/Rejection" value={approvalOrRejectionDate} />
           </div>
         </DialogHeader>
 
@@ -97,15 +102,15 @@ export default function RemarksDialog({
           </div>
         </div>
 
-        {/* Remarks */}
+        {/* Ask More Details */}
         <div className="mb-4">
-          <label className="text-sm mb-2 block">Remarks</label>
+          <label className="text-sm mb-2 block">Ask for More Details</label>
           <div className="flex gap-3">
             <textarea
-              placeholder="Add Remarks"
-              defaultValue={remarks}
+              placeholder="Please provide additional information..."
+              disabled={isLoading}
               className={cn(
-                "w-full min-h-[100px] rounded-lg border border-white px-3 py-2 text-xs text-white placeholder:text-white",
+                "w-full min-h-[100px] rounded-lg border border-white px-3 py-2 text-xs text-white placeholder:text-white/60",
                 "outline-none transition-all duration-200 focus:border-white focus:ring-1 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               )}
             />
@@ -113,8 +118,9 @@ export default function RemarksDialog({
               className="self-start mt-16 cursor-pointer"
               onClick={handleSubmit}
               variant="site_btn"
+              disabled={isLoading}
             >
-              Submit
+              {isLoading ? "Sending..." : "Send"}
             </Button>
           </div>
         </div>

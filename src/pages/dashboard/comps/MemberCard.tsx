@@ -39,11 +39,11 @@ export default function MemberCard() {
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3 mt-4 w-full">
-        <Button className="bg-black text-white w-[124px] h-11 px-2.5 py-2.5 rounded-[10px] flex items-center justify-center gap-2.5">
+        <Button className="cursor-pointer bg-black text-white w-[124px] h-11 px-2.5 py-2.5 rounded-[10px] flex items-center justify-center gap-2.5">
           Download
         </Button>
 
-        <Button className="bg-black text-white w-[167px] h-11 px-2.5 py-2.5 rounded-[10px] flex items-center justify-center gap-2.5">
+        <Button className="cursor-pointer bg-black text-white w-[167px] h-11 px-2.5 py-2.5 rounded-[10px] flex items-center justify-center gap-2.5">
           Add to e-Wallet
         </Button>
       </div>

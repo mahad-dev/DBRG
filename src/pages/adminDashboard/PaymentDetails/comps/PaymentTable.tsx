@@ -267,7 +267,7 @@ export default function PaymentTable() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+                  className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px] cursor-pointer"
                 >
                   <Filter className="w-4 h-4" />
                   {statusFilter === undefined ? "Status" : getStatusText(statusFilter)}
@@ -484,7 +484,7 @@ function FooterPagination({
             variant="outline"
             size="sm"
             onClick={() => setPage(page - 1)}
-            className="border-white text-white hover:bg-white/10 min-w-[80px]"
+            className="border-white text-white hover:bg-white/10 min-w-[80px] cursor-pointer"
           >
             Previous
           </Button>
@@ -494,7 +494,7 @@ function FooterPagination({
           size="sm"
           disabled={page === total}
           onClick={() => setPage(page + 1)}
-          className="border-white text-white hover:bg-white/10 disabled:opacity-50 min-w-[80px]"
+          className="border-white text-white hover:bg-white/10 disabled:opacity-50 min-w-[80px] cursor-pointer disabled:cursor-not-allowed"
         >
           Next
         </Button>

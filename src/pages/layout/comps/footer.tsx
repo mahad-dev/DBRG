@@ -32,6 +32,7 @@ export default function Footer() {
             href="https://www.orosoft.com/"
             target="_blank"
             rel="noopener noreferrer"
+            className="cursor-pointer"
           >
             <img src="/OroSoft-Logo.svg" alt="OroSoft" className="w-32 mt-2" />
           </a>
@@ -160,22 +161,22 @@ export default function Footer() {
           >
             <ul>
               <li className="hover:text-[#C6A95F]">
-                <Link to="/about">About Us</Link>
+                <Link to="/about" className="cursor-pointer">About Us</Link>
               </li>
               <li className="hover:text-[#C6A95F]">
-                <Link to="/membership">Membership</Link>
+                <Link to="/membership" className="cursor-pointer">Membership</Link>
               </li>
               <li className="hover:text-[#C6A95F]">
-                <Link to="/events">Events</Link>
+                <Link to="/events" className="cursor-pointer">Events</Link>
               </li>
               <li className="hover:text-[#C6A95F]">
-                <Link to="/news-media">News & Articles</Link>
+                <Link to="/news-media" className="cursor-pointer">News & Articles</Link>
               </li>
               <li className="hover:text-[#C6A95F]">
-                <Link to="/reports">Resources</Link>
+                <Link to="/reports" className="cursor-pointer">Resources</Link>
               </li>
               <li className="hover:text-[#C6A95F]">
-                <Link to="/contact">Contact Us</Link>
+                <Link to="/contact" className="cursor-pointer">Contact Us</Link>
               </li>
             </ul>
           </ul>
@@ -243,6 +244,7 @@ export default function Footer() {
               <a
                 href="https://www.instagram.com/dbrg.ae/?hl=en"
                 target="_blank"
+                className="cursor-pointer"
               >
                 Instagram
               </a>
@@ -251,6 +253,7 @@ export default function Footer() {
               <a
                 href="https://www.facebook.com/people/Dubai-Bullion-and-Refinery-Group/61564015094333/"
                 target="_blank"
+                className="cursor-pointer"
               >
                 Facebook
               </a>
@@ -259,6 +262,7 @@ export default function Footer() {
               <a
                 href="https://www.linkedin.com/in/dubai-bullion-and-refinery-group-191154307/"
                 target="_blank"
+                className="cursor-pointer"
               >
                 Twitter
               </a>
@@ -304,6 +308,7 @@ export default function Footer() {
     leading-[100%]
     tracking-[0%]
     text-center
+    cursor-pointer
   "
           >
             Join Now

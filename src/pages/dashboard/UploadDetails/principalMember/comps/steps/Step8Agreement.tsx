@@ -266,7 +266,7 @@ export default function Step8Agreement() {
                   <Button
                     type="button"
                     onClick={() => setOpenSigPad(true)}
-                    className="bg-black text-white text-xs p-3 rounded-md mt-1"
+                    className="bg-black text-white text-xs p-3 rounded-md mt-1 cursor-pointer"
                   >
                     Upload Digital Signature
                   </Button>
@@ -274,7 +274,7 @@ export default function Step8Agreement() {
                     <a
                       href={existingSignaturePath}
                       target="_blank"
-                      className="text-[#C6A95F] underline mt-2 block"
+                      className="text-[#C6A95F] underline mt-2 block cursor-pointer"
                     >
                       View previously uploaded signature
                     </a>
@@ -295,7 +295,7 @@ export default function Step8Agreement() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+                      className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300 cursor-pointer"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {values.selectedDate ? format(values.selectedDate, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
@@ -333,7 +333,7 @@ export default function Step8Agreement() {
                   onClick={submitForm}
                   disabled={isSaving || pendingUploads > 0}
                   variant="site_btn"
-                  className="w-[180px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+                  className="w-[180px] h-[42px] rounded-[10px] text-white font-gilroySemiBold cursor-pointer disabled:cursor-not-allowed"
                 >
                   {pendingUploads > 0 ? 'Uploading...' : isSaving ? 'Saving...' : 'Submit'}
                 </Button>
@@ -354,10 +354,10 @@ export default function Step8Agreement() {
                 />
               </div>
               <DialogFooter className="flex justify-between">
-                <Button type="button" variant="outline" onClick={clearSignature}>
+                <Button type="button" variant="outline" onClick={clearSignature} className="cursor-pointer">
                   Clear
                 </Button>
-                <Button type="button" variant="site_btn" onClick={() => saveSignature(setFieldValue)}>
+                <Button type="button" variant="site_btn" onClick={() => saveSignature(setFieldValue)} className="cursor-pointer">
                   Save Signature
                 </Button>
               </DialogFooter>

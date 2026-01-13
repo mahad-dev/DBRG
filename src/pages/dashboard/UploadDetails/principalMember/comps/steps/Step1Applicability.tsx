@@ -303,7 +303,7 @@ export default function Step1Applicability() {
                         membership === opt.id
                           ? "text-white border-none"
                           : "bg-transparent text-white border border-white"
-                      } ${!!formData?.application?.membershipType && membership !== opt.id ? "opacity-50 cursor-not-allowed" : ""}`}
+                      } ${!!formData?.application?.membershipType && membership !== opt.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     aria-pressed={membership === opt.id}
                   >
                     {opt.label}
@@ -518,7 +518,7 @@ export default function Step1Applicability() {
                     <a
                       href={existingEvidencePath}
                       target="_blank"
-                      className="mt-2 inline-block text-[#C6A95F] underline"
+                      className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                     >
                       View Previous Document
                     </a>
@@ -597,7 +597,7 @@ export default function Step1Applicability() {
                   <a
                     href={existingSignedAMLPath}
                     target="_blank"
-                    className="mt-2 inline-block text-[#C6A95F] underline"
+                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                   >
                     View Previous Document
                   </a>
@@ -621,7 +621,7 @@ export default function Step1Applicability() {
                 className={` h-[42px] px-4 py-2 rounded-[10px] text-[18px] sm:text-[16px] font-gilroySemiBold font-normal leading-[100%] transition ${
                   formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
                     ? "bg-gray-400 w-[192px] sm:w-full md:w-[192px] cursor-not-allowed text-black/60"
-                    : "text-white w-[132px] sm:w-full md:w-[132px]"
+                    : "text-white w-[132px] sm:w-full md:w-[132px] cursor-pointer disabled:cursor-not-allowed"
                 }`}
               >
                 {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false

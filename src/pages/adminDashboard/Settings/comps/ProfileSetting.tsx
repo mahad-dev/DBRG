@@ -64,10 +64,10 @@ const ProfileSetting = () => {
 
         {/* Buttons */}
         <div className="flex justify-end gap-6 mt-6">
-          <button className="px-6 py-1 border border-white rounded-md text-white">
+          <button className="cursor-pointer px-6 py-1 border border-white rounded-md text-white">
             Cancel
           </button>
-          <button className="px-6 py-1 bg-[#C6A95F] text-white rounded-md font-medium">
+          <button className="cursor-pointer px-6 py-1 bg-[#C6A95F] text-white rounded-md font-medium">
             Save Changes
           </button>
         </div>

@@ -317,7 +317,7 @@ export default function Step3BankRelationshipRequirement() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300"
+                        className="w-full mt-2 bg-white font-inter font-medium text-[18px] leading-[100%] tracking-normal align-middle h-[42px] text-black justify-start text-left border-gray-300 cursor-pointer"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span className="text-black/50">DD/MM/YYYY</span>}
@@ -382,7 +382,7 @@ export default function Step3BankRelationshipRequirement() {
                 onClick={submitForm}
                 disabled={state.isSaving || pendingUploads > 0}
                 variant="site_btn"
-                className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+                className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold cursor-pointer disabled:cursor-not-allowed"
               >
                 {pendingUploads > 0 ? 'Uploading...' : state.isSaving ? 'Saving...' : 'Save'}
               </Button>

@@ -251,6 +251,7 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
                       setIsModalOpen(true);
                     }}
                     className="
+                      cursor-pointer
                       font-inter font-normal text-[14px] leading-[100%] tracking-normal
                       text-center flex-1 h-[37px]
                       rounded-[10px] p-2.5
@@ -262,6 +263,7 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
 
                   <Button
                     className="
+                      cursor-pointer
                       font-inter font-normal text-[14px] leading-[100%] tracking-normal text-black text-center
                       bg-white hover:bg-white/90
                       flex-1 h-[37px] rounded-[10px] p-2.5
@@ -288,7 +290,7 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
             size="icon"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
+            className="cursor-pointer disabled:cursor-not-allowed h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
@@ -307,7 +309,7 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
             size="icon"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
+            className="cursor-pointer disabled:cursor-not-allowed h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
@@ -328,7 +330,7 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
       {onSwitchToInbox && (
         <Button
           onClick={onSwitchToInbox}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#C6A95F] text-black shadow-lg hover:bg-[#C6A95F]/90 hover:shadow-xl transition-all duration-200 z-50"
+          className="cursor-pointer fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#C6A95F] text-black shadow-lg hover:bg-[#C6A95F]/90 hover:shadow-xl transition-all duration-200 z-50"
           size="icon"
         >
           <Mail className="h-6 w-6" />

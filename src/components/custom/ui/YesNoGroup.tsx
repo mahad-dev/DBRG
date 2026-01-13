@@ -28,7 +28,7 @@ export const YesNoGroup: React.FC<YesNoGroupProps> = ({ value, onChange, classNa
                 onChange(false);
               }
             }}
-            className={`w-[269px] md:w-[269px] sm:w-full h-[47px] px-4 py-2 rounded-[10px] text-[22px] sm:text-[18px] font-gilroySemiBold leading-[100%] transition border
+            className={`cursor-pointer w-[269px] md:w-[269px] sm:w-full h-[47px] px-4 py-2 rounded-[10px] text-[22px] sm:text-[18px] font-gilroySemiBold leading-[100%] transition border
               ${isActive ? "bg-[#C6A95F] text-black border-none" : "bg-transparent border-white text-white"}`}
           >
             {txt}

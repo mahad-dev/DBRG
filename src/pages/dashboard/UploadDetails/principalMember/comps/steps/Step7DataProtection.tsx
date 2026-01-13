@@ -117,12 +117,12 @@ export default function Step7DataProtection() {
                   >
                     Back
                   </Button>
-          
+
           <Button
             onClick={handleSave}
             disabled={isSaving}
             variant="site_btn"
-            className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold"
+            className="w-[132px] h-[42px] rounded-[10px] text-white font-gilroySemiBold cursor-pointer disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving...' : 'Save / Next'}
           </Button>

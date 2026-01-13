@@ -148,6 +148,7 @@ export default function MemberTable() {
                       variant="destructive"
                       onClick={() => confirmDelete(member.id)}
                       disabled={deletingId === member.id}
+                      className="cursor-pointer disabled:cursor-not-allowed"
                     >
                       {deletingId === member.id ? (
                         <Loader2 className="animate-spin w-4 h-4" />
@@ -169,6 +170,7 @@ export default function MemberTable() {
           size="sm"
           onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
           disabled={pageNumber === 1}
+          className="cursor-pointer disabled:cursor-not-allowed"
         >
           Previous
         </Button>
@@ -177,6 +179,7 @@ export default function MemberTable() {
           size="sm"
           onClick={() => setPageNumber((prev) => prev + 1)}
           disabled={members.length < pageSize}
+          className="cursor-pointer disabled:cursor-not-allowed"
         >
           Next
         </Button>
@@ -194,12 +197,13 @@ export default function MemberTable() {
           </DialogHeader>
           <div className="mt-4 flex justify-end gap-2">
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" className="cursor-pointer">Cancel</Button>
             </DialogClose>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deletingId !== null}
+              className="cursor-pointer disabled:cursor-not-allowed"
             >
               {deletingId !== null ? (
                 <Loader2 className="animate-spin w-4 h-4" />

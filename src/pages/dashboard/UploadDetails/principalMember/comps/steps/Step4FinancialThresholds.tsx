@@ -296,7 +296,7 @@ export default function Step4FinancialThresholds() {
                   <a
                     href={bullionTurnoverProofFileIdPath}
                     target="_blank"
-                    className="mt-2 inline-block text-[#C6A95F] underline"
+                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                   >
                     View Previous Document
                   </a>
@@ -378,7 +378,7 @@ export default function Step4FinancialThresholds() {
                     <a
                       href={netWorthProofPath}
                       target="_blank"
-                      className="mt-2 inline-block text-[#C6A95F] underline"
+                      className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
                     >
                       View Previous Document
                     </a>
@@ -392,7 +392,7 @@ export default function Step4FinancialThresholds() {
                 <Button
                   type="button"
                   variant="site_btn"
-                  className="w-full md:w-[220px] h-[42px] rounded-[10px] text-[18px] bg-[#C6A95F] text-black font-gilroySemiBold"
+                  className="w-full md:w-[220px] h-[42px] rounded-[10px] text-[18px] bg-[#C6A95F] text-black font-gilroySemiBold cursor-pointer"
                 >
                   Download Template
                 </Button>
@@ -414,7 +414,7 @@ export default function Step4FinancialThresholds() {
                 onClick={submitForm}
                 disabled={isSaving || pendingUploads > 0}
                 variant="site_btn"
-                className="w-full sm:w-[132px] h-[42px] rounded-[10px] font-gilroySemiBold"
+                className="w-full sm:w-[132px] h-[42px] rounded-[10px] font-gilroySemiBold cursor-pointer disabled:cursor-not-allowed"
               >
                 {pendingUploads > 0 ? 'Uploading...' : isSaving ? 'Saving...' : 'Save / Next'}
               </Button>

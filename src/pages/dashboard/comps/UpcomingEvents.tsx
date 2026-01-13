@@ -62,7 +62,7 @@ export default function UpcomingEvents() {
               <div className="flex justify-between items-center mt-4">
                 <Button
                   variant={"site_btn"}
-                  className="rounded-[10px] px-4 py-2 text-[20px] font-normal"
+                  className="cursor-pointer rounded-[10px] px-4 py-2 text-[20px] font-normal"
                 >
                   Register
                 </Button>

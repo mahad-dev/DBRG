@@ -1,6 +1,6 @@
  "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -18,63 +18,54 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical, Download } from "lucide-react";
+import { Search, Filter, Calendar, MoreVertical, Download, Loader2 } from "lucide-react";
 import EditAndAddModal from "./EditAndAddModal";
+import ViewModal from "./ViewModal";
 import { useAuth } from "@/context/AuthContext";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
+import { getAllCms, updateCms } from "@/services/cmsApi";
+import type { CmsItem } from "@/types/cms";
+import { CategoryLabels } from "@/types/cms";
+import { toast } from "react-toastify";
 
-/* ================= TYPES ================= */
-
-type CMSItem = {
-  id: number;
-  title: string;
-  description: string;
-  status: "Draft" | "Published" | "Unpublished";
-  date: string;
-};
-
-/* ================= DATA ================= */
-
-const cmsData: CMSItem[] = [
-  { id: 1, title: "Event", description: "Lorem ipsum dolor consectetur ...", status: "Draft", date: "09/07/2025" },
-  { id: 2, title: "News Latter", description: "Lorem ipsum dolor consectetur ...", status: "Published", date: "18/06/2025" },
-];
-
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 10;
 
 /* ================= EXPORT FUNCTIONS ================= */
 
-const downloadCSV = (data: CMSItem[]) => {
-  const headers = ["Title", "Description", "Status", "Date"];
+const downloadCSV = (data: CmsItem[]) => {
+  const headers = ["Title", "Category", "Description", "Status", "Date"];
   const csvData = data.map(item => [
     item.title || "N/A",
+    CategoryLabels[item.category] || "N/A",
     item.description || "N/A",
-    item.status || "N/A",
-    item.date || "N/A"
+    item.isPublished ? "Published" : "Draft",
+    new Date(item.date).toLocaleDateString() || "N/A"
   ]);
 
   generateCSVReport(headers, csvData, "cms_report");
 };
 
-const downloadExcel = (data: CMSItem[]) => {
-  const headers = ["Title", "Description", "Status", "Date"];
+const downloadExcel = (data: CmsItem[]) => {
+  const headers = ["Title", "Category", "Description", "Status", "Date"];
   const excelData = data.map(item => [
     item.title || "N/A",
+    CategoryLabels[item.category] || "N/A",
     item.description || "N/A",
-    item.status || "N/A",
-    item.date || "N/A"
+    item.isPublished ? "Published" : "Draft",
+    new Date(item.date).toLocaleDateString() || "N/A"
   ]);
 
   generateExcelReport(headers, excelData, "cms_report");
 };
 
-const downloadPDF = (data: CMSItem[]) => {
-  const headers = ["Title", "Description", "Status", "Date"];
+const downloadPDF = (data: CmsItem[]) => {
+  const headers = ["Title", "Category", "Description", "Status", "Date"];
   const pdfData = data.map(item => [
     item.title || "N/A",
+    CategoryLabels[item.category] || "N/A",
     item.description || "N/A",
-    item.status || "N/A",
-    item.date || "N/A"
+    item.isPublished ? "Published" : "Draft",
+    new Date(item.date).toLocaleDateString() || "N/A"
   ]);
 
   generatePDFReport({
@@ -91,32 +82,113 @@ export default function CMSTable() {
   const { canCreate, canEdit } = useAuth();
   const hasCreateAccess = canCreate('CMS');
   const hasEditAccess = canEdit('CMS');
+
+  const [cmsItems, setCmsItems] = useState<CmsItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [editModal,setEditModal]=useState(false);
+  const [editModal, setEditModal] = useState(false);
+  const [viewModal, setViewModal] = useState(false);
+  const [editItemId, setEditItemId] = useState<number | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 
-  const filteredData = useMemo(() => {
-    return cmsData.filter((i) =>
-      `${i.title} ${i.description} ${i.status}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-  }, [search]);
+  // Fetch CMS data
+  const fetchCmsData = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllCms({
+        Search: search || undefined,
+        PageNumber: page,
+        PageSize: ITEMS_PER_PAGE,
+      });
 
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+      console.log('API Response:', response); // Debug log
 
-  const paginated = useMemo(() => {
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    return filteredData.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredData, page]);
+      // Handle different possible response structures
+      if (response.status) {
+        // Check if data is an array directly
+        if (Array.isArray(response.data)) {
+          setCmsItems(response.data);
+          setTotalPages(Math.ceil((response.totalCount || response.data.length) / ITEMS_PER_PAGE));
+        }
+        // Check if data has an items property (like userApi)
+        else if (response.data && typeof response.data === 'object' && 'items' in response.data && Array.isArray(response.data.items)) {
+          setCmsItems(response.data.items);
+          const dataWithItems = response.data as { items: CmsItem[]; totalCount?: number };
+          setTotalPages(Math.ceil((dataWithItems.totalCount || dataWithItems.items.length) / ITEMS_PER_PAGE));
+        }
+        // Fallback: empty array
+        else {
+          console.warn('Unexpected response structure:', response);
+          setCmsItems([]);
+          setTotalPages(1);
+        }
+      } else {
+        setCmsItems([]);
+        setTotalPages(1);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch CMS data:', error);
+      toast.error(error.message || 'Failed to load CMS data');
+      setCmsItems([]); // Ensure it's always an array
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    fetchCmsData();
+  }, [page, search]);
 
-  
-const handleEdit = () => {
+  const handleView = (itemId: number) => {
+    setSelectedItemId(itemId);
+    setViewModal(true);
+  };
 
-  setEditModal(true);
-};
+  const handleEdit = (item: CmsItem) => {
+    setEditItemId(item.id);
+    setEditModal(true);
+  };
+
+  const handleEditFromView = (item: CmsItem) => {
+    setEditItemId(item.id);
+    setViewModal(false);
+    setEditModal(true);
+  };
+
+  const handleAdd = () => {
+    setEditItemId(null);
+    setEditModal(true);
+  };
+
+  const handleTogglePublish = async (item: CmsItem) => {
+    try {
+      await updateCms({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        date: item.date,
+        link: item.link || null,
+        documentIds: item.documentIds,
+        isPublished: !item.isPublished,
+        category: item.category,
+        bannerId: item.bannerId || 0,
+      });
+
+      toast.success(item.isPublished ? 'Item unpublished successfully' : 'Item published successfully');
+      fetchCmsData(); // Refresh data
+    } catch (error: any) {
+      console.error('Failed to toggle publish status:', error);
+      toast.error(error.message || 'Failed to update status');
+    }
+  };
+
+  const handleModalSuccess = () => {
+    fetchCmsData(); // Refresh data after create/update
+  };
 
   return (
     <div className="min-h-screen text-white">
@@ -129,7 +201,7 @@ const handleEdit = () => {
           </h1>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
             {hasCreateAccess && (
-              <Button className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer">
+              <Button onClick={handleAdd} className="bg-[#C6A95F] text-white hover:bg-[#bfa14f] w-full sm:w-auto cursor-pointer">
                 Add
               </Button>
             )}
@@ -141,13 +213,13 @@ const handleEdit = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white">
-                <DropdownMenuItem onClick={() => downloadPDF(paginated)} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => downloadPDF(cmsItems)} className="cursor-pointer">
                   Download as PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadCSV(paginated)} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => downloadCSV(cmsItems)} className="cursor-pointer">
                   Download as CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadExcel(paginated)} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => downloadExcel(cmsItems)} className="cursor-pointer">
                   Download as Excel
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -165,7 +237,7 @@ const handleEdit = () => {
   {/* Actions */}
   <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-2">
     {/* Search */}
-    <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-white/20 bg-white/10 min-w-0 flex-1 sm:flex-initial">
+    <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-white/20 bg-white/10 min-w-0 sm:min-w-[200px]">
       <Input
         placeholder="Search"
         value={search}
@@ -181,7 +253,7 @@ const handleEdit = () => {
     {/* Status Filter */}
     <Button
       variant="outline"
-      className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+      className="h-11 border-white/20 flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
     >
       <Filter className="w-4 h-4" />
       Status
@@ -190,7 +262,7 @@ const handleEdit = () => {
     {/* Date Filter */}
     <Button
       variant="outline"
-      className="h-11 border-white/20 flex items-center justify-center gap-2 flex-1 sm:flex-initial min-w-[100px]"
+      className="h-11 border-white/20 flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
     >
       <Calendar className="w-4 h-4" />
       Date
@@ -201,61 +273,118 @@ const handleEdit = () => {
 
         {/* ===== MOBILE CARDS ===== */}
         <div className="block sm:hidden">
-          <div className="space-y-4">
-            {paginated.map((item) => (
-              <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-semibold text-white flex-1">{item.title || "N/A"}</h3>
-                  <ActionMenu onEdit={() => handleEdit()} canEdit={hasEditAccess} />
-                </div>
-                <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.description || "N/A"}</p>
-                <div className="flex justify-between items-center">
-                  <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                    item.status === 'Published' ? 'bg-green-500/20 text-green-300' :
-                    item.status === 'Draft' ? 'bg-yellow-500/20 text-yellow-300' :
-                    'bg-red-500/20 text-red-300'
-                  }`}>
-                    {item.status || "N/A"}
-                  </span>
-                  <span className="text-sm text-white/60">{item.date || "N/A"}</span>
-                </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-[#C6A95F]" />
+            </div>
+          ) : cmsItems.length === 0 ? (
+            <div className="text-center py-12 text-white/60">
+              No CMS items found
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {cmsItems.map((item) => (
+                  <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-white">{item.title || "N/A"}</h3>
+                        <span className="text-xs text-[#C6A95F]">{CategoryLabels[item.category]}</span>
+                      </div>
+                      <ActionMenu
+                        item={item}
+                        onView={() => handleView(item.id)}
+                        onEdit={() => handleEdit(item)}
+                        onTogglePublish={() => handleTogglePublish(item)}
+                        canEdit={hasEditAccess}
+                      />
+                    </div>
+                    <p className="text-sm text-white/80 mb-3 leading-relaxed line-clamp-2">{item.description || "N/A"}</p>
+                    <div className="flex justify-between items-center">
+                      <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                        item.isPublished ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'
+                      }`}>
+                        {item.isPublished ? 'Published' : 'Draft'}
+                      </span>
+                      <span className="text-sm text-white/60">{new Date(item.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <FooterPagination page={page} total={totalPages} setPage={setPage} />
+              <FooterPagination page={page} total={totalPages} setPage={setPage} />
+            </>
+          )}
         </div>
 
         {/* ===== DESKTOP TABLE ===== */}
         <div className="hidden sm:block border border-white rounded-lg overflow-hidden">
           <ScrollArea className="max-h-[520px]">
             <div className="overflow-x-auto">
-              <Table className="min-w-full">
+              <Table className="min-w-full table-fixed">
                 <TableHeader>
                   <TableRow className="bg-white/5">
-                    <TableHead className="py-4 px-2">Title</TableHead>
-                    <TableHead className="py-4 px-4 sm:px-16">Description</TableHead>
-                    <TableHead className="py-4 px-2">Status</TableHead>
-                    <TableHead className="py-4 px-2">Date</TableHead>
-                    <TableHead className="py-4 px-2">Action</TableHead>
+                    <TableHead className="py-4 px-3 w-[20%]">Title</TableHead>
+                    <TableHead className="py-4 px-3 w-[12%]">Category</TableHead>
+                    <TableHead className="py-4 px-3 w-[35%]">Description</TableHead>
+                    <TableHead className="py-4 px-3 w-[12%]">Status</TableHead>
+                    <TableHead className="py-4 px-3 w-[13%]">Date</TableHead>
+                    <TableHead className="py-4 px-3 w-[8%] text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {paginated.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="py-4 px-2">{item.title || "N/A"}</TableCell>
-                      <TableCell className="py-4 px-4 sm:px-16">
-                        {item.description || "N/A"}
-                      </TableCell>
-                      <TableCell className="py-4 px-2">
-                        {item.status || "N/A"}
-                      </TableCell>
-                      <TableCell className="py-4 px-2">{item.date || "N/A"}</TableCell>
-                      <TableCell className="py-4 px-2">
-                        <ActionMenu onEdit={() => handleEdit()} canEdit={hasEditAccess} />
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#C6A95F] mx-auto" />
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : cmsItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12 text-white/60">
+                        No CMS items found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    cmsItems.map((item) => (
+                      <TableRow key={item.id} className="hover:bg-white/5">
+                        <TableCell className="py-4 px-3">
+                          <div className="truncate max-w-full" title={item.title}>
+                            {item.title || "N/A"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4 px-3">
+                          <span className="text-[#C6A95F] whitespace-nowrap">{CategoryLabels[item.category]}</span>
+                        </TableCell>
+                        <TableCell className="py-4 px-3">
+                          <div className="line-clamp-2 text-sm" title={item.description}>
+                            {item.description || "N/A"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4 px-3">
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap inline-block ${
+                            item.isPublished ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'
+                          }`}>
+                            {item.isPublished ? 'Published' : 'Draft'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4 px-3">
+                          <span className="text-sm whitespace-nowrap">
+                            {new Date(item.date).toLocaleDateString()}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4 px-3 text-center">
+                          <ActionMenu
+                            item={item}
+                            onView={() => handleView(item.id)}
+                            onEdit={() => handleEdit(item)}
+                            onTogglePublish={() => handleTogglePublish(item)}
+                            canEdit={hasEditAccess}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -266,10 +395,18 @@ const handleEdit = () => {
       </div>
 
       {/* ===== MODALS ===== */}
+          <ViewModal
+            open={viewModal}
+            onOpenChange={setViewModal}
+            itemId={selectedItemId}
+            onEdit={handleEditFromView}
+          />
+
           <EditAndAddModal
             open={editModal}
             onOpenChange={setEditModal}
-            onConfirm={handleEdit}
+            editItemId={editItemId}
+            onSuccess={handleModalSuccess}
           />
     </div>
 
@@ -301,7 +438,7 @@ function FooterPagination({
             variant="outline"
             size="sm"
             onClick={() => setPage(page - 1)}
-            className="border-white text-white hover:bg-white/10 min-w-[80px]"
+            className="border-white text-white hover:bg-white/10 min-w-[80px] cursor-pointer"
           >
             Previous
           </Button>
@@ -311,7 +448,7 @@ function FooterPagination({
           size="sm"
           disabled={page === total}
           onClick={() => setPage(page + 1)}
-          className="border-white text-white hover:bg-white/10 disabled:opacity-50 min-w-[80px]"
+          className="border-white text-white hover:bg-white/10 disabled:opacity-50 min-w-[80px] cursor-pointer disabled:cursor-not-allowed"
         >
           Next
         </Button>
@@ -321,10 +458,16 @@ function FooterPagination({
 }
 
 function ActionMenu({
+  item,
+  onView,
   onEdit,
+  onTogglePublish,
   canEdit,
 }:{
+  item: CmsItem;
+  onView: () => void;
   onEdit: () => void;
+  onTogglePublish: () => void;
   canEdit: boolean;
 }) {
   const { hasPermission } = useAuth();
@@ -336,11 +479,11 @@ function ActionMenu({
         <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        {canGet && <DropdownMenuItem className="cursor-pointer">View</DropdownMenuItem>}
+        {canGet && <DropdownMenuItem onClick={onView} className="cursor-pointer">View</DropdownMenuItem>}
         {canEdit && <DropdownMenuItem onClick={onEdit} className="cursor-pointer">Edit</DropdownMenuItem>}
         {canEdit && (
-          <DropdownMenuItem className="text-red-500 cursor-pointer">
-            Delete
+          <DropdownMenuItem onClick={onTogglePublish} className="cursor-pointer">
+            {item.isPublished ? 'Unpublish' : 'Publish'}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

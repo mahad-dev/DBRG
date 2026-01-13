@@ -17,7 +17,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 </div>
 ))}
 </div>
-<button className="underline text-sm w-full text-center mt-4">View All</button>
+<button className="cursor-pointer underline text-sm w-full text-center mt-4">View All</button>
 </CardContent>
 </Card>
 );

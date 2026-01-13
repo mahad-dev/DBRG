@@ -282,7 +282,7 @@ export default function Inbox() {
                   <Button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
-                    className="bg-[#C6A95F] text-black hover:bg-[#C6A95F]/80"
+                    className="cursor-pointer disabled:cursor-not-allowed bg-[#C6A95F] text-black hover:bg-[#C6A95F]/80"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

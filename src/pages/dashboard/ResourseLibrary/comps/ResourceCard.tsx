@@ -33,11 +33,11 @@ export default function ResourceCard({ title, type, date, img }: ResourceCardPro
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-2">
-            <Button className="bg-[#C6A95F] text-black font-medium text-xs px-4 py-2 rounded-lg">
+            <Button className="cursor-pointer bg-[#C6A95F] text-black font-medium text-xs px-4 py-2 rounded-lg">
               Download
             </Button>
 
-            <Button className="bg-white text-black font-medium text-xs px-4 py-2 rounded-lg">
+            <Button className="cursor-pointer bg-white text-black font-medium text-xs px-4 py-2 rounded-lg">
               View
             </Button>
           </div>

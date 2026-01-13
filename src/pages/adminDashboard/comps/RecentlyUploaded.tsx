@@ -53,7 +53,7 @@ export default function RecentlyUploaded() {
 
         {/* View All */}
         <div className="text-center mt-6">
-          <button className="underline text-[15px] tracking-wide">View All</button>
+          <button className="cursor-pointer underline text-[15px] tracking-wide">View All</button>
         </div>
       </CardContent>
     </Card>

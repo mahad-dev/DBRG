@@ -14,14 +14,14 @@ export default function AdminDashboardLayout() {
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* HEADER */}
-        <div className="p-4 sticky top-0 z-50">
+        <div className="p-4 bg-[#121212] shrink-0">
           <Header setMobileOpen={setMobileOpen} />
         </div>
 
         {/* PAGE CONTENT */}
-        <main className="p-4 overflow-auto">
+        <main className="flex-1 p-4 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>
