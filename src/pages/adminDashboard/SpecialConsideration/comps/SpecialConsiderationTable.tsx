@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ApprovedDialog from "./ApproveModal";
 import RejectDialog from "./RejectModal";
 import RemarksDialog from "./RemarksModal";
+import AskMoreDetailsModal from "./AskMoreDetailsModal";
 import apiClient from "@/services/apiClient";
 import { COUNTRIES } from "@/constants/countries";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
@@ -150,6 +151,7 @@ export default function SpecialConsiderationTable() {
   const [approveModal, setApproveModal] = useState(false);
   const [rejectModal, setRejectModal] = useState(false);
   const [remarksModal, setRemarksModal] = useState(false);
+  const [askMoreDetailsModal, setAskMoreDetailsModal] = useState(false);
   const [selectedRequest, setSelectedRequest] =
     useState<ConsiderationRequest | null>(null);
 
@@ -222,6 +224,20 @@ export default function SpecialConsiderationTable() {
       fetchRequests();
     } catch (error) {
       console.error("Add Remarks Error:", error);
+    }
+  };
+
+  const handleAskMoreDetails = async (details: string) => {
+    if (!selectedRequest) return;
+    try {
+      await apiClient.put("/SpecialConsideration/AskMoreDetails", {
+        id: selectedRequest.id,
+        details,
+      });
+      setAskMoreDetailsModal(false);
+      fetchRequests();
+    } catch (error) {
+      console.error("Ask More Details Error:", error);
     }
   };
 
@@ -445,6 +461,10 @@ export default function SpecialConsiderationTable() {
                               setSelectedRequest(item);
                               setRejectModal(true);
                             }}
+                            onAskMoreDetails={() => {
+                              setSelectedRequest(item);
+                              setAskMoreDetailsModal(true);
+                            }}
                             onAddRemarks={() => {
                               setSelectedRequest(item);
                               setRemarksModal(true);
@@ -484,6 +504,18 @@ export default function SpecialConsiderationTable() {
         open={rejectModal}
         onOpenChange={setRejectModal}
         onConfirm={handleReject}
+      />
+
+      <AskMoreDetailsModal
+        open={askMoreDetailsModal}
+        onOpenChange={setAskMoreDetailsModal}
+        onConfirm={handleAskMoreDetails}
+        userName={selectedRequest?.name}
+        companyName={selectedRequest?.companyName ?? undefined}
+        status={getStatusText(selectedRequest?.status || 0)}
+        applicationDate={formatDate(selectedRequest?.applicationDate || "")}
+        membershipCategory={getMembershipCategoryText(selectedRequest?.membershipType || 0)}
+        requestMessage={selectedRequest?.message}
       />
 
       <RemarksDialog
@@ -548,6 +580,7 @@ function ActionMenu({
   userId,
   onApprove,
   onReject,
+  onAskMoreDetails,
   onAddRemarks,
   onViewApplication,
 }: {
@@ -555,6 +588,7 @@ function ActionMenu({
   userId?: string;
   onApprove: () => void;
   onReject: () => void;
+  onAskMoreDetails: () => void;
   onAddRemarks: () => void;
   onViewApplication: () => void;
 }) {
@@ -583,7 +617,7 @@ function ActionMenu({
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem className="cursor-pointer">Ask for more details</DropdownMenuItem>
+        <DropdownMenuItem onClick={onAskMoreDetails} className="cursor-pointer">Ask for more details</DropdownMenuItem>
 
         {/* Show View Application only if userId is available */}
         {userId && (
