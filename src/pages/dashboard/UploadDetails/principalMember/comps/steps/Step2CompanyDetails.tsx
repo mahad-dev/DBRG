@@ -297,8 +297,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       setCurrentStep(3);
       onNext?.();
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save company details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save company details. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
@@ -418,8 +418,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               setDocumentId(documentId);
               setFieldValue(`${fieldName}Id`, documentId);
               toast.success('File uploaded successfully!');
-            } catch (error) {
-              toast.error('File upload failed');
+            } catch (error: any) {
+              toast.error(error?.message || 'File upload failed');
               setFieldValue(fieldName, null);
             } finally {
               setPendingUploads(prev => prev - 1);
@@ -1418,8 +1418,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedShareholders[index].proofFileId = documentId;
                     setFieldValue('shareholders', updatedShareholders);
                     toast.success('Shareholding proof uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleShareholderFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);
@@ -1447,8 +1447,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedShareholders[index].proofFileId = documentId;
                     setFieldValue('shareholders', updatedShareholders);
                     toast.success('Shareholding proof uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleShareholderFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);
@@ -1620,8 +1620,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedUbos[index].confirmationFileId = documentId;
                     setFieldValue('ubos', updatedUbos);
                     toast.success('UBO confirmation uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleUboFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);
@@ -1649,8 +1649,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedUbos[index].confirmationFileId = documentId;
                     setFieldValue('ubos', updatedUbos);
                     toast.success('UBO confirmation uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleUboFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);

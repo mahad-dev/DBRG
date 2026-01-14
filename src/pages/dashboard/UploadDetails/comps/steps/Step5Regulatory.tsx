@@ -100,8 +100,8 @@ export default function Step5Regulatory() {
       setCurrentStep(6);
       dispatch({ type: 'SET_SAVING', payload: false });
 
-    } catch (error) {
-      toast.error('Failed to save regulatory compliance details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save regulatory compliance details. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

@@ -117,9 +117,9 @@ export default function Step8Agreement() {
       await saveUploadDetails(payload, MemberApplicationSection.DeclarationConsent);
 
       toast.success("Declaration & Consent saved successfully! Application completed.");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to save declaration & consent. Please try again.");
+      toast.error(error?.message || "Failed to save declaration & consent. Please try again.");
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

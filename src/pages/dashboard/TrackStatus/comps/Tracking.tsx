@@ -33,7 +33,7 @@ export default function Tracking() {
         if (response) {
           const { application, specialConsideration } = response;
 
-          setSteps(generateSteps(application, specialConsideration));
+          setSteps(generateSteps(application));
 
           // Set messages from API
           if (specialConsideration?.message) {
@@ -61,7 +61,7 @@ export default function Tracking() {
     return new Date(dateString).toLocaleDateString("en-GB");
   };
 
-  const generateSteps = (application: any, special: any): Step[] => {
+  const generateSteps = (application: any): Step[] => {
     // Application Status: 0 = Pending, 1 = Under Review, 2 = Approved, 3 = Rejected
     const appStatus = application?.status ?? 0;
     const isAppCompleted = application?.isCompleted ?? false;
@@ -70,9 +70,6 @@ export default function Tracking() {
     const createdDate = application?.createdDate;
 
     // Special Consideration Status: 0 = Pending, 1 = Approved, 2 = Under Review, 3 = Rejected
-    const specialStatus = special?.status ?? 0;
-    const specialCreatedDate = special?.createdDate;
-    const specialStatusDate = special?.statusChangedDate;
 
     // Step 1: Application Submitted
     const step1Status = isAppCompleted || submittedDate ? "Completed" : "Pending";

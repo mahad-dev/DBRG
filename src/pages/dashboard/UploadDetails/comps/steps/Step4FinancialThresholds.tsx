@@ -95,8 +95,8 @@ export default function Step4FinancialThresholds() {
       toast.success('Financial thresholds saved successfully!');
       setCurrentStep(5);
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save financial thresholds. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save financial thresholds. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

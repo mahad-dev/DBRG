@@ -184,9 +184,9 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
 
         setFieldTouched(fieldName, true); // Only touch after successful upload
         toast.success("File uploaded successfully!");
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Upload failed:', error);
-        toast.error("File upload failed. Please try again.");
+        toast.error(error?.message || "File upload failed. Please try again.");
         // Remove file from UI on error
         setFieldValue(fieldName, null);
         setFieldValue(`${fieldName}Id`, null);
@@ -417,8 +417,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       setCurrentStep(3);
       onNext?.();
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save company details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save company details. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

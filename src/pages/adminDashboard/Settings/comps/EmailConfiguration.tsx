@@ -93,9 +93,9 @@ const EmailConfiguration = () => {
 
         await apiClient.post("/EmailConfig/SetEmailConfig", body);
         toast.success("Email configuration updated successfully");
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error updating email configuration:", error);
-        toast.error("Failed to update email configuration");
+        toast.error(error?.message || "Failed to update email configuration");
       }
     },
   });
@@ -120,9 +120,9 @@ const EmailConfiguration = () => {
             action3_notify: action3?.notify || "",
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching email configuration:", error);
-        toast.error("Failed to load email configuration");
+        toast.error(error?.message || "Failed to load email configuration");
       }
     };
 

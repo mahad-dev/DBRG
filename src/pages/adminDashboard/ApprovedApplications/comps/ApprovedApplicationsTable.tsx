@@ -120,9 +120,9 @@ export default function ApprovedApplicationsTable() {
 
       setData(response.data);
       setTotalCount(response.totalCount);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching approved applications:", error);
-      toast.error("Failed to load approved applications");
+      toast.error(error?.message || "Failed to load approved applications");
     } finally {
       setLoading(false);
     }

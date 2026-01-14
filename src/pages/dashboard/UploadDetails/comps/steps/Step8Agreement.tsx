@@ -120,9 +120,9 @@ export default function Step8Agreement() {
 
       toast.success("Declaration & Consent saved successfully! Application completed.");
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to save declaration & consent. Please try again.");
+      toast.error(error?.message || "Failed to save declaration & consent. Please try again.");
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

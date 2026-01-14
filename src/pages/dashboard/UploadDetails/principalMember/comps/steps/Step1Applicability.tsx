@@ -121,8 +121,8 @@ export default function Step1Applicability() {
         setDocumentId(documentId);
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -717,9 +717,9 @@ export default function Step1Applicability() {
                   }
 
                   setSpecialConsiderationOpen(false);
-                } catch (error) {
+                } catch (error: any) {
                   console.log("error", error);
-                  toast.error("Failed to submit special consideration request. Please try again.");
+                  toast.error(error?.message || "Failed to submit special consideration request. Please try again.");
                 }
               }}
               onCloseWithoutSubmit={() => setSpecialConsiderationOpen(false)}

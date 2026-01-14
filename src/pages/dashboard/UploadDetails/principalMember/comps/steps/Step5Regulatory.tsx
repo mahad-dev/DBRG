@@ -72,8 +72,8 @@ export default function Step5Regulatory() {
         const documentId = await uploadDocument(file);
         setDocumentId(documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -134,8 +134,8 @@ export default function Step5Regulatory() {
 
       toast.success('Regulatory compliance details saved successfully!');
       setCurrentStep(6);
-    } catch (error) {
-      toast.error('Failed to save regulatory compliance details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save regulatory compliance details. Please try again.');
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

@@ -65,8 +65,8 @@ export default function Step4FinancialThresholds() {
         setDocumentId(documentId);
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -113,8 +113,8 @@ export default function Step4FinancialThresholds() {
 
       toast.success('Financial thresholds saved successfully!');
       setCurrentStep(5);
-    } catch (error) {
-      toast.error('Failed to save financial thresholds. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save financial thresholds. Please try again.');
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

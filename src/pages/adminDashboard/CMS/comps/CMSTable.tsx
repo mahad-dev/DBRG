@@ -111,7 +111,7 @@ export default function CMSTable() {
         // Check if data is an array directly
         if (Array.isArray(response.data)) {
           setCmsItems(response.data);
-          setTotalPages(Math.ceil((response.totalCount || response.data.length) / ITEMS_PER_PAGE));
+          setTotalPages(Math.ceil(response.data.length / ITEMS_PER_PAGE));
         }
         // Check if data has an items property (like userApi)
         else if (response.data && typeof response.data === 'object' && 'items' in response.data && Array.isArray(response.data.items)) {

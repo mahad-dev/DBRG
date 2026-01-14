@@ -66,8 +66,8 @@ export default function Step2CompanyDetails({
       setCurrentStep(3);
       onNext?.();
       dispatch({ type: "SET_SAVING", payload: false });
-    } catch (error) {
-      toast.error("Failed to save company details. Please try again.");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to save company details. Please try again.");
       dispatch({ type: "SET_SAVING", payload: false });
     }
   };

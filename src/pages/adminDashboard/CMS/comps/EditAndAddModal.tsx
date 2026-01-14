@@ -1,5 +1,4 @@
 "use client";
-import * as React from "react";
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -310,7 +309,7 @@ export default function EditAndAddModal({
         </PopoverContent>
       </Popover>
       {formik.touched.date && formik.errors.date && (
-        <p className="text-red-400 text-xs mt-1">{formik.errors.date}</p>
+        <p className="text-red-400 text-xs mt-1">{typeof formik.errors.date === 'string' ? formik.errors.date : 'Invalid date'}</p>
       )}
             </div>
             <div>

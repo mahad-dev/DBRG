@@ -25,8 +25,8 @@ export default function Step7DataProtection() {
       toast.success('Data protection consent saved successfully!');
       setCurrentStep(8);
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save data protection consent. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save data protection consent. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

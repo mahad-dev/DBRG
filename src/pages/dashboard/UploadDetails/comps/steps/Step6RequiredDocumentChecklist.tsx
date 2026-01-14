@@ -133,8 +133,8 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
       toast.success('Required document checklist saved successfully!');
       setCurrentStep(7);
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save required document checklist. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save required document checklist. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

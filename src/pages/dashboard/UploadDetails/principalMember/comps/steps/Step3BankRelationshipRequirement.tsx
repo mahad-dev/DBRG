@@ -94,8 +94,8 @@ export default function Step3BankRelationshipRequirement() {
         setDocumentId(documentId);
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -128,8 +128,8 @@ export default function Step3BankRelationshipRequirement() {
 
       toast.success('Bank relationship details saved successfully!');
       setCurrentStep(4);
-    } catch (error) {
-      toast.error('Failed to save bank relationship details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save bank relationship details. Please try again.');
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

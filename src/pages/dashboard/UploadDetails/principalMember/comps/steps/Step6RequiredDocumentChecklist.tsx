@@ -81,8 +81,8 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
         setItemDocumentId(itemId, documentId);
         setFieldValue(`${itemId}_fileId`, documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setItemFile(itemId, null);
         setFieldValue(`${itemId}_file`, null);
       } finally {
@@ -105,8 +105,8 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
         const documentId = await uploadDocument(file);
         setOtherFormDocumentId(formId, documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setOtherFormFile(formId, null);
       } finally {
         setPendingUploads(prev => prev - 1);
@@ -172,8 +172,8 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
 
       toast.success('Required document checklist saved successfully!');
       setCurrentStep(7);
-    } catch (error) {
-      toast.error('Failed to save required document checklist. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save required document checklist. Please try again.');
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }
