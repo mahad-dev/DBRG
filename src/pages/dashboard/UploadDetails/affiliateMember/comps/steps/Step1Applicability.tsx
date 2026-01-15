@@ -248,8 +248,8 @@ export default function Step1Applicability() {
         setFieldValue(`${fieldName}Id`, documentId);
         setFieldTouched(fieldName, true); // Only touch after successful upload
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed. Please try again.');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed. Please try again.');
         // Remove file from UI on error
         setFile(null);
         setFieldValue(fieldName, null);
@@ -382,8 +382,8 @@ export default function Step1Applicability() {
       setCurrentStep(2);
 
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error("Failed to save applicability. Please try again.");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to save applicability. Please try again.");
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
@@ -789,9 +789,9 @@ export default function Step1Applicability() {
               }
 
               setSpecialConsiderationOpen(false);
-            } catch (error) {
+            } catch (error: any) {
               console.log("error", error);
-              toast.error("Failed to submit special consideration request. Please try again.");
+              toast.error(error?.message || "Failed to submit special consideration request. Please try again.");
             }
           }}
           onCloseWithoutSubmit={() => setSpecialConsiderationOpen(false)}

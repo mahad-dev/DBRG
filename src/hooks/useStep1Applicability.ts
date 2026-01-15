@@ -83,7 +83,7 @@ export function useStep1Applicability(applicability?: any, application?: any) {
   // Member Bank specific
   const [regulatedByCBA, setRegulatedByCBA] = useState<boolean | null>(null);
   const [hasRelationshipWithUAEGoodDeliveryBrand, setHasRelationshipWithUAEGoodDeliveryBrand] = useState<boolean | null>(null);
-  const [brandName, setBrandName] = useState<string>("");
+  const [brandName, setBrandName] = useState<string | null>(null);
 
   // File uploads and refs
   const [signedAMLFile, setSignedAMLFile] = useState<File | null>(null);
@@ -181,7 +181,7 @@ export function useStep1Applicability(applicability?: any, application?: any) {
     // Member Bank specific
     setRegulatedByCBA(applicability.isRegulatedByUAEAuthorities ?? null);
     setHasRelationshipWithUAEGoodDeliveryBrand(applicability.hasRelationshipWithUAEGoodDeliveryBrand ?? null);
-    setBrandName(applicability.brandName ?? "");
+    setBrandName(applicability.brandName || null);
 
     // Existing file paths
     const signedAMLPath = applicability.signedAMLDeclarationPath ?? null;

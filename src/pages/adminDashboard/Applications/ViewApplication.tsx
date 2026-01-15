@@ -64,9 +64,9 @@ export default function ViewApplication() {
         params: { userId }
       });
       setData(response.data.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching application details:", error);
-      toast.error("Failed to load application details");
+      toast.error(error?.message || "Failed to load application details");
     } finally {
       setLoading(false);
     }
@@ -82,9 +82,9 @@ export default function ViewApplication() {
       // Open the document in a new tab
       window.open(documentPath, "_blank");
       toast.success("Opening document");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error opening document:", error);
-      toast.error("Failed to open document");
+      toast.error(error?.message || "Failed to open document");
     }
   };
 

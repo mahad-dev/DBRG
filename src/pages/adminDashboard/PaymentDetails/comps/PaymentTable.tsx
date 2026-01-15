@@ -24,6 +24,7 @@ import GenerateInvoiceModal from "./GenerateInvoice";
 import apiClient from "@/services/apiClient";
 import { useAuth } from "@/context/AuthContext";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
+import { toast } from "react-toastify";
 
 /* ================= TYPES ================= */
 
@@ -160,8 +161,9 @@ export default function PaymentTable() {
 
       setData(res.data.data.items || []);
       setTotalCount(res.data.data.totalRecords || 0);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch Error:", error);
+      toast.error(error?.message || "Failed to fetch payment details");
     } finally {
       setLoading(false);
     }

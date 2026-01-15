@@ -182,9 +182,9 @@ export default function GenerateInvoiceModal({
             console.log("Setting initial values:", newValues);
             setInitialValues(newValues);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching payment data:", error);
-          toast.error("Failed to load payment data");
+          toast.error(error?.message || "Failed to load payment data");
         } finally {
           setIsLoading(false);
         }

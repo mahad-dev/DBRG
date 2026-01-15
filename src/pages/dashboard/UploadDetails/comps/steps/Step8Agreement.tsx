@@ -70,6 +70,11 @@ export default function Step8Agreement() {
     return match ? parseInt(match[1], 10) : null;
   };
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
     // Validate required fields
@@ -103,10 +108,10 @@ export default function Step8Agreement() {
         consentsToDataProcessing: consentData,
         acknowledgesDataRetention: acknowledgeRetention,
         adheresToCodeOfConduct: agreeCode,
-        applicantName,
-        authorisedSignatoryName: signatoryName,
-        designation,
-        date: selectedDate.toISOString(),
+        applicantName: emptyToNull(applicantName),
+        authorisedSignatoryName: emptyToNull(signatoryName),
+        designation: emptyToNull(designation),
+        date: emptyToNull(selectedDate.toISOString()),
         digitalSignatureFileId: signatureDocumentId || extractIdFromPath(existingSignaturePath),
       };
 
@@ -120,9 +125,9 @@ export default function Step8Agreement() {
 
       toast.success("Declaration & Consent saved successfully! Application completed.");
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to save declaration & consent. Please try again.");
+      toast.error(error?.message || "Failed to save declaration & consent. Please try again.");
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

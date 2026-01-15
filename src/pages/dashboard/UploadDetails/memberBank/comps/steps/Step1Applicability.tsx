@@ -122,8 +122,8 @@ export default function Step1Applicability() {
         setFieldValue(`${fieldName}Id`, documentId);
         setFieldTouched(fieldName, true); // Only touch after successful upload
         toast.success("File uploaded successfully!");
-      } catch (error) {
-        toast.error("File upload failed. Please try again.");
+      } catch (error: any) {
+        toast.error(error?.message || "File upload failed. Please try again.");
         // Remove file from UI on error
         setFile(null);
         setFieldValue(fieldName, null);
@@ -175,6 +175,11 @@ export default function Step1Applicability() {
     evidenceId?: number | null,
     specialMessage?: string
   ) => {
+    const emptyToNull = (value: any): any => {
+      if (value === "" || value === undefined) return null;
+      return value;
+    };
+
     if (membership === "principal") {
       const principalMember: any = {};
 
@@ -236,7 +241,7 @@ export default function Step1Applicability() {
 
       if (specialMessage) {
         applicability.specialConsideration = {
-          message: specialMessage,
+          message: emptyToNull(specialMessage),
         };
       }
 
@@ -250,8 +255,7 @@ export default function Step1Applicability() {
       if (hasRelationshipWithUAEGoodDeliveryBrand !== null)
         memberBank.hasRelationshipWithUAEGoodDeliveryBrand = hasRelationshipWithUAEGoodDeliveryBrand;
 
-      if (brandName)
-        memberBank.brandName = brandName;
+      memberBank.brandName = emptyToNull(brandName);
 
       if (anyAMLNotices !== null)
         memberBank.hasUnresolvedAMLNotices = anyAMLNotices;
@@ -263,7 +267,7 @@ export default function Step1Applicability() {
 
       if (specialMessage) {
         applicability.specialConsideration = {
-          message: specialMessage,
+          message: emptyToNull(specialMessage),
         };
       }
 
@@ -459,7 +463,7 @@ export default function Step1Applicability() {
                   <Input
                     type="text"
                     placeholder="Enter brand name"
-                    value={brandName}
+                    value={brandName || ""}
                     onChange={(e) => {
                       setBrandName(e.target.value);
                       setFieldValue('brandName', e.target.value);

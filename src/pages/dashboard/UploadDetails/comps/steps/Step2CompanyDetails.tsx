@@ -98,6 +98,12 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
     setDirectorAppointmentDates(directors.map(d => d.dateOfAppointment ? new Date(d.dateOfAppointment) : undefined));
   }, [directors]);
 
+  // Helper function to convert empty strings to null
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -177,42 +183,72 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         })
       );
 
+      // Clean directors data - convert empty strings to null
+      const cleanedDirectors = directors.map((d) => ({
+        fullName: emptyToNull(d.fullName),
+        dateOfAppointment: emptyToNull(d.dateOfAppointment),
+        nationality: emptyToNull(d.nationality),
+        address: emptyToNull(d.address),
+        phoneNumber: emptyToNull(d.phoneNumber),
+      }));
+
+      // Clean shareholders data - convert empty strings to null
+      const cleanedShareholders = updatedShareholders.map((s: any) => ({
+        ...s,
+        fullName: emptyToNull(s.fullName),
+        passportId: emptyToNull(s.passportId),
+        nationalIdNumber: emptyToNull(s.nationalIdNumber),
+        nationality: emptyToNull(s.nationality),
+        dateOfAppointment: emptyToNull(s.dateOfAppointment),
+        address: emptyToNull(s.address),
+      }));
+
+      // Clean UBOs data - convert empty strings to null
+      const cleanedUbos = updatedUbos.map((u: any) => ({
+        ...u,
+        fullName: emptyToNull(u.fullName),
+        passportId: emptyToNull(u.passportId),
+        nationalIdNumber: emptyToNull(u.nationalIdNumber),
+        nationality: emptyToNull(u.nationality),
+        address: emptyToNull(u.address),
+      }));
+
       // Save form data
       await saveUploadDetails({
         membershipType: formData.membershipType,
         companyDetails: {
-          legalEntityName: form.legalEntityName,
-          entityLegalType: form.entityLegalType,
-          tradeLicenseNumber: form.tradeLicenseNumber,
-          licensingAuthority: form.licensingAuthority,
-          dateOfIssuance: form.dateOfIssuance,
-          dateOfExpiry: form.dateOfExpiry,
-          countryOfIncorporation: form.countryOfIncorporation,
-          dateOfIncorporation: form.dateOfIncorporation,
-          passportId: form.passportId,
-          nationalId: form.nationalId,
-          vatNumber: form.vatNumber,
-          taxRegistrationNumber: form.taxRegistrationNumber,
-          website: form.website,
-          officialEmail: form.officialEmail,
-          phoneNumber: form.phoneNumber,
-          primaryContactName: form.primaryContactName,
-          primaryContactDesignation: form.primaryContactDesignation,
-          primaryContactEmail: form.primaryContactEmail,
-          registeredOfficeAddress: form.registeredOfficeAddress,
+          legalEntityName: emptyToNull(form.legalEntityName),
+          entityLegalType: emptyToNull(form.entityLegalType),
+          tradeLicenseNumber: emptyToNull(form.tradeLicenseNumber),
+          licensingAuthority: emptyToNull(form.licensingAuthority),
+          dateOfIssuance: emptyToNull(form.dateOfIssuance),
+          dateOfExpiry: emptyToNull(form.dateOfExpiry),
+          countryOfIncorporation: emptyToNull(form.countryOfIncorporation),
+          dateOfIncorporation: emptyToNull(form.dateOfIncorporation),
+          passportId: emptyToNull(form.passportId),
+          nationalId: emptyToNull(form.nationalId),
+          vatNumber: emptyToNull(form.vatNumber),
+          taxRegistrationNumber: emptyToNull(form.taxRegistrationNumber),
+          website: emptyToNull(form.website),
+          officialEmail: emptyToNull(form.officialEmail),
+          phoneNumber: emptyToNull(form.phoneNumber),
+          primaryContactName: emptyToNull(form.primaryContactName),
+          primaryContactDesignation: emptyToNull(form.primaryContactDesignation),
+          primaryContactEmail: emptyToNull(form.primaryContactEmail),
+          registeredOfficeAddress: emptyToNull(form.registeredOfficeAddress),
           anyShareholderDirectorUBOPEP: form.anyShareholderDirectorUBOPEP ?? false,
           anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP ?? false,
           hasCustomerPEPChecks: form.hasCustomerPEPChecks ?? false,
-          tradeAssociationName: form.tradeAssociationName,
-          nameOfMember: form.nameOfMember,
-          dateOfAppointment: form.dateOfAppointment,
+          tradeAssociationName: emptyToNull(form.tradeAssociationName),
+          nameOfMember: emptyToNull(form.nameOfMember),
+          dateOfAppointment: emptyToNull(form.dateOfAppointment),
           lbma: form.lbma,
           dmccDgd: form.dmccDgd,
           dmccMdb: form.dmccMdb,
           rjc: form.rjc,
           iages: form.iages,
           accreditationOther: form.accreditationOther,
-          otherAccreditation: form.otherAccreditation,
+          otherAccreditation: emptyToNull(form.otherAccreditation),
           tradeLicenseDocument: tradeLicenseDocumentId,
           certificateOfIncorporation: coiDocumentId,
           taxRegistrationDocument: taxRegDocDocumentId,
@@ -221,9 +257,9 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           accreditationCertificate: tradeAssociationCertificateDocumentId,
           shareholdingProof: tradeLicenseDocumentId, // Using trade license as shareholding proof
           uboConfirmationDocument: coiDocumentId, // Using COI as UBO confirmation
-          shareholders: updatedShareholders,
-          ultimateBeneficialOwners: updatedUbos,
-          directors,
+          shareholders: cleanedShareholders,
+          ultimateBeneficialOwners: cleanedUbos,
+          directors: cleanedDirectors,
         }
       }, MemberApplicationSection.CompanyDetails);
 
@@ -231,8 +267,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       setCurrentStep(3);
       onNext?.();
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save company details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save company details. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

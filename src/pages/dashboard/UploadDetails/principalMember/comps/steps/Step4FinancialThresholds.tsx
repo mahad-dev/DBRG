@@ -65,14 +65,19 @@ export default function Step4FinancialThresholds() {
         setDocumentId(documentId);
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
         setPendingUploads(prev => prev - 1);
       }
     }
+  };
+
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
   };
 
   const handleSubmit = async (_values: any, _helpers: any) => {
@@ -107,14 +112,14 @@ export default function Step4FinancialThresholds() {
       }
 
       await saveUploadDetails({
-        membershipType: formData.application.membershipType,
+        membershipType: emptyToNull(formData.application.membershipType),
         financialThreshold: financialThresholds,
       }, MemberApplicationSection.FinancialThreshold);
 
       toast.success('Financial thresholds saved successfully!');
       setCurrentStep(5);
-    } catch (error) {
-      toast.error('Failed to save financial thresholds. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save financial thresholds. Please try again.');
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }
@@ -187,7 +192,7 @@ export default function Step4FinancialThresholds() {
                 </Label>
                 <Input
                   type="number"
-                  value={paidUpCapital}
+                  value={paidUpCapital || ""}
                   onChange={(e) => {
                     setPaidUpCapital(e.target.value);
                     setFieldValue('paidUpCapital', parseFloat(e.target.value) || '');
@@ -209,7 +214,7 @@ export default function Step4FinancialThresholds() {
                 </Label>
                 <Input
                   type="number"
-                  value={annualTurnover}
+                  value={annualTurnover || ""}
                   onChange={(e) => {
                     setAnnualTurnover(e.target.value);
                     setFieldValue('annualTurnover', parseFloat(e.target.value) || '');

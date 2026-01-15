@@ -8,25 +8,25 @@ export function useStep3BankRelationshipRequirement(bankRelationshipRequirement?
 
   const [bankFile, setBankFile] = useState<File | null>(null);
   const [bankReferenceLetterFileId, setBankReferenceLetterFileId] = useState<number | null>(null);
-  const [bankReferenceLetterFilePath, setBankReferenceLetterFilePath] = useState("");
+  const [bankReferenceLetterFilePath, setBankReferenceLetterFilePath] = useState<string | null>("");
   const bankRef = useRef<HTMLInputElement | null>(null);
 
-  const [bankName, setBankName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [accountType, setAccountType] = useState("");
-  const [bankingSince, setBankingSince] = useState("");
-  const [address, setAddress] = useState("");
+  const [bankName, setBankName] = useState<string | null>(null);
+  const [accountNumber, setAccountNumber] = useState<string | null>(null);
+  const [accountType, setAccountType] = useState<string | null>(null);
+  const [bankingSince, setBankingSince] = useState<string | null>(null);
+  const [address, setAddress] = useState<string | null>(null);
 
   // Prefill logic
   useEffect(() => {
     if (!bankRelationshipRequirement) return;
     setIsClient24Months(bankRelationshipRequirement.isClientOfDBRGMemberBank24Months ?? null);
     setBankReferenceLetterFileId(bankRelationshipRequirement.bankReferenceLetterFileId ?? null);
-    setBankReferenceLetterFilePath(bankRelationshipRequirement.bankReferenceLetterFilePath || "");
-    setBankName(bankRelationshipRequirement.bankName || "");
-    setAccountNumber(bankRelationshipRequirement.accountNumber || "");
-    setAccountType(bankRelationshipRequirement.accountType || "");
-    setAddress(bankRelationshipRequirement.bankAddress || "");
+    setBankReferenceLetterFilePath(bankRelationshipRequirement.bankReferenceLetterFilePath || null);
+    setBankName(bankRelationshipRequirement.bankName || null);
+    setAccountNumber(bankRelationshipRequirement.accountNumber || null);
+    setAccountType(bankRelationshipRequirement.accountType || null);
+    setAddress(bankRelationshipRequirement.bankAddress || null);
 
     // Convert bankingRelationSince to DD/MM/YYYY format
     if (bankRelationshipRequirement.bankingRelationSince) {

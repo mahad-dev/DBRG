@@ -40,6 +40,12 @@ export default function Step2CompanyDetails({
     }
   }, [form.dateOfIncorporation]);
 
+  // Helper function to convert empty strings to null
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async (values: any) => {
     dispatch({ type: "SET_SAVING", payload: true });
     try {
@@ -47,16 +53,16 @@ export default function Step2CompanyDetails({
         {
           membershipType: formData.membershipType,
           companyDetails: {
-            legalEntityName: values.companyName,
-            tradeLicenseNumber: values.registrationNumber,
-            dateOfIncorporation: values.dateOfIncorporation,
-            countryOfIncorporation: values.countryOfIncorporation,
-            registeredOfficeAddress: values.registeredAddress,
-            website: values.website,
-            officialEmail: values.emailAddress,
-            phoneNumber: values.telephoneNumber,
-            vatNumber: values.vatNumber,
-            taxRegistrationNumber: values.taxRegistrationNumber,
+            legalEntityName: emptyToNull(values.companyName),
+            tradeLicenseNumber: emptyToNull(values.registrationNumber),
+            dateOfIncorporation: emptyToNull(values.dateOfIncorporation),
+            countryOfIncorporation: emptyToNull(values.countryOfIncorporation),
+            registeredOfficeAddress: emptyToNull(values.registeredAddress),
+            website: emptyToNull(values.website),
+            officialEmail: emptyToNull(values.emailAddress),
+            phoneNumber: emptyToNull(values.telephoneNumber),
+            vatNumber: emptyToNull(values.vatNumber),
+            taxRegistrationNumber: emptyToNull(values.taxRegistrationNumber),
           },
         },
         MemberApplicationSection.CompanyDetails
@@ -66,8 +72,8 @@ export default function Step2CompanyDetails({
       setCurrentStep(3);
       onNext?.();
       dispatch({ type: "SET_SAVING", payload: false });
-    } catch (error) {
-      toast.error("Failed to save company details. Please try again.");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to save company details. Please try again.");
       dispatch({ type: "SET_SAVING", payload: false });
     }
   };

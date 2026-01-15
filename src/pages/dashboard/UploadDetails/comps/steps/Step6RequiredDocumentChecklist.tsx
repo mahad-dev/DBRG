@@ -60,6 +60,11 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
     certifiedIds: 'certifiedIdsPath',
   };
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -126,15 +131,15 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
           isChecked_UboProofDocuments: checked.uboProofDocuments || false,
           certifiedIdsFileId: fileIds.certifiedIds || extractIdFromPath((formData.memberRequiredDocuments as any)?.certifiedIdsPath) || null,
           isChecked_CertifiedIds: checked.certifiedIds || false,
-          otherForms: otherForms.map(of => ({ otherFormName: of.name, otherFormFileId: otherFormIds[of.id] || null }))
+          otherForms: otherForms.map(of => ({ otherFormName: emptyToNull(of.name), otherFormFileId: otherFormIds[of.id] || null }))
         }
       }, MemberApplicationSection.RequiredDocs);
 
       toast.success('Required document checklist saved successfully!');
       setCurrentStep(7);
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save required document checklist. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save required document checklist. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

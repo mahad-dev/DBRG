@@ -69,8 +69,8 @@ const AddMember = () => {
     try {
       await userApi.updateUser(updateData);
       toast.success('User updated successfully');
-    } catch (error) {
-      toast.error('Failed to update user, please try again');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to update user, please try again');
       console.error('Failed to update user:', error);
     } finally {
       setLoading(false);
@@ -88,8 +88,9 @@ const AddMember = () => {
             children: allPermissions.filter(p => p.parentId === parent.id)
           }));
         setPermissions(grouped);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch permissions:', error);
+        toast.error(error?.message || 'Failed to fetch permissions');
       }
     };
 
@@ -98,8 +99,9 @@ const AddMember = () => {
         setUsersLoading(true);
         const response = await userApi.getUsersWithoutFilter();
         setUsers(response.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch users:', error);
+        toast.error(error?.message || 'Failed to fetch users');
       } finally {
         setUsersLoading(false);
       }
@@ -132,9 +134,9 @@ const AddMember = () => {
 
           // Increment key to force Formik to reinitialize with new values
           setFormikKey(prev => prev + 1);
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to fetch user data:', error);
-          toast.error('Failed to load user data');
+          toast.error(error?.message || 'Failed to load user data');
         }
       }
     };

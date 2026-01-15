@@ -73,6 +73,11 @@ export default function Step8Agreement() {
 
   const clearSignature = () => sigPadRef.current?.clear();
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSubmit = async (values: any, _helpers: any) => {
     dispatch({ type: 'SET_SAVING', payload: true });
 
@@ -101,10 +106,10 @@ export default function Step8Agreement() {
         consentsToDataProcessing: values.consentData,
         acknowledgesDataRetention: values.acknowledgeRetention,
         adheresToCodeOfConduct: values.agreeCode,
-        applicantName: values.applicantName,
-        authorisedSignatoryName: values.signatoryName,
-        designation: values.designation,
-        date: values.selectedDate.toISOString(),
+        applicantName: emptyToNull(values.applicantName),
+        authorisedSignatoryName: emptyToNull(values.signatoryName),
+        designation: emptyToNull(values.designation),
+        date: emptyToNull(values.selectedDate.toISOString()),
         digitalSignatureFileId: finalSignatureDocumentId,
       };
 
@@ -117,9 +122,9 @@ export default function Step8Agreement() {
       await saveUploadDetails(payload, MemberApplicationSection.DeclarationConsent);
 
       toast.success("Declaration & Consent saved successfully! Application completed.");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to save declaration & consent. Please try again.");
+      toast.error(error?.message || "Failed to save declaration & consent. Please try again.");
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

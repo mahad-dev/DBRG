@@ -72,14 +72,19 @@ export default function Step5Regulatory() {
         const documentId = await uploadDocument(file);
         setDocumentId(documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
         setPendingUploads(prev => prev - 1);
       }
     }
+  };
+
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
   };
 
   const handleSubmit = async (_values: typeof initialValues, _helpers: any) => {
@@ -108,12 +113,12 @@ export default function Step5Regulatory() {
         membershipType: formData.application.membershipType,
         regulatorCompliance: {
           compliantWithAmlCft: hook.compliantUAE ?? false,
-          complianceOfficerFullName: hook.officerName,
-          complianceOfficerDesignation: hook.officerDesignation,
-          complianceOfficerContactNumber: hook.officerContact,
-          complianceOfficerEmail: hook.officerEmail,
+          complianceOfficerFullName: emptyToNull(hook.officerName),
+          complianceOfficerDesignation: emptyToNull(hook.officerDesignation),
+          complianceOfficerContactNumber: emptyToNull(hook.officerContact),
+          complianceOfficerEmail: emptyToNull(hook.officerEmail),
           hasOngoingCases: hook.ongoingCases ?? false,
-          ongoingCasesDetails: hook.ongoingCasesDetails,
+          ongoingCasesDetails: emptyToNull(hook.ongoingCasesDetails),
           anyOnSanctionsList: hook.sanctionsListed ?? false,
           hasDocumentedAmlPolicies: hook.policiesPrepared ?? false,
           amlCftPolicyDocumentFileId,
@@ -123,7 +128,7 @@ export default function Step5Regulatory() {
           supplyChainCompliant: hook.supplyChainCompliant ?? false,
           hasResponsibleSourcingAuditEvidence: hook.responsibleSourcingAudit ?? false,
           hadRegulatoryPenalties: hook.penalties ?? false,
-          penaltyExplanation: hook.penaltyExplanation,
+          penaltyExplanation: emptyToNull(hook.penaltyExplanation),
           declarationNoPenaltyFileId,
           hasSupplyChainPolicy: hook.preciousPolicy ?? false,
           supplyChainPolicyDocumentFileId,
@@ -134,8 +139,8 @@ export default function Step5Regulatory() {
 
       toast.success('Regulatory compliance details saved successfully!');
       setCurrentStep(6);
-    } catch (error) {
-      toast.error('Failed to save regulatory compliance details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save regulatory compliance details. Please try again.');
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

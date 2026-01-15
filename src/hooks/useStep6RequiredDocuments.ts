@@ -55,11 +55,11 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
   );
 
   // Document paths state for prefilled files
-  const [documentPaths, setDocumentPaths] = useState<Record<string, string>>(() =>
+  const [documentPaths, setDocumentPaths] = useState<Record<string, string | null>>(() =>
     defaultItems.reduce((acc, it) => {
       acc[it.id] = "";
       return acc;
-    }, {} as Record<string, string>)
+    }, {} as Record<string, string | null>)
   );
 
   const setItemChecked = useCallback((id: string, val: boolean) => {
@@ -143,18 +143,18 @@ export function useStep6RequiredDocuments(memberRequiredDocuments?: MemberRequir
 
     // Prefill document paths
     setDocumentPaths({
-      trade_license: memberRequiredDocuments.tradeLicenseAndMoaPath ?? "",
-      assurance_report: memberRequiredDocuments.latestAssuranceReportPath ?? "",
-      audited_fs: memberRequiredDocuments.auditedFinancialStatementsPath ?? "",
-      net_worth: memberRequiredDocuments.netWorthCertificatePath ?? "",
-      amlCftPolicy: memberRequiredDocuments.amlCftPolicyPath ?? "",
-      supplyChainPolicy: memberRequiredDocuments.supplyChainCompliancePolicyPath ?? "",
-      noUnresolvedAmlNoticesDeclaration: memberRequiredDocuments.noUnresolvedAmlNoticesDeclarationPath ?? "",
-      board_resolution: memberRequiredDocuments.boardResolutionPath ?? "",
-      ownership_structure: memberRequiredDocuments.ownershipStructurePath ?? "",
-      certified_true_copy: memberRequiredDocuments.certifiedTrueCopyPath ?? "",
-      ubo_proof: memberRequiredDocuments.uboProofDocumentsPath ?? "",
-      certified_ids: memberRequiredDocuments.certifiedIdsPath ?? "",
+      trade_license: memberRequiredDocuments.tradeLicenseAndMoaPath ?? null,
+      assurance_report: memberRequiredDocuments.latestAssuranceReportPath ?? null,
+      audited_fs: memberRequiredDocuments.auditedFinancialStatementsPath ?? null,
+      net_worth: memberRequiredDocuments.netWorthCertificatePath ?? null,
+      amlCftPolicy: memberRequiredDocuments.amlCftPolicyPath ?? null,
+      supplyChainPolicy: memberRequiredDocuments.supplyChainCompliancePolicyPath ?? null,
+      noUnresolvedAmlNoticesDeclaration: memberRequiredDocuments.noUnresolvedAmlNoticesDeclarationPath ?? null,
+      board_resolution: memberRequiredDocuments.boardResolutionPath ?? null,
+      ownership_structure: memberRequiredDocuments.ownershipStructurePath ?? null,
+      certified_true_copy: memberRequiredDocuments.certifiedTrueCopyPath ?? null,
+      ubo_proof: memberRequiredDocuments.uboProofDocumentsPath ?? null,
+      certified_ids: memberRequiredDocuments.certifiedIdsPath ?? null,
     });
 
     // Handle other forms if they exist

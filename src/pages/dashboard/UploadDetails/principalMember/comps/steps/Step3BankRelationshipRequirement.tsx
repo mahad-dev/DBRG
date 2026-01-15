@@ -94,14 +94,19 @@ export default function Step3BankRelationshipRequirement() {
         setDocumentId(documentId);
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
-      } catch (error) {
-        toast.error('File upload failed');
+      } catch (error: any) {
+        toast.error(error?.message || 'File upload failed');
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
         setPendingUploads(prev => prev - 1);
       }
     }
+  };
+
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
   };
 
   const handleSubmit = async (_values: any, _helpers: any) => {
@@ -118,18 +123,18 @@ export default function Step3BankRelationshipRequirement() {
         bankRelationshipRequirement: {
           isClientOfDBRGMemberBank24Months: isClient24Months,
           bankReferenceLetterFileId: bankFileIdFinal,
-          bankName: bankName,
-          accountNumber: accountNumber,
-          accountType: accountType,
-          bankingRelationSince: selectedDate ? selectedDate.toISOString() : "",
-          bankAddress: address,
+          bankName: emptyToNull(bankName),
+          accountNumber: emptyToNull(accountNumber),
+          accountType: emptyToNull(accountType),
+          bankingRelationSince: selectedDate ? selectedDate.toISOString() : null,
+          bankAddress: emptyToNull(address),
         }
       }, MemberApplicationSection.BankRelationReq);
 
       toast.success('Bank relationship details saved successfully!');
       setCurrentStep(4);
-    } catch (error) {
-      toast.error('Failed to save bank relationship details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save bank relationship details. Please try again.');
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }
@@ -255,7 +260,7 @@ export default function Step3BankRelationshipRequirement() {
                     Name of Bank <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    value={bankName}
+                    value={bankName || ""}
                     onChange={(e) => {
                       setBankName(e.target.value);
                       setFieldValue('bankName', e.target.value);
@@ -274,7 +279,7 @@ export default function Step3BankRelationshipRequirement() {
                     Account Number <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    value={accountNumber}
+                    value={accountNumber || ""}
                     onChange={(e) => {
                       setAccountNumber(e.target.value);
                       setFieldValue('accountNumber', e.target.value);
@@ -293,7 +298,7 @@ export default function Step3BankRelationshipRequirement() {
                     Account Type <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    value={accountType}
+                    value={accountType || ""}
                     onChange={(e) => {
                       setAccountType(e.target.value);
                       setFieldValue('accountType', e.target.value);
@@ -352,7 +357,7 @@ export default function Step3BankRelationshipRequirement() {
               <div className="mt-6">
                 <Label className="text-white font-gilroy text-[18px]">Address <span className="text-red-500">*</span></Label>
                 <Input
-                  value={address}
+                  value={address || ""}
                   onChange={(e) => {
                     setAddress(e.target.value);
                     setFieldValue('address', e.target.value);

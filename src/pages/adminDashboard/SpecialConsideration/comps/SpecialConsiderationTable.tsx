@@ -28,6 +28,7 @@ import AskMoreDetailsModal from "./AskMoreDetailsModal";
 import apiClient from "@/services/apiClient";
 import { COUNTRIES } from "@/constants/countries";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
+import { toast } from "react-toastify";
 
 /* ================= TYPES ================= */
 type ConsiderationRequest = {
@@ -171,8 +172,9 @@ export default function SpecialConsiderationTable() {
 
       setData(res.data.data.items || []);
       setTotalRecords(res.data.data.totalRecords || 0);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch Error:", error);
+      toast.error(error?.message || "Failed to fetch special consideration requests");
     } finally {
       setLoading(false);
     }
@@ -194,8 +196,9 @@ export default function SpecialConsiderationTable() {
       });
       setApproveModal(false);
       fetchRequests();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Approve Error:", error);
+      toast.error(error?.message || "Failed to approve request");
     }
   };
 
@@ -208,8 +211,9 @@ export default function SpecialConsiderationTable() {
       });
       setRejectModal(false);
       fetchRequests();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Reject Error:", error);
+      toast.error(error?.message || "Failed to reject request");
     }
   };
 
@@ -222,8 +226,9 @@ export default function SpecialConsiderationTable() {
       });
       setRemarksModal(false);
       fetchRequests();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Add Remarks Error:", error);
+      toast.error(error?.message || "Failed to add remarks");
     }
   };
 
@@ -236,8 +241,9 @@ export default function SpecialConsiderationTable() {
       });
       setAskMoreDetailsModal(false);
       fetchRequests();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ask More Details Error:", error);
+      toast.error(error?.message || "Failed to request more details");
     }
   };
 
@@ -593,7 +599,6 @@ function ActionMenu({
   onViewApplication: () => void;
 }) {
   // Status: 1 = Pending, 2 = Accepted, 3 = Rejected
-  const isPending = status === 1;
   const isAccepted = status === 2;
   const isRejected = status === 3;
 

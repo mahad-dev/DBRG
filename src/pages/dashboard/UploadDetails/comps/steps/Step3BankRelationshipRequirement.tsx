@@ -70,6 +70,11 @@ export default function Step3BankRelationshipRequirement() {
     }
   }, [selectedDate, setBankingSince]);
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -95,19 +100,19 @@ export default function Step3BankRelationshipRequirement() {
         bankRelationshipRequirement: {
           isClientOfDBRGMemberBank24Months: isClient24Months,
           bankReferenceLetterFileId: bankFileId,
-          bankName: bankName,
-          accountNumber: accountNumber,
-          accountType: accountType,
-          bankingRelationSince: selectedDate ? selectedDate.toISOString() : "",
-          bankAddress: address,
+          bankName: emptyToNull(bankName),
+          accountNumber: emptyToNull(accountNumber),
+          accountType: emptyToNull(accountType),
+          bankingRelationSince: selectedDate ? selectedDate.toISOString() : null,
+          bankAddress: emptyToNull(address),
         }
       }, MemberApplicationSection.BankRelationReq);
 
       toast.success('Bank relationship details saved successfully!');
       setCurrentStep(4);
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save bank relationship details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save bank relationship details. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
@@ -175,7 +180,7 @@ export default function Step3BankRelationshipRequirement() {
               Name of Bank
             </Label>
             <Input
-              value={bankName}
+              value={bankName || ""}
               onChange={(e) => setBankName(e.target.value)}
               placeholder="Name of Bank"
               className="mt-2 bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 border-white h-[47px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -187,7 +192,7 @@ export default function Step3BankRelationshipRequirement() {
               Account Number
             </Label>
             <Input
-              value={accountNumber}
+              value={accountNumber || ""}
               onChange={(e) => setAccountNumber(e.target.value)}
               placeholder="Account Number"
               className="mt-2 bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 border-white h-[47px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -199,7 +204,7 @@ export default function Step3BankRelationshipRequirement() {
               Account Type
             </Label>
             <Input
-              value={accountType}
+              value={accountType || ""}
               onChange={(e) => setAccountType(e.target.value)}
               placeholder="Account Type"
               className="mt-2 border-white bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 h-[47px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -235,7 +240,7 @@ export default function Step3BankRelationshipRequirement() {
         <div className="mt-6">
           <Label className="text-white font-gilroy text-[18px]">Address</Label>
           <Input
-            value={address}
+            value={address || ""}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Address"
             className="mt-2 border-white bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 h-[55px] rounded-[10px] focus-visible:ring-0 focus-visible:ring-offset-0"

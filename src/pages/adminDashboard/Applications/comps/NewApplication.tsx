@@ -28,6 +28,7 @@ import RemarksDialog from "./ApplicationRemarksModal";
 import { useAuth } from "@/context/AuthContext";
 import { COUNTRIES } from "@/constants/countries";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
+import { toast } from "react-toastify";
 /* ================= TYPES ================= */
 type Applicant = {
   id: number;
@@ -138,8 +139,9 @@ export default function ApplicantsTable() {
 
       setData(res.data.data.items);
       setTotalCount(res.data.data.totalCount);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch Error:", error);
+      toast.error(error?.message || "Failed to fetch applications");
     } finally {
       setLoading(false);
     }
@@ -163,8 +165,9 @@ export default function ApplicantsTable() {
       });
       setApproveModal(false);
       fetchApplicants();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Approve Error:", error);
+      toast.error(error?.message || "Failed to approve application");
     }
   };
 
@@ -178,8 +181,9 @@ export default function ApplicantsTable() {
       });
       setRejectModal(false);
       fetchApplicants();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Reject Error:", error);
+      toast.error(error?.message || "Failed to reject application");
     }
   };
 
@@ -191,10 +195,11 @@ export default function ApplicantsTable() {
       );
       setAddRemarksModal(false);
 
-      
+
       fetchApplicants();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Reject Error:", error);
+      toast.error(error?.message || "Failed to add remarks");
     }
   };
 

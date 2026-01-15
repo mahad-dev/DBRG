@@ -151,6 +151,12 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   const canAddUbo = ubos.length === 0 || ubos.every(isUboComplete);
   const canAddDirector = directors.length === 0 || directors.every(isDirectorComplete);
 
+  // Helper function to convert empty strings to null
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSubmit = async (_values: any, _helpers: any) => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -198,13 +204,13 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           }
 
           return {
-            fullName: shareholder.fullName,
-            passportId: shareholder.passportId,
-            nationalIdNumber: shareholder.nationalIdNumber,
+            fullName: emptyToNull(shareholder.fullName),
+            passportId: emptyToNull(shareholder.passportId),
+            nationalIdNumber: emptyToNull(shareholder.nationalIdNumber),
             shareholdingPercentage: shareholder.shareholdingPercentage,
-            nationality: shareholder.nationality,
-            dateOfAppointment: shareholder.dateOfAppointment,
-            address: shareholder.address,
+            nationality: emptyToNull(shareholder.nationality),
+            dateOfAppointment: emptyToNull(shareholder.dateOfAppointment),
+            address: emptyToNull(shareholder.address),
             passportDocument: passportDocId,
             nationalIdDocument: nationalIdDocId,
             shareholdingDocument: proofDocId,
@@ -223,12 +229,12 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           }
 
           return {
-            fullName: ubo.fullName,
-            passportId: ubo.passportId,
-            nationalIdNumber: ubo.nationalIdNumber,
+            fullName: emptyToNull(ubo.fullName),
+            passportId: emptyToNull(ubo.passportId),
+            nationalIdNumber: emptyToNull(ubo.nationalIdNumber),
             ownershipPercentage: ubo.ownershipPercentage,
-            nationality: ubo.nationality,
-            address: ubo.address,
+            nationality: emptyToNull(ubo.nationality),
+            address: emptyToNull(ubo.address),
             passportDocument: passportDocId,
             nationalIdDocument: nationalIdDocId,
             uboConfirmationDocument: confirmationDocId,
@@ -245,51 +251,60 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       if (form.iages) refineryAccreditations.push(4); // IAGES
       if (form.accreditationOther) refineryAccreditations.push(5); // Other
 
+      // Clean directors data - convert empty strings to null
+      const cleanedDirectors = directors.map((d) => ({
+        fullName: emptyToNull(d.fullName),
+        dateOfAppointment: emptyToNull(d.dateOfAppointment),
+        nationality: emptyToNull(d.nationality),
+        address: emptyToNull(d.address),
+        phoneNumber: emptyToNull(d.phoneNumber),
+      }));
+
       // Save form data
       await saveUploadDetails({
         membershipType: formData.membershipType,
         companyDetails: {
-          legalEntityName: form.legalEntityName,
-          entityLegalType: form.entityLegalType,
-          tradeLicenseNumber: form.tradeLicenseNumber,
-          licensingAuthority: form.licensingAuthority,
-          dateOfIssuance: form.dateOfIssuance,
-          dateOfExpiry: form.dateOfExpiry,
-          countryOfIncorporation: form.countryOfIncorporation,
-          dateOfIncorporation: form.dateOfIncorporation,
-          passportId: form.passportId,
-          nationalId: form.nationalId,
+          legalEntityName: emptyToNull(form.legalEntityName),
+          entityLegalType: emptyToNull(form.entityLegalType),
+          tradeLicenseNumber: emptyToNull(form.tradeLicenseNumber),
+          licensingAuthority: emptyToNull(form.licensingAuthority),
+          dateOfIssuance: emptyToNull(form.dateOfIssuance),
+          dateOfExpiry: emptyToNull(form.dateOfExpiry),
+          countryOfIncorporation: emptyToNull(form.countryOfIncorporation),
+          dateOfIncorporation: emptyToNull(form.dateOfIncorporation),
+          passportId: emptyToNull(form.passportId),
+          nationalId: emptyToNull(form.nationalId),
           passportDocument: passportDocId,
           nationalIdDocument: nationalIdDocId,
           isRegisteredForVAT: true,
-          vatNumber: form.vatNumber,
+          vatNumber: emptyToNull(form.vatNumber),
           vatDocument: vatDocId,
           isRegisteredForCorporateTax: true,
-          taxRegistrationNumber: form.taxRegistrationNumber,
+          taxRegistrationNumber: emptyToNull(form.taxRegistrationNumber),
           taxRegistrationDocument: taxRegDocId,
-          website: form.website,
-          officialEmail: form.officialEmail,
-          phoneNumber: form.phoneNumber,
-          primaryContactName: form.primaryContactName,
-          primaryContactDesignation: form.primaryContactDesignation,
-          primaryContactEmail: form.primaryContactEmail,
-          registeredOfficeAddress: form.registeredOfficeAddress,
+          website: emptyToNull(form.website),
+          officialEmail: emptyToNull(form.officialEmail),
+          phoneNumber: emptyToNull(form.phoneNumber),
+          primaryContactName: emptyToNull(form.primaryContactName),
+          primaryContactDesignation: emptyToNull(form.primaryContactDesignation),
+          primaryContactEmail: emptyToNull(form.primaryContactEmail),
+          registeredOfficeAddress: emptyToNull(form.registeredOfficeAddress),
           addressProofDocument: addressProofDocId,
           anyShareholderDirectorUBOPEP: form.anyShareholderDirectorUBOPEP,
           anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP,
           hasCustomerPEPChecks: form.hasCustomerPEPChecks,
           shareholdingType: 1,
-          tradeAssociationName: form.tradeAssociationName,
-          nameOfMember: form.nameOfMember,
-          dateOfAppointment: form.dateOfAppointment,
+          tradeAssociationName: emptyToNull(form.tradeAssociationName),
+          nameOfMember: emptyToNull(form.nameOfMember),
+          dateOfAppointment: emptyToNull(form.dateOfAppointment),
           refineryAccreditations,
-          otherAccreditation: form.otherAccreditation,
+          otherAccreditation: emptyToNull(form.otherAccreditation),
           tradeLicenseDocument: tradeLicenseDocId,
           certificateOfIncorporation: coiDocId,
           accreditationCertificate: tradeAssociationCertificateDocId,
           shareholders: updatedShareholders.length > 0 ? updatedShareholders : undefined,
           ultimateBeneficialOwners: updatedUbos.length > 0 ? updatedUbos : undefined,
-          directors: directors.length > 0 ? directors : undefined,
+          directors: cleanedDirectors.length > 0 ? cleanedDirectors : undefined,
         }
       }, MemberApplicationSection.CompanyDetails);
 
@@ -297,8 +312,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       setCurrentStep(3);
       onNext?.();
       dispatch({ type: 'SET_SAVING', payload: false });
-    } catch (error) {
-      toast.error('Failed to save company details. Please try again.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save company details. Please try again.');
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
@@ -418,8 +433,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               setDocumentId(documentId);
               setFieldValue(`${fieldName}Id`, documentId);
               toast.success('File uploaded successfully!');
-            } catch (error) {
-              toast.error('File upload failed');
+            } catch (error: any) {
+              toast.error(error?.message || 'File upload failed');
               setFieldValue(fieldName, null);
             } finally {
               setPendingUploads(prev => prev - 1);
@@ -1418,8 +1433,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedShareholders[index].proofFileId = documentId;
                     setFieldValue('shareholders', updatedShareholders);
                     toast.success('Shareholding proof uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleShareholderFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);
@@ -1447,8 +1462,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedShareholders[index].proofFileId = documentId;
                     setFieldValue('shareholders', updatedShareholders);
                     toast.success('Shareholding proof uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleShareholderFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);
@@ -1620,8 +1635,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedUbos[index].confirmationFileId = documentId;
                     setFieldValue('ubos', updatedUbos);
                     toast.success('UBO confirmation uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleUboFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);
@@ -1649,8 +1664,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
                     updatedUbos[index].confirmationFileId = documentId;
                     setFieldValue('ubos', updatedUbos);
                     toast.success('UBO confirmation uploaded successfully!');
-                  } catch (error) {
-                    toast.error('File upload failed');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'File upload failed');
                     handleUboFile(index, null);
                   } finally {
                     setPendingUploads(prev => prev - 1);

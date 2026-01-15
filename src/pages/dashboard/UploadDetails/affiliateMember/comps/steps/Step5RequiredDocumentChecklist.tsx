@@ -87,6 +87,11 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
     }
   };
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -160,7 +165,7 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
       // Only include otherForms if there are any
       if (otherForms.length > 0) {
         payload.otherForms = otherForms.map(of => ({
-          otherFormName: of.name,
+          otherFormName: emptyToNull(of.name),
           otherFormFileId: otherFormDocumentIds[of.id] || null
         }));
       }
@@ -312,7 +317,7 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                   )}
                   {documentPaths[it.id] && (
                     <a
-                      href={documentPaths[it.id]}
+                      href={documentPaths[it.id] || undefined}
                       target="_blank"
                       className="text-[#C6A95F] underline mt-2 block"
                     >
