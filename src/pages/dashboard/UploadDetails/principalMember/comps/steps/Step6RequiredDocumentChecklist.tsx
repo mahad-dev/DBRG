@@ -6,6 +6,7 @@ import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 import { Formik, Form } from 'formik';
 import { principalMemberStep6Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
@@ -82,7 +83,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
         setFieldValue(`${itemId}_fileId`, documentId);
         toast.success('File uploaded successfully!');
       } catch (error: any) {
-        toast.error(error?.message || 'File upload failed');
+        toast.error(parseApiError(error, 'File upload failed'));
         setItemFile(itemId, null);
         setFieldValue(`${itemId}_file`, null);
       } finally {
@@ -106,7 +107,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
         setOtherFormDocumentId(formId, documentId);
         toast.success('File uploaded successfully!');
       } catch (error: any) {
-        toast.error(error?.message || 'File upload failed');
+        toast.error(parseApiError(error, 'File upload failed'));
         setOtherFormFile(formId, null);
       } finally {
         setPendingUploads(prev => prev - 1);
@@ -178,7 +179,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
       toast.success('Required document checklist saved successfully!');
       setCurrentStep(7);
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save required document checklist. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save required document checklist. Please try again.'));
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

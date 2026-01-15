@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 import { principalMemberStep5Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
 
@@ -73,7 +74,7 @@ export default function Step5Regulatory() {
         setDocumentId(documentId);
         toast.success('File uploaded successfully!');
       } catch (error: any) {
-        toast.error(error?.message || 'File upload failed');
+        toast.error(parseApiError(error, 'File upload failed'));
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -140,7 +141,7 @@ export default function Step5Regulatory() {
       toast.success('Regulatory compliance details saved successfully!');
       setCurrentStep(6);
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save regulatory compliance details. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save regulatory compliance details. Please try again.'));
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

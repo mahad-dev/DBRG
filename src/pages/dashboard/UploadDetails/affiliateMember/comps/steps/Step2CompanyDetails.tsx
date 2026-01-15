@@ -21,6 +21,7 @@ import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { useStep2CompanyDetails } from '@/hooks/useStep2CompanyDetails';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 import { Formik } from 'formik';
 import { affiliateMemberStep2Schema } from '@/validation';
 
@@ -133,7 +134,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
 
         toast.success("File uploaded successfully!");
       } catch (error: any) {
-        toast.error(error?.message || "File upload failed. Please try again.");
+        toast.error(parseApiError(error, "File upload failed. Please try again."));
         // Remove file from UI on error
         setFieldValue(fieldName, null);
         setFieldValue(`${fieldName}Id`, null);
@@ -293,7 +294,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       onNext?.();
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save company details. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save company details. Please try again.'));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
@@ -1381,6 +1382,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           </div>
 
           <Button
+            type="button"
             className="mt-4 border cursor-pointer border-red-400 text-red-400"
             onClick={() => removeShareholder(index)}
           >
@@ -1390,6 +1392,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       ))}
 
       <Button
+        type="button"
         onClick={() => {
           // Check if the last shareholder is complete before adding a new one
           if (values.shareholders.length > 0) {
@@ -1639,6 +1642,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           </div>
 
           <Button
+            type="button"
             className="mt-4 border cursor-pointer border-red-400 text-red-400"
             onClick={() => removeUbo(index)}
           >
@@ -1648,6 +1652,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       ))}
 
       <Button
+        type="button"
         onClick={() => {
           // Check if the last UBO is complete before adding a new one
           if (values.ubos.length > 0) {
@@ -1802,6 +1807,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           </div>
 
           <Button
+            type="button"
             className="mt-4 border cursor-pointer border-red-400 text-red-400"
             onClick={() => removeDirector(index)}
           >
@@ -1811,6 +1817,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       ))}
 
       <Button
+        type="button"
         onClick={() => {
           // Check if the last director is complete before adding a new one
           if (values.directors.length > 0) {
@@ -2062,6 +2069,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       {/* -------------------------------------- */}
       <div className="mt-10 flex justify-start gap-4">
         <Button
+          type="button"
           onClick={() => setCurrentStep(1)}
           className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
         >
@@ -2069,6 +2077,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </Button>
 
         <Button
+          type="submit"
           onClick={() => submitForm()}
           disabled={isSaving || pendingUploads > 0}
           variant="site_btn"

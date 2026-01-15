@@ -39,7 +39,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response) {
       // Server responded with error status
-      const { status, data } = error.response;
+      const { status } = error.response;
 
       // Handle unauthorized access - clear token and redirect
       if (status === 401) {
@@ -48,15 +48,16 @@ apiClient.interceptors.response.use(
         // window.location.href = '/login';
       }
 
-      // Extract error message from response
-      const errorMessage = data?.message || data?.error || `HTTP ${status} Error`;
-      throw new Error(errorMessage);
+      // Preserve the original error with response data for parseApiError to handle
+      return Promise.reject(error);
     } else if (error.request) {
       // Network error - no response received
-      throw new Error('Network error: Please check your internet connection');
+      const networkError = new Error('Network error: Please check your internet connection');
+      return Promise.reject(networkError);
     } else {
       // Request setup error
-      throw new Error(error.message || 'An unexpected error occurred');
+      const setupError = new Error(error.message || 'An unexpected error occurred');
+      return Promise.reject(setupError);
     }
   }
 );

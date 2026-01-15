@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
 
 export default function Step3BankRelationshipRequirement() {
@@ -112,7 +113,7 @@ export default function Step3BankRelationshipRequirement() {
       setCurrentStep(4);
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save bank relationship details. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save bank relationship details. Please try again.'));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

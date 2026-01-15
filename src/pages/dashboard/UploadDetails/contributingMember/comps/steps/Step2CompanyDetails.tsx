@@ -21,6 +21,7 @@ import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { useStep2CompanyDetails } from '@/hooks/useStep2CompanyDetails';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 import { Formik } from 'formik';
 import { contributingMemberStep2Schema } from '@/validation';
 
@@ -186,7 +187,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         toast.success("File uploaded successfully!");
       } catch (error: any) {
         console.error('❌ Upload failed:', error);
-        toast.error(error?.message || "File upload failed. Please try again.");
+        toast.error(parseApiError(error, "File upload failed. Please try again."));
         // Remove file from UI on error
         setFieldValue(fieldName, null);
         setFieldValue(`${fieldName}Id`, null);
@@ -433,7 +434,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       onNext?.();
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save company details. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save company details. Please try again.'));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

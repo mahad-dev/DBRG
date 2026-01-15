@@ -19,6 +19,7 @@ export const YesNoGroup: React.FC<YesNoGroupProps> = ({ value, onChange, classNa
         return (
           <Button
             key={txt}
+            type="button"
             onClick={() => {
               if (isYes) {
                 onChange(true);

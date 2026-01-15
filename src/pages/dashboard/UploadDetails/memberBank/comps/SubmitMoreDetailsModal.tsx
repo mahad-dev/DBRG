@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import apiClient from "@/services/apiClient";
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 
 interface SubmitMoreDetailsModalProps {
   open: boolean;
@@ -40,7 +41,7 @@ export default function SubmitMoreDetailsModal({
       onOpenChange(false);
     } catch (error: any) {
       console.error("Submit More Details Error:", error);
-      toast.error(error?.message || "Failed to submit details");
+      toast.error(parseApiError(error, "Failed to submit details"));
     } finally {
       setIsLoading(false);
     }

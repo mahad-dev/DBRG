@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 
 export default function Step5Regulatory() {
   const { state,dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
@@ -106,7 +107,7 @@ export default function Step5Regulatory() {
       dispatch({ type: 'SET_SAVING', payload: false });
 
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save regulatory compliance details. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save regulatory compliance details. Please try again.'));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

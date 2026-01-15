@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 import { Formik } from "formik";
 
 import { Button } from "@/components/ui/button";
@@ -123,7 +124,7 @@ export default function Step1Applicability() {
         setFieldTouched(fieldName, true); // Only touch after successful upload
         toast.success("File uploaded successfully!");
       } catch (error: any) {
-        toast.error(error?.message || "File upload failed. Please try again.");
+        toast.error(parseApiError(error, "File upload failed. Please try again."));
         // Remove file from UI on error
         setFile(null);
         setFieldValue(fieldName, null);

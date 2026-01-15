@@ -78,7 +78,8 @@ export function UploadDetailsProvider({ children }: { children: ReactNode }) {
       const documentId = await uploadDetailsApi.uploadDocument(file);
       return documentId;
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to upload document');
+      // Re-throw the original error to preserve response data for parseApiError
+      throw error;
     }
   };
 
@@ -86,7 +87,8 @@ export function UploadDetailsProvider({ children }: { children: ReactNode }) {
     try {
       await uploadDetailsApi.saveUploadDetails(payload, sectionNumber);
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to save upload details');
+      // Re-throw the original error to preserve response data for parseApiError
+      throw error;
     }
   };
 
@@ -95,7 +97,8 @@ export function UploadDetailsProvider({ children }: { children: ReactNode }) {
       const data = await uploadDetailsApi.getUploadDetails(userId);
       return data;
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to fetch upload details');
+      // Re-throw the original error to preserve response data for parseApiError
+      throw error;
     }
   };
 
@@ -104,7 +107,8 @@ export function UploadDetailsProvider({ children }: { children: ReactNode }) {
       const path = await uploadDetailsApi.getDocumentPath(id);
       return path;
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to get document path');
+      // Re-throw the original error to preserve response data for parseApiError
+      throw error;
     }
   };
 

@@ -6,6 +6,7 @@ import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 
 export default function Step6RequiredDocumentChecklist(): React.ReactElement {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
@@ -139,7 +140,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
       setCurrentStep(7);
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save required document checklist. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save required document checklist. Please try again.'));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
