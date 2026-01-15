@@ -12,12 +12,17 @@ export default function Step3DataProtection() {
   const formData = state.data;
   const isSaving = state.isSaving;
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: "SET_SAVING", payload: true });
     try {
       await saveUploadDetails(
         {
-          membershipType: formData.application.membershipType,
+          membershipType: emptyToNull(formData.application.membershipType),
           dataProtectionPrivacy: {
             acknowledge: true,
           },

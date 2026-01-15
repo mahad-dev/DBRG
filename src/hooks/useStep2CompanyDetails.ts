@@ -340,54 +340,54 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
 
     // Company form fields
     setForm({
-      legalEntityName: companyDetails.legalEntityName || "",
-      entityLegalType: companyDetails.entityLegalType || "",
-      tradeLicenseNumber: companyDetails.tradeLicenseNumber || "",
-      licensingAuthority: companyDetails.licensingAuthority || "",
-      dateOfIssuance: companyDetails.dateOfIssuance || "",
-      dateOfExpiry: companyDetails.dateOfExpiry || "",
-      countryOfIncorporation: companyDetails.countryOfIncorporation || "",
-      dateOfIncorporation: companyDetails.dateOfIncorporation || "",
-      passportId: companyDetails.passportId || "",
-      nationalId: companyDetails.nationalId || "",
-      vatNumber: companyDetails.vatNumber || "",
-      taxRegistrationNumber: companyDetails.taxRegistrationNumber || "",
-      website: companyDetails.website || "",
-      officialEmail: companyDetails.officialEmail || "",
-      phoneNumber: companyDetails.phoneNumber || "",
-      primaryContactName: companyDetails.primaryContactName || "",
-      primaryContactDesignation: companyDetails.primaryContactDesignation || "",
-      primaryContactEmail: companyDetails.primaryContactEmail || "",
-      registeredOfficeAddress: companyDetails.registeredOfficeAddress || "",
+      legalEntityName: companyDetails.legalEntityName || null,
+      entityLegalType: companyDetails.entityLegalType || null,
+      tradeLicenseNumber: companyDetails.tradeLicenseNumber || null,
+      licensingAuthority: companyDetails.licensingAuthority || null,
+      dateOfIssuance: companyDetails.dateOfIssuance || null,
+      dateOfExpiry: companyDetails.dateOfExpiry || null,
+      countryOfIncorporation: companyDetails.countryOfIncorporation || null,
+      dateOfIncorporation: companyDetails.dateOfIncorporation || null,
+      passportId: companyDetails.passportId || null,
+      nationalId: companyDetails.nationalId || null,
+      vatNumber: companyDetails.vatNumber || null,
+      taxRegistrationNumber: companyDetails.taxRegistrationNumber || null,
+      website: companyDetails.website || null,
+      officialEmail: companyDetails.officialEmail || null,
+      phoneNumber: companyDetails.phoneNumber || null,
+      primaryContactName: companyDetails.primaryContactName || null,
+      primaryContactDesignation: companyDetails.primaryContactDesignation || null,
+      primaryContactEmail: companyDetails.primaryContactEmail || null,
+      registeredOfficeAddress: companyDetails.registeredOfficeAddress || null,
       anyShareholderDirectorUBOPEP: companyDetails.anyShareholderDirectorUBOPEP ?? null,
       anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: companyDetails.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP ?? null,
       hasCustomerPEPChecks: companyDetails.hasCustomerPEPChecks ?? null,
-      tradeAssociationName: companyDetails.tradeAssociationName || "",
-      nameOfMember: companyDetails.nameOfMember || "",
-      dateOfAppointment: companyDetails.dateOfAppointment || "",
+      tradeAssociationName: companyDetails.tradeAssociationName || null,
+      nameOfMember: companyDetails.nameOfMember || null,
+      dateOfAppointment: companyDetails.dateOfAppointment || null,
       lbma: accreditationNumbers.includes(0),
       dmccDgd: accreditationNumbers.includes(1),
       dmccMdb: accreditationNumbers.includes(2),
       rjc: accreditationNumbers.includes(3),
       iages: accreditationNumbers.includes(4),
       accreditationOther: accreditationNumbers.includes(5),
-      otherAccreditation: companyDetails.otherAccreditation || "",
+      otherAccreditation: companyDetails.otherAccreditation || null,
       tradeLicenseDocument: companyDetails.tradeLicenseDocument || null,
-      tradeLicenseDocumentPath: companyDetails.tradeLicenseDocumentPath || "",
+      tradeLicenseDocumentPath: companyDetails.tradeLicenseDocumentPath || null,
       certificateOfIncorporation: companyDetails.certificateOfIncorporation || null,
-      certificateOfIncorporationPath: companyDetails.certificateOfIncorporationPath || "",
+      certificateOfIncorporationPath: companyDetails.certificateOfIncorporationPath || null,
       passportDocument: companyDetails.passportDocument || null,
-      passportDocumentPath: companyDetails.passportDocumentPath || "",
+      passportDocumentPath: companyDetails.passportDocumentPath || null,
       nationalIdDocument: companyDetails.nationalIdDocument || null,
-      nationalIdDocumentPath: companyDetails.nationalIdDocumentPath || "",
+      nationalIdDocumentPath: companyDetails.nationalIdDocumentPath || null,
       vatDocument: companyDetails.vatDocument || null,
-      vatDocumentPath: companyDetails.vatDocumentPath || "",
+      vatDocumentPath: companyDetails.vatDocumentPath || null,
       taxRegistrationDocument: companyDetails.taxRegistrationDocument || null,
-      taxRegistrationDocumentPath: companyDetails.taxRegistrationDocumentPath || "",
+      taxRegistrationDocumentPath: companyDetails.taxRegistrationDocumentPath || null,
       addressProofDocument: companyDetails.addressProofDocument || null,
-      addressProofDocumentPath: companyDetails.addressProofDocumentPath || "",
+      addressProofDocumentPath: companyDetails.addressProofDocumentPath || null,
       accreditationCertificate: companyDetails.accreditationCertificate || null,
-      accreditationCertificatePath: companyDetails.accreditationCertificatePath || "",
+      accreditationCertificatePath: companyDetails.accreditationCertificatePath || null,
     });
 
     // Prefill document IDs from existing data
@@ -428,16 +428,16 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     if (companyDetails.shareholders && Array.isArray(companyDetails.shareholders)) {
       console.log('✅ Prefilling shareholders, count:', companyDetails.shareholders.length);
       const mappedShareholders = companyDetails.shareholders.map((s: any) => ({
-        fullName: s.fullName || "",
-        passportId: s.passportId || "",
-        nationalIdNumber: s.nationalIdNumber || "",
+        fullName: s.fullName || null,
+        passportId: s.passportId || null,
+        nationalIdNumber: s.nationalIdNumber || null,
         shareholdingPercentage: s.shareholdingPercentage || 0,
-        nationality: s.nationality || "",
-        dateOfAppointment: s.dateOfAppointment || "",
-        address: s.address || "",
+        nationality: s.nationality || null,
+        dateOfAppointment: s.dateOfAppointment || null,
+        address: s.address || null,
         proofFile: null, // Files can't be prefilled from URLs
         proofFileId: s.shareholdingDocumentId || s.shareholdingDocument || null,
-        proofFilePath: s.shareholdingDocumentPath || "",
+        proofFilePath: s.shareholdingDocumentPath || null,
       }));
       console.log('✅ Mapped shareholders:', mappedShareholders);
       setShareholders(mappedShareholders);
@@ -449,15 +449,15 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     if (companyDetails.ultimateBeneficialOwners && Array.isArray(companyDetails.ultimateBeneficialOwners)) {
       console.log('✅ Prefilling UBOs, count:', companyDetails.ultimateBeneficialOwners.length);
       const mappedUbos = companyDetails.ultimateBeneficialOwners.map((u: any) => ({
-        fullName: u.fullName || "",
+        fullName: u.fullName || null,
         ownershipPercentage: u.ownershipPercentage || 0,
-        nationality: u.nationality || "",
-        address: u.address || "",
-        passportId: u.passportId || "",
-        nationalIdNumber: u.nationalIdNumber || "",
+        nationality: u.nationality || null,
+        address: u.address || null,
+        passportId: u.passportId || null,
+        nationalIdNumber: u.nationalIdNumber || null,
         confirmationFile: null, // Files can't be prefilled from URLs
         confirmationFileId: u.uboConfirmationDocument || null,
-        confirmationFilePath: u.uboConfirmationDocumentPath || "",
+        confirmationFilePath: u.uboConfirmationDocumentPath || null,
       }));
       console.log('✅ Mapped UBOs:', mappedUbos);
       setUbos(mappedUbos);
@@ -469,11 +469,11 @@ export function useStep2CompanyDetails(payload?: any, sectionNumber?: number) {
     if (companyDetails.directors && Array.isArray(companyDetails.directors)) {
       console.log('✅ Prefilling directors, count:', companyDetails.directors.length);
       const mappedDirectors = companyDetails.directors.map((d: any) => ({
-        fullName: d.fullName || "",
-        dateOfAppointment: d.dateOfAppointment || "",
-        nationality: d.nationality || "",
-        address: d.address || "",
-        phoneNumber: d.phoneNumber || "",
+        fullName: d.fullName || null,
+        dateOfAppointment: d.dateOfAppointment || null,
+        nationality: d.nationality || null,
+        address: d.address || null,
+        phoneNumber: d.phoneNumber || null,
       }));
       console.log('✅ Mapped directors:', mappedDirectors);
       setDirectors(mappedDirectors);

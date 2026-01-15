@@ -177,6 +177,11 @@ export default function Step1Applicability() {
   ] as const;
 
   const handleSave = async () => {
+    const emptyToNull = (value: any): any => {
+      if (value === "" || value === undefined) return null;
+      return value;
+    };
+
     // 🚫 Block if special consideration exists but not approved
     if (formData?.specialConsideration && formData.isSpecialConsiderationApproved !== true) {
       toast.info(
@@ -210,7 +215,7 @@ export default function Step1Applicability() {
         isUAEBasedEntity: isUAEBasedEntity || false,
         yearsOfOperation: yearsOfOperation || 0,
         servicesProvided: servicesProvided.filter(id => id !== 8),
-        otherServiceDetail: servicesProvided.includes(8) ? otherServiceDetail : "",
+        otherServiceDetail: emptyToNull(servicesProvided.includes(8) ? otherServiceDetail : ""),
         hasUnresolvedAMLNotices: hasUnresolvedAMLNotices || false,
         signedAMLDeclaration: signedAMLDocId,
       };
@@ -545,6 +550,11 @@ return (
           open={specialConsiderationOpen}
           onOpenChange={setSpecialConsiderationOpen}
           onSubmit={async (message: string) => {
+            const emptyToNull = (value: any): any => {
+              if (value === "" || value === undefined) return null;
+              return value;
+            };
+
             try {
               // Extract ID from S3 path
               const extractIdFromPath = (path: string | null): number | null => {
@@ -562,7 +572,7 @@ return (
                 isUAEBasedEntity: isUAEBasedEntity || false,
                 yearsOfOperation: yearsOfOperation || 0,
                 servicesProvided: servicesProvided.filter(id => id !== 8),
-                otherServiceDetail: servicesProvided.includes(8) ? otherServiceDetail : "",
+                otherServiceDetail: emptyToNull(servicesProvided.includes(8) ? otherServiceDetail : ""),
                 hasUnresolvedAMLNotices: hasUnresolvedAMLNotices || false,
                 signedAMLDeclaration: signedAMLDocId,
               };

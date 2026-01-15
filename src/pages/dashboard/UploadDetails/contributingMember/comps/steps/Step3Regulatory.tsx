@@ -54,6 +54,11 @@ export default function Step3Regulatory() {
   };
 
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
       dispatch({ type: 'SET_SAVING', payload: true });
 
@@ -77,12 +82,12 @@ export default function Step3Regulatory() {
         membershipType: formData.application.membershipType,
         regulatorCompliance: {
           compliantWithAmlCft: hook.compliantUAE ?? false,
-          complianceOfficerFullName: hook.officerName,
-          complianceOfficerDesignation: hook.officerDesignation,
-          complianceOfficerContactNumber: hook.officerContact,
-          complianceOfficerEmail: hook.officerEmail,
+          complianceOfficerFullName: emptyToNull(hook.officerName),
+          complianceOfficerDesignation: emptyToNull(hook.officerDesignation),
+          complianceOfficerContactNumber: emptyToNull(hook.officerContact),
+          complianceOfficerEmail: emptyToNull(hook.officerEmail),
           hasOngoingCases: hook.ongoingCases ?? false,
-          ongoingCasesDetails: hook.ongoingCasesDetails,
+          ongoingCasesDetails: emptyToNull(hook.ongoingCasesDetails),
           investigationSupportingDocuments: ongoingDetailsFileId ? [ongoingDetailsFileId] : [],
           anyOnSanctionsList: hook.sanctionsListed ?? false,
           hasDocumentedAmlPolicies: hook.policiesPrepared ?? false,
@@ -93,7 +98,7 @@ export default function Step3Regulatory() {
           supplyChainCompliant: hook.supplyChainCompliant ?? false,
           hasResponsibleSourcingAuditEvidence: hook.responsibleSourcingAudit ?? false,
           hadRegulatoryPenalties: hook.penalties ?? false,
-          penaltyExplanation: hook.penaltyExplanation,
+          penaltyExplanation: emptyToNull(hook.penaltyExplanation),
           declarationNoPenaltyFileId,
           hasSupplyChainPolicy: hook.preciousPolicy ?? false,
           supplyChainPolicyDocumentFileId,

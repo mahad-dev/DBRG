@@ -80,6 +80,11 @@ export default function Step4Agreement() {
 
   const clearSignature = () => sigPadRef.current?.clear();
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSubmit = async (values: any, _helpers: any) => {
     dispatch({ type: "SET_SAVING", payload: true });
 
@@ -110,15 +115,15 @@ export default function Step4Agreement() {
         consentsToDataProcessing: values.consentData,
         acknowledgesDataRetention: values.acknowledgeRetention,
         adheresToCodeOfConduct: values.agreeCode,
-        applicantName: values.applicantName,
-        authorisedSignatoryName: values.signatoryName,
-        designation: values.designation,
-        date: values.selectedDate.toISOString(),
+        applicantName: emptyToNull(values.applicantName),
+        authorisedSignatoryName: emptyToNull(values.signatoryName),
+        designation: emptyToNull(values.designation),
+        date: emptyToNull(values.selectedDate?.toISOString()),
         digitalSignatureFileId: finalSignatureDocumentId,
       };
 
       const payload = {
-        membershipType: formData.application.membershipType,
+        membershipType: emptyToNull(formData.application.membershipType),
         declarationConsent: declarationConsentData,
       };
 

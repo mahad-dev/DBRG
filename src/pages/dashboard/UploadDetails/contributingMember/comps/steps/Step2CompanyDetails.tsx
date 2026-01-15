@@ -275,8 +275,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
     anyShareholderDirectorUBOPEP: form.anyShareholderDirectorUBOPEP ?? null,
     anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP ?? null,
     hasCustomerPEPChecks: form.hasCustomerPEPChecks ?? null,
-    tradeAssociationName: form.tradeAssociationName || '',
-    nameOfMember: form.nameOfMember || '',
+    tradeAssociationName: form.tradeAssociationName || null,
+    nameOfMember: form.nameOfMember || null,
     dateOfAppointment: form.dateOfAppointment || '',
     lbma: form.lbma || false,
     dmccDgd: form.dmccDgd || false,
@@ -304,6 +304,12 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
     tradeAssociationCertificateDocumentId,
   ]);
 
+  // Helper function to convert empty strings to null
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSubmit = async (values: typeof initialValues, _helpers: any) => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -318,13 +324,13 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           }
 
           return {
-            fullName: shareholder.fullName,
-            passportId: shareholder.passportId,
-            nationalIdNumber: shareholder.nationalIdNumber,
+            fullName: emptyToNull(shareholder.fullName),
+            passportId: emptyToNull(shareholder.passportId),
+            nationalIdNumber: emptyToNull(shareholder.nationalIdNumber),
             shareholdingPercentage: shareholder.shareholdingPercentage,
-            nationality: shareholder.nationality,
-            dateOfAppointment: shareholder.dateOfAppointment,
-            address: shareholder.address,
+            nationality: emptyToNull(shareholder.nationality),
+            dateOfAppointment: emptyToNull(shareholder.dateOfAppointment),
+            address: emptyToNull(shareholder.address),
             passportDocument: values.passportFileId,
             nationalIdDocument: values.nationalIdFileId,
             shareholdingDocument: proofDocId,
@@ -343,12 +349,12 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           }
 
           return {
-            fullName: ubo.fullName,
-            passportId: ubo.passportId,
-            nationalIdNumber: ubo.nationalIdNumber,
+            fullName: emptyToNull(ubo.fullName),
+            passportId: emptyToNull(ubo.passportId),
+            nationalIdNumber: emptyToNull(ubo.nationalIdNumber),
             ownershipPercentage: ubo.ownershipPercentage,
-            nationality: ubo.nationality,
-            address: ubo.address,
+            nationality: emptyToNull(ubo.nationality),
+            address: emptyToNull(ubo.address),
             passportDocument: values.passportFileId,
             nationalIdDocument: values.nationalIdFileId,
             uboConfirmationDocument: confirmationDocId,
@@ -365,51 +371,60 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       if (values.iages) refineryAccreditations.push(4); // IAGES
       if (values.accreditationOther) refineryAccreditations.push(5); // Other
 
+      // Clean directors data - convert empty strings to null
+      const cleanedDirectors = values.directors.map((d: any) => ({
+        fullName: emptyToNull(d.fullName),
+        dateOfAppointment: emptyToNull(d.dateOfAppointment),
+        nationality: emptyToNull(d.nationality),
+        address: emptyToNull(d.address),
+        phoneNumber: emptyToNull(d.phoneNumber),
+      }));
+
       // Save form data
       await saveUploadDetails({
         membershipType: formData.membershipType,
         companyDetails: {
-          legalEntityName: values.legalEntityName,
-          entityLegalType: values.entityLegalType,
-          tradeLicenseNumber: values.tradeLicenseNumber,
-          licensingAuthority: values.licensingAuthority,
-          dateOfIssuance: values.dateOfIssuance,
-          dateOfExpiry: values.dateOfExpiry,
-          countryOfIncorporation: values.countryOfIncorporation,
-          dateOfIncorporation: values.dateOfIncorporation,
-          passportId: values.passportId,
-          nationalId: values.nationalId,
+          legalEntityName: emptyToNull(values.legalEntityName),
+          entityLegalType: emptyToNull(values.entityLegalType),
+          tradeLicenseNumber: emptyToNull(values.tradeLicenseNumber),
+          licensingAuthority: emptyToNull(values.licensingAuthority),
+          dateOfIssuance: emptyToNull(values.dateOfIssuance),
+          dateOfExpiry: emptyToNull(values.dateOfExpiry),
+          countryOfIncorporation: emptyToNull(values.countryOfIncorporation),
+          dateOfIncorporation: emptyToNull(values.dateOfIncorporation),
+          passportId: emptyToNull(values.passportId),
+          nationalId: emptyToNull(values.nationalId),
           passportDocument: values.passportFileId,
           nationalIdDocument: values.nationalIdFileId,
           isRegisteredForVAT: true,
-          vatNumber: values.vatNumber,
+          vatNumber: emptyToNull(values.vatNumber),
           vatDocument: values.vatDocFileId,
           isRegisteredForCorporateTax: true,
-          taxRegistrationNumber: values.taxRegistrationNumber,
+          taxRegistrationNumber: emptyToNull(values.taxRegistrationNumber),
           taxRegistrationDocument: values.taxRegDocFileId,
-          website: values.website,
-          officialEmail: values.officialEmail,
-          phoneNumber: values.phoneNumber,
-          primaryContactName: values.primaryContactName,
-          primaryContactDesignation: values.primaryContactDesignation,
-          primaryContactEmail: values.primaryContactEmail,
-          registeredOfficeAddress: values.registeredOfficeAddress,
+          website: emptyToNull(values.website),
+          officialEmail: emptyToNull(values.officialEmail),
+          phoneNumber: emptyToNull(values.phoneNumber),
+          primaryContactName: emptyToNull(values.primaryContactName),
+          primaryContactDesignation: emptyToNull(values.primaryContactDesignation),
+          primaryContactEmail: emptyToNull(values.primaryContactEmail),
+          registeredOfficeAddress: emptyToNull(values.registeredOfficeAddress),
           addressProofDocument: values.addressProofFileId,
           anyShareholderDirectorUBOPEP: values.anyShareholderDirectorUBOPEP ?? false,
           anyShareholderBeneficialOwnerKeyPersonRelatedToPEP: values.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP ?? false,
           hasCustomerPEPChecks: values.hasCustomerPEPChecks ?? false,
           shareholdingType: 1, // Default to individual (you may need to add this field to the form)
-          tradeAssociationName: values.tradeAssociationName,
-          nameOfMember: values.nameOfMember,
-          dateOfAppointment: values.dateOfAppointment,
+          tradeAssociationName: emptyToNull(values.tradeAssociationName),
+          nameOfMember: emptyToNull(values.nameOfMember),
+          dateOfAppointment: emptyToNull(values.dateOfAppointment),
           refineryAccreditations: refineryAccreditations,
-          otherAccreditation: values.otherAccreditation || null,
+          otherAccreditation: emptyToNull(values.otherAccreditation),
           tradeLicenseDocument: values.tradeLicenseFileId,
           certificateOfIncorporation: values.coiFileId,
           accreditationCertificate: values.tradeAssociationCertificateFileId,
           shareholders: updatedShareholders,
           ultimateBeneficialOwners: updatedUbos,
-          directors: values.directors,
+          directors: cleanedDirectors,
         }
       }, MemberApplicationSection.CompanyDetails);
 
@@ -2002,7 +2017,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               <Label>Name of Trade Association <span className="text-red-500">*</span></Label>
               <Input
                 type="text"
-                value={values.tradeAssociationName}
+                value={values.tradeAssociationName || ""}
                 onChange={(e) => {
                   setFieldValue("tradeAssociationName", e.target.value);
                   setField("tradeAssociationName", e.target.value);
@@ -2019,7 +2034,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
               <Label>Name of Member <span className="text-red-500">*</span></Label>
               <Input
                 type="text"
-                value={values.nameOfMember}
+                value={values.nameOfMember || ""}
                 onChange={(e) => {
                   setFieldValue("nameOfMember", e.target.value);
                   setField("nameOfMember", e.target.value);

@@ -42,6 +42,11 @@ export default function Step4FinancialThresholds() {
     handleDropFile,
   } = useStep4FinancialThresholds();
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -88,7 +93,7 @@ export default function Step4FinancialThresholds() {
       }
 
       await saveUploadDetails({
-        membershipType: formData.application.membershipType,
+        membershipType: emptyToNull(formData.application.membershipType),
         financialThreshold: financialThresholds,
       }, MemberApplicationSection.FinancialThreshold);
 
@@ -117,7 +122,7 @@ export default function Step4FinancialThresholds() {
           </Label>
           <Input
             type="text"
-            value={paidUpCapital}
+            value={paidUpCapital || ""}
             onChange={(e) => setPaidUpCapital(e.target.value)}
             placeholder="Paid Up Capital"
             className="mt-3 bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 border-white w-full h-[47px] rounded-[10px]"
@@ -131,7 +136,7 @@ export default function Step4FinancialThresholds() {
           </Label>
           <Input
             type="text"
-            value={annualTurnover}
+            value={annualTurnover || ""}
             onChange={(e) => setAnnualTurnover(e.target.value)}
             placeholder="Annual Turnover"
             className="mt-3 border-white bg-white text-black font-inter font-medium text-[18px] placeholder:text-black/50 w-full h-[47px] rounded-[10px]"

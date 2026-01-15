@@ -22,14 +22,14 @@ export function useStep5Regulatory(regulatorCompliance?: RegulatoryCompliance) {
 
   // Compliance officer fields
   const [officerPhotoFile, setOfficerPhotoFile] = React.useState<File | null>(null);
-  const [officerName, setOfficerName] = React.useState("");
-  const [officerDesignation, setOfficerDesignation] = React.useState("");
-  const [officerContact, setOfficerContact] = React.useState("");
-  const [officerEmail, setOfficerEmail] = React.useState("");
+  const [officerName, setOfficerName] = React.useState<string>("");
+  const [officerDesignation, setOfficerDesignation] = React.useState<string>("");
+  const [officerContact, setOfficerContact] = React.useState<string>("");
+  const [officerEmail, setOfficerEmail] = React.useState<string>("");
 
   // Additional details fields
-  const [ongoingCasesDetails, setOngoingCasesDetails] = React.useState("");
-  const [penaltyExplanation, setPenaltyExplanation] = React.useState("");
+  const [ongoingCasesDetails, setOngoingCasesDetails] = React.useState<string>("");
+  const [penaltyExplanation, setPenaltyExplanation] = React.useState<string>("");
 
   // Files
   const [ongoingDetailsFile, setOngoingDetailsFile] = React.useState<File | null>(null);

@@ -73,6 +73,11 @@ export default function Step8Agreement() {
 
   const clearSignature = () => sigPadRef.current?.clear();
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSave = async () => {
     dispatch({ type: 'SET_SAVING', payload: true });
 
@@ -100,10 +105,10 @@ export default function Step8Agreement() {
         consentsToDataProcessing: consentData,
         acknowledgesDataRetention: acknowledgeRetention,
         adheresToCodeOfConduct: agreeCode,
-        applicantName,
-        authorisedSignatoryName: signatoryName,
-        designation,
-        date: selectedDate ? selectedDate.toISOString() : "",
+        applicantName: emptyToNull(applicantName),
+        authorisedSignatoryName: emptyToNull(signatoryName),
+        designation: emptyToNull(designation),
+        date: emptyToNull(selectedDate ? selectedDate.toISOString() : ""),
         digitalSignatureFileId: signatureDocumentId || extractDocumentIdFromPath(existingSignaturePath),
       };
 

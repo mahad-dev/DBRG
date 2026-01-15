@@ -10,8 +10,8 @@ export function useStep4FinancialThresholds() {
   const { state } = useUploadDetails();
   const financialThresholds = state.data.financialThreshold;
 // 1 & 2: Inputs
-const [paidUpCapital, setPaidUpCapital] = useState("");
-const [annualTurnover, setAnnualTurnover] = useState("");
+const [paidUpCapital, setPaidUpCapital] = useState<string | null>(null);
+const [annualTurnover, setAnnualTurnover] = useState<string | null>(null);
 
 
 // 3: Bullion turnover Yes/No
@@ -49,8 +49,8 @@ const [netWorthDocumentId, setNetWorthDocumentId] = useState<number | null>(null
 useEffect(() => {
   if (!financialThresholds) return;
   console.log("financialThresholds", financialThresholds);
-  setPaidUpCapital(financialThresholds.paidUpCapital?.toString() || "");
-  setAnnualTurnover(financialThresholds.annualTurnoverValue?.toString() || "");
+  setPaidUpCapital(financialThresholds.paidUpCapital?.toString() || null);
+  setAnnualTurnover(financialThresholds.annualTurnoverValue?.toString() || null);
   setBullionTurnover(financialThresholds.hasRequiredBullionTurnover ?? null);
   setBullionTurnoverProofFileId(financialThresholds.bullionTurnoverProofFileId ?? null);
   setBullionTurnoverProofFileIdPath(financialThresholds.bullionTurnoverProofFileIdPath ?? null);

@@ -114,6 +114,11 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
     }
   };
 
+  const emptyToNull = (value: any): any => {
+    if (value === "" || value === undefined) return null;
+    return value;
+  };
+
   const handleSubmit = async (_values: any, _helpers: any) => {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
@@ -124,7 +129,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
 
       // Prepare other forms data with document IDs
       const otherFormsData = otherForms.map(of => ({
-        otherFormName: of.name,
+        otherFormName: emptyToNull(of.name),
         otherFormFileId: otherFormDocumentIds[of.id] ?? null,
       }));
 
