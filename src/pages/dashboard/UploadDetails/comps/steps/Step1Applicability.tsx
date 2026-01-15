@@ -14,6 +14,7 @@ import {
   RefiningOrTradingType,
 } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 import { useStep1Applicability } from '@/hooks/useStep1Applicability';
 import { useState } from "react";
 
@@ -175,7 +176,7 @@ export default function Step1Applicability() {
 
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to save applicability. Please try again.");
+      toast.error(parseApiError(error, "Failed to save applicability. Please try again."));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };
@@ -503,7 +504,7 @@ export default function Step1Applicability() {
             if (currentSetValue) currentSetValue(false);
           } catch (error: any) {
             console.log("error", error);
-            toast.error(error?.message || "Failed to submit special consideration request. Please try again.");
+            toast.error(parseApiError(error, "Failed to submit special consideration request. Please try again."));
           }
         }}
         onCloseWithoutSubmit={() => { if (currentSetValue) currentSetValue(true); }}

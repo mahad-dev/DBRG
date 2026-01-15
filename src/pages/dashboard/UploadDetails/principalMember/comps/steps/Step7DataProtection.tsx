@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 
 export default function Step7DataProtection() {
   const { state, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
@@ -26,7 +27,7 @@ export default function Step7DataProtection() {
       setCurrentStep(8);
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save data protection consent. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save data protection consent. Please try again.'));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

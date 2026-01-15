@@ -14,6 +14,7 @@ import { useStep2CompanyDetails } from "@/hooks/useStep2CompanyDetails";
 import { memberBankStep2Schema } from "@/validation";
 import { MemberApplicationSection } from "@/types/uploadDetails";
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 
 interface StepProps {
   onNext?: () => void;
@@ -73,7 +74,7 @@ export default function Step2CompanyDetails({
       onNext?.();
       dispatch({ type: "SET_SAVING", payload: false });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to save company details. Please try again.");
+      toast.error(parseApiError(error, "Failed to save company details. Please try again."));
       dispatch({ type: "SET_SAVING", payload: false });
     }
   };

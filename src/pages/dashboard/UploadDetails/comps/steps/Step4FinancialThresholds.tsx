@@ -11,6 +11,7 @@ import { useStep4FinancialThresholds } from "@/hooks/useStep4FinancialThresholds
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 
 export default function Step4FinancialThresholds() {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
@@ -101,7 +102,7 @@ export default function Step4FinancialThresholds() {
       setCurrentStep(5);
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save financial thresholds. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save financial thresholds. Please try again.'));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

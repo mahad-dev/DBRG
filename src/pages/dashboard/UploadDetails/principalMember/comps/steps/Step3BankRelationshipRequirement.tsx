@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
 import { Formik, Form } from 'formik';
 import { principalMemberStep3Schema } from '@/validation';
@@ -95,7 +96,7 @@ export default function Step3BankRelationshipRequirement() {
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
       } catch (error: any) {
-        toast.error(error?.message || 'File upload failed');
+        toast.error(parseApiError(error, 'File upload failed'));
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -134,7 +135,7 @@ export default function Step3BankRelationshipRequirement() {
       toast.success('Bank relationship details saved successfully!');
       setCurrentStep(4);
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save bank relationship details. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save bank relationship details. Please try again.'));
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

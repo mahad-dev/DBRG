@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 import { useStep8DeclarationConsent } from '@/hooks/useStep8DeclarationConsent';
 
 export default function Step8Agreement() {
@@ -127,7 +128,7 @@ export default function Step8Agreement() {
       dispatch({ type: 'SET_SAVING', payload: false });
     } catch (error: any) {
       console.error(error);
-      toast.error(error?.message || "Failed to save declaration & consent. Please try again.");
+      toast.error(parseApiError(error, "Failed to save declaration & consent. Please try again."));
       dispatch({ type: 'SET_SAVING', payload: false });
     }
   };

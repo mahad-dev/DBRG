@@ -10,6 +10,7 @@ import { useStep4FinancialThresholds } from "@/hooks/useStep4FinancialThresholds
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
+import { parseApiError } from '@/utils/errorHandler';
 import { Formik, Form } from 'formik';
 import { principalMemberStep4Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
@@ -66,7 +67,7 @@ export default function Step4FinancialThresholds() {
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
       } catch (error: any) {
-        toast.error(error?.message || 'File upload failed');
+        toast.error(parseApiError(error, 'File upload failed'));
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -119,7 +120,7 @@ export default function Step4FinancialThresholds() {
       toast.success('Financial thresholds saved successfully!');
       setCurrentStep(5);
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save financial thresholds. Please try again.');
+      toast.error(parseApiError(error, 'Failed to save financial thresholds. Please try again.'));
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }

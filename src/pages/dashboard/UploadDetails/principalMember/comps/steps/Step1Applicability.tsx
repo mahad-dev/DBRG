@@ -14,6 +14,7 @@ import {
   RefiningOrTradingType,
 } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 import { useStep1Applicability } from '@/hooks/useStep1Applicability';
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
@@ -122,7 +123,7 @@ export default function Step1Applicability() {
         setFieldValue(`${fieldName}Id`, documentId);
         toast.success('File uploaded successfully!');
       } catch (error: any) {
-        toast.error(error?.message || 'File upload failed');
+        toast.error(parseApiError(error, 'File upload failed'));
         setFile(null);
         setFieldValue(fieldName, null);
       } finally {
@@ -719,7 +720,7 @@ export default function Step1Applicability() {
                   setSpecialConsiderationOpen(false);
                 } catch (error: any) {
                   console.log("error", error);
-                  toast.error(error?.message || "Failed to submit special consideration request. Please try again.");
+                  toast.error(parseApiError(error, "Failed to submit special consideration request. Please try again."));
                 }
               }}
               onCloseWithoutSubmit={() => setSpecialConsiderationOpen(false)}

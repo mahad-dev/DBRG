@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-toastify";
+import { parseApiError } from "@/utils/errorHandler";
 
 import { useState } from "react";
 
@@ -38,7 +39,7 @@ export default function SpecialConsiderationDialog({
         setHasSubmitted(true);
         onOpenChange(false);
       } catch (error: any) {
-        toast.error(error?.message || "Failed to submit special consideration request");
+        toast.error(parseApiError(error, "Failed to submit special consideration request"));
       } finally {
         setIsSubmitting(false);
       }
