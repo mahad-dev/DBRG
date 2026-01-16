@@ -1,13 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-interface Event {
-  id: number;
-  title: string;
-  date: string;
-  description: string;
-  image: string;
-}
 
 interface UpcomingEventsProps {
   events?: any[];
@@ -15,27 +9,17 @@ interface UpcomingEventsProps {
 }
 
 export default function UpcomingEvents({ events: apiEvents, loading }: UpcomingEventsProps) {
-  // Fallback data if API fails or is loading
-  const fallbackEvents: Event[] = [
-    {
-      id: 1,
-      title: "Expo 2025",
-      date: "09/07/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event1.jpg",
-    },
-    {
-      id: 2,
-      title: "Tech Conference",
-      date: "15/08/2025",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ",
-      image: "/static/event2.jpg",
-    },
-  ];
+  const navigate = useNavigate();
+  const events = apiEvents || [];
 
-  const events = apiEvents && apiEvents.length > 0 ? apiEvents : fallbackEvents;
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   if (loading) {
     return (
@@ -64,6 +48,17 @@ export default function UpcomingEvents({ events: apiEvents, loading }: UpcomingE
     );
   }
 
+  if (events.length === 0) {
+    return (
+      <div>
+        <h2 className="text-[#C6A95F] font-medium text-[25px] leading-[100%] -tracking-[1%] mb-6">
+          Upcoming Events
+        </h2>
+        <p className="text-white">No upcoming events available.</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2 className="text-[#C6A95F] font-medium text-[25px] leading-[100%] -tracking-[1%] mb-6">
@@ -77,7 +72,7 @@ export default function UpcomingEvents({ events: apiEvents, loading }: UpcomingE
           >
             <div className="w-full overflow-hidden pt-2 px-2">
               <img
-                src={event.image}
+                src={event.bannerPath}
                 alt={event.title}
                 className="w-full h-48 object-cover rounded-[10px]"
               />
@@ -88,7 +83,7 @@ export default function UpcomingEvents({ events: apiEvents, loading }: UpcomingE
                 {event.title}
               </h3>
               <p className="font-medium font-inter mt-3 text-[17px] leading-[100%] text-white">
-                {event.date}
+                {formatDate(event.date)}
               </p>
               <p className="font-normal font-inter text-[17px] leading-[100%] text-white opacity-100 mt-2 line-clamp-2">
                 {event.description}
@@ -98,10 +93,14 @@ export default function UpcomingEvents({ events: apiEvents, loading }: UpcomingE
                 <Button
                   variant={"site_btn"}
                   className="cursor-pointer rounded-[10px] px-4 py-2 text-[20px] font-normal"
+                  onClick={() => event.link && window.open(event.link, "_blank")}
                 >
                   Register
                 </Button>
-                <p className="font-normal text-[17px] text-white underline cursor-pointer whitespace-nowrap">
+                <p
+                  className="font-normal text-[17px] text-white underline cursor-pointer hover:text-[#C6A95F] transition-colors whitespace-nowrap"
+                  onClick={() => navigate(`/dashboard/upcoming-events/${event.id}`)}
+                >
                   View Details
                 </p>
               </div>
