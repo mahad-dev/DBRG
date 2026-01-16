@@ -1,20 +1,85 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/AuthContext"
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
+import { createNotification } from "@/services/notificationApi";
+import { ChannelType } from "@/types/notification";
+import { toast } from "react-toastify";
 
 export default function Notifications() {
   const { canCreate } = useAuth();
+
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    channelType: ChannelType.Email,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleChannelChange = (value: string) => {
+    setFormData({ ...formData, channelType: parseInt(value) as ChannelType });
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, title: e.target.value });
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData({ ...formData, message: e.target.value });
+  };
+
+  const handleSend = async () => {
+    // Validation
+    if (!formData.title.trim()) {
+      toast.error("Please enter a subject");
+      return;
+    }
+    if (!formData.message.trim()) {
+      toast.error("Please enter a message");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await createNotification({
+        title: formData.title,
+        message: formData.message,
+        channelType: formData.channelType,
+      });
+
+      if (response.status) {
+        toast.success(response.message || "Notification sent successfully!");
+        // Reset form
+        setFormData({
+          title: "",
+          message: "",
+          channelType: ChannelType.Email,
+        });
+      } else {
+        toast.error(response.message || "Failed to send notification");
+      }
+    } catch (error: any) {
+      console.error("Error sending notification:", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to send notification"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-[640px]">
       {/* Page Title */}
@@ -28,13 +93,23 @@ export default function Notifications() {
           {/* Select Channel */}
           <div className="space-y-2">
             <Label className="text-white">Select Channel</Label>
-            <Select defaultValue="email">
+            <Select
+              value={formData.channelType.toString()}
+              onValueChange={handleChannelChange}
+            >
               <SelectTrigger className="bg-white w-full text-black rounded-lg h-[46px] focus:ring-2 focus:ring-[#C6A95F] [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:size-5">
                 <SelectValue placeholder="Select channel" />
               </SelectTrigger>
               <SelectContent className="w-full bg-white text-black z-50">
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value={ChannelType.Email.toString()}>
+                  Email
+                </SelectItem>
+                <SelectItem value={ChannelType.InApp.toString()}>
+                  In-App
+                </SelectItem>
+                <SelectItem value={ChannelType.EmailAndInApp.toString()}>
+                  All Channels (Email + In-App)
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -45,6 +120,8 @@ export default function Notifications() {
             <Input
               placeholder="Subject"
               className="bg-white text-black rounded-lg"
+              value={formData.title}
+              onChange={handleTitleChange}
             />
           </div>
 
@@ -54,47 +131,25 @@ export default function Notifications() {
             <Textarea
               placeholder="Write Message"
               className="bg-white text-black rounded-lg min-h-[140px]"
+              value={formData.message}
+              onChange={handleMessageChange}
             />
-          </div>
-
-          {/* Channel Checkboxes */}
-          <div className="space-y-3">
-            <Label className="text-white">Select Channel</Label>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Checkbox className="cursor-pointer data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] [&_svg]:data-[state=checked]:text-white" />
-                <span className="text-white">All</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox className="cursor-pointer data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] data-[state=checked]:[&_svg]:text-white" />
-                <span className="text-white">Email</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox className="cursor-pointer data-[state=checked]:bg-[#C9A85D] data-[state=checked]:border-[#C9A85D] data-[state=checked]:[&_svg]:text-white" />
-                <span className="text-white">WhatsApp</span>
-              </div>
-            </div>
           </div>
 
           {/* Actions */}
           <div className="flex gap-4 pt-2">
-            {canCreate('NOTIFICATION_MANAGEMENT') && (
-              <Button className="cursor-pointer bg-[#C9A85D] text-black hover:bg-[#b8964f] rounded-lg px-8">
-                Send
+            {canCreate("NOTIFICATION_MANAGEMENT") && (
+              <Button
+                onClick={handleSend}
+                disabled={isLoading}
+                className="cursor-pointer bg-[#C9A85D] text-black hover:bg-[#b8964f] rounded-lg px-8"
+              >
+                {isLoading ? "Sending..." : "Send"}
               </Button>
             )}
-
-            <Button
-              variant="outline"
-              className="cursor-pointer bg-white text-black border-none rounded-lg px-8"
-            >
-              Preview
-            </Button>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

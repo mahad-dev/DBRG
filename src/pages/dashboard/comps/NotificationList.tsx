@@ -62,13 +62,14 @@ export default function NotificationList() {
                   alt="profile"
                 />
 
-                <div className="flex flex-col">
+                <div className="flex flex-col min-w-0 flex-1">
                   <p
                     className="
-                      font-semibold 
-                      text-[14px] 
-                      leading-[150%] 
+                      font-semibold
+                      text-[14px]
+                      leading-[150%]
                       text-[#141522]
+                      truncate
                     "
                     style={{ letterSpacing: "-2%" }}
                   >
@@ -77,12 +78,13 @@ export default function NotificationList() {
 
                   <p
                     className="
-                      text-[12px] 
-                      leading-none 
-                      text-[#141522] 
+                      text-[12px]
+                      leading-none
+                      text-[#141522]
                       opacity-80
                       font-normal
                       font-[Plus Jakarta Sans]
+                      truncate
                     "
                     style={{ letterSpacing: "-1%" }}
                   >
@@ -92,13 +94,14 @@ export default function NotificationList() {
               </div>
 
               {/* Right Side — Time + Status Dot */}
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-2 shrink-0">
                 <p
                   className="
-                    text-[12px] 
-                    font-normal 
-                    text-[#8E92BC] 
+                    text-[12px]
+                    font-normal
+                    text-[#8E92BC]
                     leading-none
+                    whitespace-nowrap
                   "
                   style={{ letterSpacing: "-1%" }}
                 >

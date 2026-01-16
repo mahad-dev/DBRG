@@ -18,7 +18,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Calendar, MoreVertical, Download, Loader2 } from "lucide-react";
+import { Search, Filter, CalendarIcon, MoreVertical, Download, Loader2 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 import EditAndAddModal from "./EditAndAddModal";
 import ViewModal from "./ViewModal";
 import { useAuth } from "@/context/AuthContext";
@@ -88,6 +91,12 @@ export default function CMSTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<boolean | undefined>(undefined);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const [editModal, setEditModal] = useState(false);
   const [viewModal, setViewModal] = useState(false);
@@ -100,6 +109,9 @@ export default function CMSTable() {
       setLoading(true);
       const response = await getAllCms({
         Search: search || undefined,
+        IsPublished: statusFilter,
+        StartDate: startDate ? startDate.toISOString() : undefined,
+        EndDate: endDate ? endDate.toISOString() : undefined,
         PageNumber: page,
         PageSize: ITEMS_PER_PAGE,
       });
@@ -111,37 +123,59 @@ export default function CMSTable() {
         // Check if data is an array directly
         if (Array.isArray(response.data)) {
           setCmsItems(response.data);
+          setTotalCount(response.data.length);
           setTotalPages(Math.ceil(response.data.length / ITEMS_PER_PAGE));
         }
         // Check if data has an items property (like userApi)
         else if (response.data && typeof response.data === 'object' && 'items' in response.data && Array.isArray(response.data.items)) {
           setCmsItems(response.data.items);
           const dataWithItems = response.data as { items: CmsItem[]; totalCount?: number };
-          setTotalPages(Math.ceil((dataWithItems.totalCount || dataWithItems.items.length) / ITEMS_PER_PAGE));
+          const count = dataWithItems.totalCount || dataWithItems.items.length;
+          setTotalCount(count);
+          setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
         }
         // Fallback: empty array
         else {
           console.warn('Unexpected response structure:', response);
           setCmsItems([]);
+          setTotalCount(0);
           setTotalPages(1);
         }
       } else {
         setCmsItems([]);
+        setTotalCount(0);
         setTotalPages(1);
       }
     } catch (error: any) {
       console.error('Failed to fetch CMS data:', error);
       toast.error(error.message || 'Failed to load CMS data');
       setCmsItems([]); // Ensure it's always an array
+      setTotalCount(0);
       setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
+  // Initial fetch on mount
   useEffect(() => {
     fetchCmsData();
-  }, [page, search]);
+  }, []);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1); // Reset to page 1 when search changes
+      fetchCmsData();
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Fetch when other filters change
+  useEffect(() => {
+    fetchCmsData();
+  }, [page, statusFilter, startDate, endDate]);
 
   const handleView = (itemId: number) => {
     setSelectedItemId(itemId);
@@ -251,22 +285,138 @@ export default function CMSTable() {
     </div>
 
     {/* Status Filter */}
-    <Button
-      variant="outline"
-      className="h-11 border-white/20 flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
-    >
-      <Filter className="w-4 h-4" />
-      Status
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="h-11 border-white/20 flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
+        >
+          <Filter className="w-4 h-4" />
+          Status
+          {statusFilter !== undefined && (
+            <span className="ml-1 w-2 h-2 rounded-full bg-[#C6A95F]" />
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-white">
+        <DropdownMenuItem
+          onClick={() => {
+            setStatusFilter(undefined);
+            setPage(1);
+          }}
+          className="cursor-pointer"
+        >
+          All
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            setStatusFilter(true);
+            setPage(1);
+          }}
+          className="cursor-pointer"
+        >
+          Published
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            setStatusFilter(false);
+            setPage(1);
+          }}
+          className="cursor-pointer"
+        >
+          Draft
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
 
     {/* Date Filter */}
-    <Button
-      variant="outline"
-      className="h-11 border-white/20 flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
-    >
-      <Calendar className="w-4 h-4" />
-      Date
-    </Button>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className="h-11 border-white/20 flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
+        >
+          <CalendarIcon className="w-4 h-4" />
+          Date
+          {(startDate || endDate) && (
+            <span className="ml-1 w-2 h-2 rounded-full bg-[#C6A95F]" />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-4 bg-white" align="end">
+        <div className="space-y-4">
+          {/* Selected Dates Display - Clickable */}
+          <div className="grid grid-cols-2 gap-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-md border border-gray-200 transition-colors">
+                  <label className="text-xs font-medium text-gray-600 block mb-1 cursor-pointer">
+                    Start Date
+                  </label>
+                  <div className="text-sm font-semibold text-gray-900">
+                    {startDate ? format(startDate, "MMM dd, yyyy") : "Select"}
+                  </div>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-white" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    if (endDate && date && date > endDate) {
+                      setEndDate(undefined);
+                    }
+                    setPage(1);
+                  }}
+                  className="rounded-md border-0"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-md border border-gray-200 transition-colors">
+                  <label className="text-xs font-medium text-gray-600 block mb-1 cursor-pointer">
+                    End Date
+                  </label>
+                  <div className="text-sm font-semibold text-gray-900">
+                    {endDate ? format(endDate, "MMM dd, yyyy") : "Select"}
+                  </div>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-white" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    setEndDate(date);
+                    setPage(1);
+                  }}
+                  disabled={(date) => startDate ? date < startDate : false}
+                  className="rounded-md border-0"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Clear Button */}
+          {(startDate || endDate) && (
+            <Button
+              onClick={() => {
+                setStartDate(undefined);
+                setEndDate(undefined);
+                setPage(1);
+              }}
+              variant="outline"
+              className="w-full text-sm cursor-pointer"
+            >
+              Clear Dates
+            </Button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   </div>
 </div>
 
@@ -311,27 +461,34 @@ export default function CMSTable() {
                   </div>
                 ))}
               </div>
-              <FooterPagination page={page} total={totalPages} setPage={setPage} />
+              <FooterPagination
+                page={page}
+                total={totalPages}
+                setPage={setPage}
+                totalItems={totalCount}
+                itemsPerPage={ITEMS_PER_PAGE}
+              />
             </>
           )}
         </div>
 
         {/* ===== DESKTOP TABLE ===== */}
         <div className="hidden sm:block border border-white rounded-lg overflow-hidden">
-          <ScrollArea className="max-h-[520px]">
-            <div className="overflow-x-auto">
+          <div className="overflow-x-auto">
+            <Table className="min-w-full table-fixed">
+              <TableHeader className="sticky top-0 z-10 bg-[#101010]">
+                <TableRow className="bg-white/5">
+                  <TableHead className="py-4 px-3 w-[20%]">Title</TableHead>
+                  <TableHead className="py-4 px-3 w-[12%]">Category</TableHead>
+                  <TableHead className="py-4 px-3 w-[35%]">Description</TableHead>
+                  <TableHead className="py-4 px-3 w-[12%]">Status</TableHead>
+                  <TableHead className="py-4 px-3 w-[13%]">Date</TableHead>
+                  <TableHead className="py-4 px-3 w-[8%] text-center">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+            <ScrollArea className="h-[460px]">
               <Table className="min-w-full table-fixed">
-                <TableHeader>
-                  <TableRow className="bg-white/5">
-                    <TableHead className="py-4 px-3 w-[20%]">Title</TableHead>
-                    <TableHead className="py-4 px-3 w-[12%]">Category</TableHead>
-                    <TableHead className="py-4 px-3 w-[35%]">Description</TableHead>
-                    <TableHead className="py-4 px-3 w-[12%]">Status</TableHead>
-                    <TableHead className="py-4 px-3 w-[13%]">Date</TableHead>
-                    <TableHead className="py-4 px-3 w-[8%] text-center">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-
                 <TableBody>
                   {loading ? (
                     <TableRow>
@@ -349,7 +506,7 @@ export default function CMSTable() {
                     cmsItems.map((item) => (
                       <TableRow key={item.id} className="hover:bg-white/5">
                         <TableCell className="py-4 px-3">
-                          <div className="truncate max-w-full" title={item.title}>
+                          <div className="truncate max-w-full overflow-hidden" title={item.title}>
                             {item.title || "N/A"}
                           </div>
                         </TableCell>
@@ -357,7 +514,7 @@ export default function CMSTable() {
                           <span className="text-[#C6A95F] whitespace-nowrap">{CategoryLabels[item.category]}</span>
                         </TableCell>
                         <TableCell className="py-4 px-3">
-                          <div className="line-clamp-2 text-sm" title={item.description}>
+                          <div className="line-clamp-2 text-sm leading-relaxed max-w-full overflow-hidden" title={item.description}>
                             {item.description || "N/A"}
                           </div>
                         </TableCell>
@@ -387,10 +544,16 @@ export default function CMSTable() {
                   )}
                 </TableBody>
               </Table>
-            </div>
-          </ScrollArea>
+            </ScrollArea>
+          </div>
 
-          <FooterPagination page={page} total={totalPages} setPage={setPage} />
+          <FooterPagination
+            page={page}
+            total={totalPages}
+            setPage={setPage}
+            totalItems={totalCount}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
         </div>
       </div>
 
@@ -422,32 +585,46 @@ function FooterPagination({
   page,
   total,
   setPage,
+  totalItems,
+  itemsPerPage,
 }: {
   page: number;
   total: number;
   setPage: (v: number) => void;
+  totalItems?: number;
+  itemsPerPage?: number;
 }) {
+  const perPage = itemsPerPage || 10;
+  const startItem = totalItems && totalItems > 0 ? (page - 1) * perPage + 1 : 0;
+  const endItem = totalItems && totalItems > 0 ? Math.min(page * perPage, totalItems) : 0;
+  const totalPagesCalc = total > 0 ? total : 1;
+
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 py-4 border-t border-white bg-[#101010] rounded-b-lg">
       <span className="text-sm text-white font-medium">
-        Page {page} of {total}
+        {totalItems && totalItems > 0 ? (
+          <>
+            Showing {startItem}-{endItem} of {totalItems} items | Page {page} of {totalPagesCalc}
+          </>
+        ) : (
+          <>Page {page} of {totalPagesCalc}</>
+        )}
       </span>
       <div className="flex gap-3 justify-center sm:justify-end">
-        {page > 1 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(page - 1)}
-            className="border-white text-white hover:bg-white/10 min-w-[80px] cursor-pointer"
-          >
-            Previous
-          </Button>
-        )}
         <Button
           variant="outline"
           size="sm"
-          disabled={page === total}
-          onClick={() => setPage(page + 1)}
+          disabled={page <= 1}
+          onClick={() => setPage(Math.max(1, page - 1))}
+          className="border-white text-white hover:bg-white/10 disabled:opacity-50 min-w-[80px] cursor-pointer disabled:cursor-not-allowed"
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={page >= totalPagesCalc}
+          onClick={() => setPage(Math.min(totalPagesCalc, page + 1))}
           className="border-white text-white hover:bg-white/10 disabled:opacity-50 min-w-[80px] cursor-pointer disabled:cursor-not-allowed"
         >
           Next
