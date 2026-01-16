@@ -35,6 +35,21 @@ export default function Inbox() {
 
   const currentUserId = localStorage.getItem("userId");
 
+  // Convert UTC date to local time string
+  const formatDateTime = (dateString: string) => {
+    try {
+      // Add 'Z' to treat as UTC if not present
+      let dateStr = dateString;
+      if (dateStr && !dateStr.endsWith('Z') && !dateStr.includes('+') && dateStr.includes('T')) {
+        dateStr = dateStr + 'Z';
+      }
+      const date = new Date(dateStr);
+      return date.toLocaleString();
+    } catch {
+      return "Recently";
+    }
+  };
+
   // Fetch inbox conversations
   const fetchInbox = async () => {
     try {
@@ -51,8 +66,8 @@ export default function Inbox() {
             senderName: item.member?.name || "Unknown",
             senderCompany: item.member?.email || "No email",
             lastMessage: item.message?.body || "No message",
-            timestamp: item.message?.sentOn ? new Date(item.message.sentOn).toLocaleString() : "Recently",
-            unreadCount: item.message?.isRead ? 0 : 1,
+            timestamp: item.message?.sentOn ? formatDateTime(item.message.sentOn) : "Recently",
+            unreadCount: 0, // Remove unread count
           }));
           setConversations(transformedConversations);
         } catch (parseError) {
@@ -91,7 +106,7 @@ export default function Inbox() {
             id: msg.id || Date.now(), // Generate ID if not provided
             senderId: msg.senderMemberId,
             content: msg.body,
-            timestamp: msg.sentOn ? new Date(msg.sentOn).toLocaleString() : "Recently",
+            timestamp: msg.sentOn ? formatDateTime(msg.sentOn) : "Recently",
             isOwn: String(msg.senderMemberId) === String(currentUserId),
           }));
           setMessages(transformedMessages);
@@ -178,16 +193,9 @@ export default function Inbox() {
                             : "bg-[#FFFFFF0D] text-white hover:bg-[#FFFFFF1A]"
                         }`}
                       >
-                        <div className="flex justify-between items-start mb-1">
-                          <h4 className="font-semibold text-sm truncate">
-                            {conversation.senderName}
-                          </h4>
-                          {conversation.unreadCount > 0 && (
-                            <div className="bg-[#C6A95F] text-black text-xs px-2 py-1 rounded-full min-w-5 text-center">
-                              {conversation.unreadCount}
-                            </div>
-                          )}
-                        </div>
+                        <h4 className="font-semibold text-sm truncate mb-1">
+                          {conversation.senderName}
+                        </h4>
                         <p className="text-xs text-gray-300 mb-1 truncate">
                           {conversation.senderCompany}
                         </p>
@@ -223,9 +231,9 @@ export default function Inbox() {
                 }
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col h-[calc(100vh-300px)]">
+            <CardContent className="flex flex-col h-[calc(100vh-300px)] p-0">
               {/* Messages Area */}
-              <ScrollArea className="flex-1 mb-4">
+              <div className="flex-1 overflow-y-auto">
                 {messagesLoading ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-[#C6A95F]" />
@@ -239,13 +247,13 @@ export default function Inbox() {
                           className={`flex ${message.isOwn ? "justify-end" : "justify-start"}`}
                         >
                           <div
-                            className={`max-w-[70%] p-3 rounded-lg ${
+                            className={`max-w-[70%] p-3 rounded-lg break-words ${
                               message.isOwn
                                 ? "bg-[#C6A95F] text-black"
                                 : "bg-[#FFFFFF1A] text-white"
                             }`}
                           >
-                            <p className="text-sm">{message.content}</p>
+                            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                             <p className={`text-xs mt-1 ${
                               message.isOwn ? "text-black/60" : "text-white/60"
                             }`}>
@@ -267,11 +275,11 @@ export default function Inbox() {
                     <p>Select a conversation to view messages</p>
                   </div>
                 )}
-              </ScrollArea>
+              </div>
 
               {/* Message Input */}
               {selectedConversation && (
-                <div className="flex gap-2 p-4 border-t border-white/10">
+                <div className="flex gap-2 p-4 border-t border-white/10 bg-[#FFFFFF0D]">
                   <Input
                     placeholder="Type your message..."
                     value={newMessage}
