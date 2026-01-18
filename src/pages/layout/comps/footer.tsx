@@ -1,9 +1,31 @@
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { emailRegex } from "@/utils/validationSchemas";
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+
+  const handleJoinNow = () => {
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Here you would typically send the email to your backend
+    // For now, we'll just show the success message
+    toast.success("Newsletter subscribed successfully!");
+    setEmail(""); // Clear the input after successful subscription
+  };
+
   return (
     <footer className="relative w-full bg-[#121212] text-white py-20 px-6">
       <div
@@ -293,6 +315,8 @@ export default function Footer() {
           <Input
             placeholder="Enter Your Email"
             className="bg-white text-black placeholder:text-gray-500 h-12 mb-4"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <Button
@@ -310,6 +334,7 @@ export default function Footer() {
     text-center
     cursor-pointer
   "
+            onClick={handleJoinNow}
           >
             Join Now
           </Button>

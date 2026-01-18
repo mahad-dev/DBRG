@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 
 // Email validation regex
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Phone validation regex (supports international formats)
 const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
