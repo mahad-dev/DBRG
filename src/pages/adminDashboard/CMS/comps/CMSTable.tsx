@@ -476,44 +476,60 @@ export default function CMSTable() {
         {/* ===== DESKTOP TABLE ===== */}
         <div className="hidden sm:block border border-white rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <Table className="min-w-full table-fixed">
+            <Table className="min-w-full" style={{ tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '30%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '13%' }} />
+              </colgroup>
               <TableHeader className="sticky top-0 z-10 bg-[#101010]">
                 <TableRow className="bg-white/5">
-                  <TableHead className="py-4 px-3 w-[20%]">Title</TableHead>
-                  <TableHead className="py-4 px-3 w-[12%]">Category</TableHead>
-                  <TableHead className="py-4 px-3 w-[35%]">Description</TableHead>
-                  <TableHead className="py-4 px-3 w-[12%]">Status</TableHead>
-                  <TableHead className="py-4 px-3 w-[13%]">Date</TableHead>
-                  <TableHead className="py-4 px-3 w-[8%] text-center">Action</TableHead>
+                  <TableHead className="py-4 px-4">Title</TableHead>
+                  <TableHead className="py-4 px-4">Category</TableHead>
+                  <TableHead className="py-4 px-4">Description</TableHead>
+                  <TableHead className="py-4 px-4">Status</TableHead>
+                  <TableHead className="py-4 px-4">Date</TableHead>
+                  <TableHead className="py-4 px-4 text-center">Action</TableHead>
                 </TableRow>
               </TableHeader>
             </Table>
             <ScrollArea className="h-[460px]">
-              <Table className="min-w-full table-fixed">
+              <Table className="min-w-full" style={{ tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '20%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '30%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '13%' }} />
+                </colgroup>
                 <TableBody>
                   {loading ? (
                     <>
                       {Array.from({ length: 5 }).map((_, index) => (
                         <TableRow key={index}>
-                          <TableCell className="py-4 px-3">
+                          <TableCell className="py-4 px-4">
                             <Skeleton className="h-4 w-3/4" />
                           </TableCell>
-                          <TableCell className="py-4 px-3">
+                          <TableCell className="py-4 px-4">
                             <Skeleton className="h-4 w-16" />
                           </TableCell>
-                          <TableCell className="py-4 px-3">
+                          <TableCell className="py-4 px-4">
                             <div className="space-y-2">
                               <Skeleton className="h-3 w-full" />
                               <Skeleton className="h-3 w-2/3" />
                             </div>
                           </TableCell>
-                          <TableCell className="py-4 px-3">
+                          <TableCell className="py-4 px-4">
                             <Skeleton className="h-5 w-16 rounded-full" />
                           </TableCell>
-                          <TableCell className="py-4 px-3">
+                          <TableCell className="py-4 px-4">
                             <Skeleton className="h-4 w-20" />
                           </TableCell>
-                          <TableCell className="py-4 px-3 text-center">
+                          <TableCell className="py-4 px-4 text-center">
                             <Skeleton className="h-5 w-5 mx-auto" />
                           </TableCell>
                         </TableRow>
@@ -528,32 +544,32 @@ export default function CMSTable() {
                   ) : (
                     cmsItems.map((item) => (
                       <TableRow key={item.id} className="hover:bg-white/5">
-                        <TableCell className="py-4 px-3">
-                          <div className="truncate max-w-full overflow-hidden" title={item.title}>
+                        <TableCell className="py-4 px-4">
+                          <div className="truncate" title={item.title}>
                             {item.title || "N/A"}
                           </div>
                         </TableCell>
-                        <TableCell className="py-4 px-3">
-                          <span className="text-[#C6A95F] whitespace-nowrap">{CategoryLabels[item.category]}</span>
+                        <TableCell className="py-4 px-4">
+                          <span className="text-[#C6A95F]">{CategoryLabels[item.category]}</span>
                         </TableCell>
-                        <TableCell className="py-4 px-3">
-                          <div className="line-clamp-2 text-sm leading-relaxed max-w-full overflow-hidden" title={item.description}>
+                        <TableCell className="py-4 px-4">
+                          <div className="line-clamp-2 text-sm leading-relaxed" title={item.description}>
                             {item.description || "N/A"}
                           </div>
                         </TableCell>
-                        <TableCell className="py-4 px-3">
-                          <span className={`text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap inline-block ${
+                        <TableCell className="py-4 px-4">
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full inline-block ${
                             item.isPublished ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'
                           }`}>
                             {item.isPublished ? 'Published' : 'Draft'}
                           </span>
                         </TableCell>
-                        <TableCell className="py-4 px-3">
-                          <span className="text-sm whitespace-nowrap">
+                        <TableCell className="py-4 px-4">
+                          <span className="text-sm">
                             {new Date(item.date).toLocaleDateString()}
                           </span>
                         </TableCell>
-                        <TableCell className="py-4 px-3 text-center">
+                        <TableCell className="py-4 px-4 text-center">
                           <ActionMenu
                             item={item}
                             onView={() => handleView(item.id)}

@@ -27,6 +27,7 @@ import AdminDashboardLayout from "@/pages/adminDashboard/layout";
 import UserManagement from "@/pages/adminDashboard/UserManagement";
 import SendNotifications from "@/pages/adminDashboard/SendNotifications";
 import CMS from "@/pages/adminDashboard/CMS";
+import EventRegistrations from "@/pages/adminDashboard/CMS/EventRegistrations";
 import PaymentDetails from "@/pages/adminDashboard/PaymentDetails";
 import SpecialConsideration from "@/pages/adminDashboard/SpecialConsideration";
 import Settings from "@/pages/adminDashboard/Settings";
@@ -101,6 +102,7 @@ const adminDashboardRoutes: RouteConfig[] = [
   { path: "user-management", element: <UserManagement />, name: "UserManagement" },
   { path: "send-notification", element: <SendNotifications />, name: "SendNotifications" },
   { path: "cms", element: <CMS />, name: "CMS" },
+  { path: "cms/event-registrations/:eventId", element: <EventRegistrations />, name: "EventRegistrations" },
   { path: "payment-details", element: <PaymentDetails />, name: "PaymentDetails" },
   { path: "special-consideration", element: <SpecialConsideration />, name: "SpecialConsideration" },
   { path: "settings", element: <Settings />, name: "Settings" },

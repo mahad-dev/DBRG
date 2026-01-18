@@ -8,9 +8,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { getCmsById } from "@/services/cmsApi";
 import type { CmsItem } from "@/types/cms";
-import { CategoryLabels } from "@/types/cms";
-import { Loader2, X, Download, ExternalLink } from "lucide-react";
+import { CategoryLabels, CmsCategory } from "@/types/cms";
+import { Loader2, X, Download, ExternalLink, Users } from "lucide-react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 interface ViewModalProps {
   open: boolean;
@@ -27,6 +28,7 @@ export default function ViewModal({
 }: ViewModalProps) {
   const [item, setItem] = useState<CmsItem | null>(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (open && itemId) {
@@ -63,9 +65,16 @@ export default function ViewModal({
     }
   };
 
+  const handleViewRegistrations = () => {
+    if (item) {
+      onOpenChange(false);
+      navigate(`/admin/dashboard/cms/event-registrations/${item.id}`);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-black text-white border-[#C6A95F] p-0 rounded-lg max-w-3xl font-inter max-h-[90vh] flex flex-col">
+      <DialogContent className="bg-black text-white border-[#C6A95F] p-0 rounded-lg max-w-3xl font-inter max-h-[90vh] flex flex-col [&>button]:hidden">
         <DialogHeader className="flex flex-row justify-between items-center w-full px-6 pt-6 pb-2 border-b border-white/10 shrink-0">
           <h2 className="text-[#C6A95F] text-2xl font-semibold">View CMS Item</h2>
           <Button
@@ -218,6 +227,16 @@ export default function ViewModal({
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-4">
+                {item.category === CmsCategory.Event && (
+                  <Button
+                    onClick={handleViewRegistrations}
+                    variant="outline"
+                    className="flex-1 border-[#C6A95F] text-[#C6A95F] hover:bg-[#C6A95F]/10"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    View Event Registrations
+                  </Button>
+                )}
                 {onEdit && (
                   <Button
                     onClick={handleEdit}

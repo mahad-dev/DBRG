@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { userApi, type UserProfile } from "@/services/userApi";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-toastify";
-import { Camera } from "lucide-react";
+import { Camera, Eye, EyeOff } from "lucide-react";
 
 const ProfileSetting = () => {
   const {} = useAuth();
@@ -10,7 +10,14 @@ const ProfileSetting = () => {
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileImage, setProfileImage] = useState<string>("/static/UserImg.png");
+  const [pendingPictureId, setPendingPictureId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Password visibility states
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -31,8 +38,8 @@ const ProfileSetting = () => {
       if (response.status && response.data) {
         setProfile(response.data);
         setFormData({
-          name: response.data.name || response.data.directorName || "",
-          phone: response.data.phone || "",
+          name: response.data.fullName || response.data.name || response.data.directorName || "",
+          phone: response.data.phoneNumber || response.data.phone || "",
           email: response.data.email || "",
           oldPassword: "",
           newPassword: "",
@@ -42,9 +49,10 @@ const ProfileSetting = () => {
         // Set profile image
         if (response.data.pictureUrl) {
           setProfileImage(response.data.pictureUrl);
-        } else if (response.data.pictureId) {
+        } else if (response.data.profilePictureId || response.data.pictureId) {
           const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-          setProfileImage(`${apiBaseUrl}/UploadDetails/GetDocument?documentId=${response.data.pictureId}`);
+          const picId = response.data.profilePictureId || response.data.pictureId;
+          setProfileImage(`${apiBaseUrl}/UploadDetails/GetDocument?documentId=${picId}`);
         }
       }
     } catch (error) {
@@ -66,13 +74,24 @@ const ProfileSetting = () => {
   const handleCancel = () => {
     if (profile) {
       setFormData({
-        name: profile.name || profile.directorName || "",
-        phone: profile.phone || "",
+        name: (profile as any).fullName || profile.name || profile.directorName || "",
+        phone: (profile as any).phoneNumber || profile.phone || "",
         email: profile.email || "",
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
+      // Reset pending picture and restore original image
+      setPendingPictureId(null);
+      if (profile.pictureUrl) {
+        setProfileImage(profile.pictureUrl);
+      } else if ((profile as any).profilePictureId || profile.pictureId) {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const picId = (profile as any).profilePictureId || profile.pictureId;
+        setProfileImage(`${apiBaseUrl}/UploadDetails/GetDocument?documentId=${picId}`);
+      } else {
+        setProfileImage("/static/UserImg.png");
+      }
     }
   };
 
@@ -96,93 +115,108 @@ const ProfileSetting = () => {
       return;
     }
 
+    // Immediately show preview in UI
+    const previewUrl = URL.createObjectURL(file);
+    setProfileImage(previewUrl);
+
     try {
       setUploading(true);
 
-      // Upload the document
+      // Upload the document and get pictureId
       const pictureId = await userApi.uploadDocument(file);
 
-      // Update profile with new picture ID
-      const response = await userApi.updateUserProfile({
-        pictureId: pictureId,
-      });
+      // Store the pictureId for later use in save
+      setPendingPictureId(pictureId);
+      toast.success("Image uploaded. Click 'Save Changes' to update your profile.");
 
-      if (response.status) {
-        toast.success("Profile picture updated successfully");
-
-        // Update preview image
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-        setProfileImage(`${apiBaseUrl}/UploadDetails/GetDocument?documentId=${pictureId}`);
-
-        // Refresh profile data
-        await fetchUserProfile();
-      } else {
-        toast.error(response.message || "Failed to update profile picture");
-      }
     } catch (error: any) {
       console.error("Error uploading profile picture:", error);
       toast.error(error?.response?.data?.message || "Failed to upload profile picture");
+      // Revert to original image on error
+      if (profile?.pictureUrl) {
+        setProfileImage(profile.pictureUrl);
+      } else if (profile?.pictureId) {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        setProfileImage(`${apiBaseUrl}/UploadDetails/GetDocument?documentId=${profile.pictureId}`);
+      } else {
+        setProfileImage("/static/UserImg.png");
+      }
     } finally {
       setUploading(false);
+      // Clean up the object URL
+      URL.revokeObjectURL(previewUrl);
     }
   };
 
   const handleSaveChanges = async () => {
+    // Validation
+    const hasPasswordFields = formData.oldPassword || formData.newPassword || formData.confirmPassword;
+
+    // Validate name
+    if (!formData.name.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+
+    // Validate phone number (basic validation)
+    if (formData.phone.trim()) {
+      // Accept international phone formats: +1 234 567 8901, (123) 456-7890, +91-9876543210, etc.
+      const phoneRegex = /^[+]?[\d\s\-().]{7,20}$/;
+      if (!phoneRegex.test(formData.phone.trim())) {
+        toast.error("Please enter a valid phone number");
+        return;
+      }
+    }
+
+    // Handle password validation
+    if (hasPasswordFields) {
+      if (!formData.oldPassword) {
+        toast.error("Please enter your old password");
+        return;
+      }
+      if (!formData.newPassword) {
+        toast.error("Please enter a new password");
+        return;
+      }
+      if (formData.newPassword !== formData.confirmPassword) {
+        toast.error("New passwords do not match");
+        return;
+      }
+      if (formData.newPassword.length < 6) {
+        toast.error("Password must be at least 6 characters");
+        return;
+      }
+      if (formData.oldPassword === formData.newPassword) {
+        toast.error("New password must be different from old password");
+        return;
+      }
+    }
+
     try {
       setLoading(true);
 
-      let successMessages: string[] = [];
+      // Get current pictureId - use pending if new image uploaded, otherwise use existing from profile
+      const currentPictureId = pendingPictureId ?? (profile as any)?.profilePictureId ?? null;
 
-      // Update name if changed
-      if (formData.name !== (profile?.name || profile?.directorName || "")) {
-        const response = await userApi.updateUserProfile({
-          directorName: formData.name,
-        });
+      // Build request payload - send all fields, null for empty values
+      const payload = {
+        name: formData.name.trim() || null,
+        phoneNumber: formData.phone.trim() || null,
+        pictureId: currentPictureId,
+        oldPassword: hasPasswordFields ? formData.oldPassword : null,
+        newPassword: hasPasswordFields ? formData.newPassword : null,
+      };
 
-        if (response.status) {
-          successMessages.push("Name updated");
-          // Update localStorage
-          localStorage.setItem("name", formData.name);
-        } else {
-          toast.error(response.message || "Failed to update name");
-          return;
-        }
-      }
+      const response = await userApi.updateProfileWithPassword(payload);
 
-      // Handle password reset if user filled password fields
-      if (formData.oldPassword || formData.newPassword || formData.confirmPassword) {
-        if (!formData.oldPassword) {
-          toast.error("Please enter your old password");
-          return;
-        }
-        if (!formData.newPassword) {
-          toast.error("Please enter a new password");
-          return;
-        }
-        if (formData.newPassword !== formData.confirmPassword) {
-          toast.error("New passwords do not match");
-          return;
-        }
-        if (formData.newPassword.length < 6) {
-          toast.error("Password must be at least 6 characters");
-          return;
-        }
+      if (response.status) {
+        toast.success(response.message || "Profile updated successfully");
 
-        const passwordResponse = await userApi.resetPassword({
-          oldPassword: formData.oldPassword,
-          newPassword: formData.newPassword,
-        });
+        // Update localStorage with name
+        localStorage.setItem("name", formData.name.trim());
 
-        if (passwordResponse.status) {
-          successMessages.push("Password reset");
-        } else {
-          toast.error(passwordResponse.message || "Failed to reset password");
-          return;
-        }
-      }
-
-      if (successMessages.length > 0) {
-        toast.success(`Profile updated successfully: ${successMessages.join(", ")}`);
+        // Clear pending picture ID after successful save
+        setPendingPictureId(null);
 
         // Refresh profile data
         await fetchUserProfile();
@@ -195,7 +229,7 @@ const ProfileSetting = () => {
           confirmPassword: "",
         }));
       } else {
-        toast.info("No changes to save");
+        toast.error(response.message || "Failed to update profile");
       }
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -244,7 +278,11 @@ const ProfileSetting = () => {
               className="absolute bottom-0 right-0 bg-[#C6A95F] p-2 rounded-full hover:bg-[#b89a4f] transition-colors disabled:opacity-50"
               title="Change profile picture"
             >
-              <Camera size={16} className="text-white" />
+              {uploading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Camera size={16} className="text-white" />
+              )}
             </button>
           </div>
           <div>
@@ -285,7 +323,6 @@ const ProfileSetting = () => {
               onChange={handleInputChange}
               placeholder="+91-987-654-3210"
               className="w-80 h-10 bg-white rounded-md text-black px-3"
-              disabled
             />
           </div>
 
@@ -306,32 +343,64 @@ const ProfileSetting = () => {
         {/* Reset Password */}
         <div className="mb-4">
           <label className="block text-sm mb-2">Reset Password</label>
-          <input
-            type="password"
-            name="oldPassword"
-            value={formData.oldPassword}
-            onChange={handleInputChange}
-            placeholder="Enter Old Password"
-            className="w-80 h-10 bg-white rounded-md text-black px-3 mb-4"
-          />
+
+          {/* Old Password */}
+          <div className="relative w-80 mb-4">
+            <input
+              type={showOldPassword ? "text" : "password"}
+              name="oldPassword"
+              value={formData.oldPassword}
+              onChange={handleInputChange}
+              placeholder="Enter Old Password"
+              className="w-full h-10 bg-white rounded-md text-black px-3 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowOldPassword(!showOldPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showOldPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+            </button>
+          </div>
 
           <div className="grid grid-cols-2 gap-17">
-            <input
-              type="password"
-              name="newPassword"
-              value={formData.newPassword}
-              onChange={handleInputChange}
-              placeholder="Enter New Password"
-              className="w-80 h-10 bg-white rounded-md text-black px-3"
-            />
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              placeholder="Re-Enter Password"
-              className="w-full h-10 bg-white rounded-md text-black px-3"
-            />
+            {/* New Password */}
+            <div className="relative w-80">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                name="newPassword"
+                value={formData.newPassword}
+                onChange={handleInputChange}
+                placeholder="Enter New Password"
+                className="w-full h-10 bg-white rounded-md text-black px-3 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showNewPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+              </button>
+            </div>
+
+            {/* Confirm Password */}
+            <div className="relative w-full">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                placeholder="Re-Enter Password"
+                className="w-full h-10 bg-white rounded-md text-black px-3 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -346,7 +415,7 @@ const ProfileSetting = () => {
           </button>
           <button
             onClick={handleSaveChanges}
-            disabled={loading}
+            disabled={loading || uploading}
             className="cursor-pointer px-6 py-1 bg-[#C6A95F] text-white rounded-md font-medium disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save Changes"}

@@ -363,6 +363,21 @@ class UserApi {
       throw error;
     }
   }
+
+  async updateProfileWithPassword(data: {
+    name?: string | null;
+    phoneNumber?: string | null;
+    pictureId?: number | null;
+    oldPassword?: string | null;
+    newPassword?: string | null;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.put('/User/UpdateProfileWithPassword', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const userApi = new UserApi();
