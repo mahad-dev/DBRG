@@ -15,7 +15,7 @@ interface HeaderProps {
 export default function Header({ setMobileOpen }: HeaderProps) {
   const [name, setName] = useState(localStorage.getItem("name") || "");
   const [profileImageUrl, setProfileImageUrl] = useState("/static/UserImg.png");
-  const [userRole, setUserRole] = useState("Director");
+  const [userRole] = useState("Admin");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -54,9 +54,9 @@ export default function Header({ setMobileOpen }: HeaderProps) {
         }
 
         // Update role if available
-        if (response.data.directorName) {
-          setUserRole("Director");
-        }
+        // if (response.data.directorName) {
+        //   setUserRole("Director");
+        // }
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);

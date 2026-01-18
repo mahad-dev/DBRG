@@ -156,9 +156,7 @@ export default function ResourceLibrary() {
     return items.map((item) => ({
       id: item.id,
       title: item.title,
-      type: item.documentPaths && item.documentPaths.length > 0
-        ? item.documentPaths[0].split('.').pop()?.toUpperCase() || "FILE"
-        : "FILE",
+      type: item.description || "",
       date: new Date(item.date).toLocaleDateString('en-GB', {
         day: '2-digit',
         month: '2-digit',
