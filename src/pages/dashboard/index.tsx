@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import MemberCard from "./comps/MemberCard";
 import NotificationList from "./comps/NotificationList";
-import { StatusBar } from "./comps/StatusBar";
 import UpcomingEvents from "./comps/UpcomingEvents";
 import { getDashboardUpcomingEvents } from "@/services/dashboardApi";
 
@@ -35,8 +33,6 @@ export default function Dashboard() {
 
         {/* MOBILE VIEW */}
         <div className="flex flex-col gap-6 lg:hidden">
-          <StatusBar />
-          <MemberCard />
           <NotificationList />
           <UpcomingEvents events={upcomingEvents} loading={loading} />
         </div>
@@ -46,13 +42,11 @@ export default function Dashboard() {
 
           {/* LEFT COLUMN */}
           <div className="flex flex-col gap-8">
-            <StatusBar />
             <UpcomingEvents events={upcomingEvents} loading={loading} />
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="flex flex-col gap-8">
-            <MemberCard />
+          <div>
             <NotificationList />
           </div>
 

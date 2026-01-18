@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import UploadStepper from "./comps/UploadStepper";
 import Step1Applicability from "./comps/steps/Step1Applicability";
 import Step2CompanyDetails from "./comps/steps/Step2CompanyDetails";
@@ -10,12 +10,15 @@ import Step5Regulatory from "./comps/steps/Step5Regulatory";
 import Step6RequiredDocumentChecklist from "./comps/steps/Step6RequiredDocumentChecklist";
 import Step7DataProtection from "./comps/steps/Step7DataProtection";
 import Step8Agreement from "./comps/steps/Step8Agreement";
+import SubmitMoreDetailsModal from "./comps/SubmitMoreDetailsModal";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { useAuth } from '@/context/AuthContext';
+
 export default function UploadDetails() {
   const { state, getUploadDetails, updateFormData } = useUploadDetails();
   const { user } = useAuth();
   const currentStep = state.currentStep;
+  const [showMoreDetailsModal, setShowMoreDetailsModal] = useState(false);
 
   useEffect(() => {
     if (user?.userId) {
@@ -28,6 +31,14 @@ export default function UploadDetails() {
       });
     }
   }, [currentStep]);
+
+  // Check if there's an askMoreDetailsRequest from admin in special consideration
+  useEffect(() => {
+    const specialConsideration = state.data.specialConsideration;
+    if (specialConsideration?.askMoreDetailsRequest && !specialConsideration?.askMoreDetailsResponse) {
+      setShowMoreDetailsModal(true);
+    }
+  }, [state.data.specialConsideration]);
 
   const steps = [
     <Step1Applicability key={1} />,
@@ -90,10 +101,34 @@ export default function UploadDetails() {
   //   );
   // }
 
+  const handleMoreDetailsSuccess = () => {
+    // Refresh the data after successful submission
+    if (user?.userId) {
+      getUploadDetails(user.userId).then((data) => {
+        if (data) {
+          updateFormData(data);
+        }
+      });
+    }
+    setShowMoreDetailsModal(false);
+  };
+
   return (
-    <div className="flex flex-col gap-4">
-      <UploadStepper currentStep={currentStep} totalSteps={8} />
-      <div className="mt-4">{steps[currentStep - 1]}</div>
-    </div>
+    <>
+      <div className="flex flex-col gap-4">
+        <UploadStepper currentStep={currentStep} totalSteps={8} />
+        <div className="mt-4">{steps[currentStep - 1]}</div>
+      </div>
+
+      {/* More Details Modal */}
+      {state.data.specialConsideration?.askMoreDetailsRequest && (
+        <SubmitMoreDetailsModal
+          open={showMoreDetailsModal}
+          onOpenChange={setShowMoreDetailsModal}
+          askMoreDetailsRequest={state.data.specialConsideration.askMoreDetailsRequest}
+          onSuccess={handleMoreDetailsSuccess}
+        />
+      )}
+    </>
   );
 }

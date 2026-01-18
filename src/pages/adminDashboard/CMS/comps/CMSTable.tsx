@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Search, Filter, CalendarIcon, MoreVertical, Download, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -491,11 +492,33 @@ export default function CMSTable() {
               <Table className="min-w-full table-fixed">
                 <TableBody>
                   {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-12">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#C6A95F] mx-auto" />
-                      </TableCell>
-                    </TableRow>
+                    <>
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="py-4 px-3">
+                            <Skeleton className="h-4 w-3/4" />
+                          </TableCell>
+                          <TableCell className="py-4 px-3">
+                            <Skeleton className="h-4 w-16" />
+                          </TableCell>
+                          <TableCell className="py-4 px-3">
+                            <div className="space-y-2">
+                              <Skeleton className="h-3 w-full" />
+                              <Skeleton className="h-3 w-2/3" />
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4 px-3">
+                            <Skeleton className="h-5 w-16 rounded-full" />
+                          </TableCell>
+                          <TableCell className="py-4 px-3">
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                          <TableCell className="py-4 px-3 text-center">
+                            <Skeleton className="h-5 w-5 mx-auto" />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
                   ) : cmsItems.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-12 text-white/60">

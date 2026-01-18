@@ -30,11 +30,12 @@ interface User {
   userId: string;
   name: string;
   email: string;
-  userType: number; // 0/1 for member, 2 for admin
+  userType: number; // 0/1 for member, 2 for admin, 3 for special user
   membershipType?: string;
   accessToken?: string;
   permissions?: Permission[];
   application?: Application;
+  loginSource?: 'member' | 'admin'; // Track which login page was used
 }
 
 interface AuthContextType {
@@ -164,7 +165,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (userData: User) => {
     setUser(userData);
     setIsAuthenticated(true);
-    setRole(userData.userType === 2 ? 'admin' : 'member');
+
+    // Determine role based on userType and loginSource
+    let userRole: 'member' | 'admin';
+    if (userData.userType === 2) {
+      userRole = 'admin';
+    } else if (userData.userType === 3) {
+      // userType 3 role depends on login source
+      userRole = userData.loginSource === 'admin' ? 'admin' : 'member';
+    } else {
+      userRole = 'member';
+    }
+
+    setRole(userRole);
     setPermissions(userData.permissions || []);
     setApplication(userData.application || null);
 

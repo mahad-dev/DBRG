@@ -10,7 +10,6 @@ import {
   LogOut,
   ArrowRight,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavLink } from "react-router-dom";
@@ -136,7 +135,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </div>
 
           {/* HELP CENTER CARD */}
-          <Card className="bg-[#C6A95F] rounded-3xl mt-20 text-black relative shadow-lg text-center pt-16 pb-10">
+          {/* <Card className="bg-[#C6A95F] rounded-3xl mt-20 text-black relative shadow-lg text-center pt-16 pb-10">
             <div className="absolute -top-10 w-full flex justify-center">
               <div className="w-20 h-20 overflow-hidden rounded-full shadow-md">
                 <img
@@ -160,7 +159,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
                 Go To Help Center
               </Button>
             </CardContent>
-          </Card>
+          </Card> */}
         </ScrollArea>
       </aside>
 

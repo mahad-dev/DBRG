@@ -1,25 +1,89 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getUpcomingEvents } from "@/services/cmsApi";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getUpcomingEvents, registerEvent } from "@/services/cmsApi";
 import type { CmsItem } from "@/types/cms";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+
+const registrationSchema = Yup.object().shape({
+  fullName: Yup.string()
+    .required("Full name is required")
+    .min(2, "Full name must be at least 2 characters"),
+  email: Yup.string()
+    .required("Email is required")
+    .email("Please enter a valid email address"),
+});
 
 export default function UpcomingEventsDBRG() {
   const [upcomingEvent, setUpcomingEvent] = useState<CmsItem | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const formik = useFormik({
+    initialValues: {
+      fullName: "",
+      email: "",
+    },
+    validationSchema: registrationSchema,
+    onSubmit: async (values) => {
+      if (!upcomingEvent) return;
+
+      setIsRegistering(true);
+      try {
+        const response = await registerEvent({
+          fullName: values.fullName,
+          email: values.email,
+          eventId: upcomingEvent.id,
+          registeredDate: new Date().toISOString(),
+        });
+
+        if (response.status) {
+          toast.success(response.message || "Successfully registered for the event!");
+          setIsModalOpen(false);
+          formik.resetForm();
+        } else {
+          toast.error(response.message || "Failed to register for the event");
+        }
+      } catch (error: any) {
+        console.error("Error registering for event:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to register for the event"
+        );
+      } finally {
+        setIsRegistering(false);
+      }
+    },
+  });
+
+  const handleOpenRegisterModal = () => {
+    formik.resetForm();
+    setIsModalOpen(true);
+  };
+
   useEffect(() => {
     const fetchUpcomingEvent = async () => {
       try {
         setLoading(true);
-        const response = await getUpcomingEvents(1, 1); // Get only the next upcoming event
+        const response = await getUpcomingEvents(1, 1);
 
         if (response.status && response.data) {
           let eventItems: CmsItem[] = [];
 
-          // Handle different response structures
           if (Array.isArray(response.data)) {
             eventItems = response.data;
           } else if (response.data.items && Array.isArray(response.data.items)) {
@@ -38,6 +102,7 @@ export default function UpcomingEventsDBRG() {
 
     fetchUpcomingEvent();
   }, []);
+
   return (
     <div className="w-full bg-[#0f0f0f] flex justify-center py-10 px-4 md:px-8 lg:px-16">
       <Card className="w-full max-w-6xl bg-[#D9D9D91A] rounded-xl shadow-xl p-6 md:p-10">
@@ -136,15 +201,13 @@ export default function UpcomingEventsDBRG() {
                     </div>
                   </div>
 
-                  {upcomingEvent.link && (
-                    <Button
-                      variant={"site_btn"}
-                      className="w-30 px-6 py-2 text-lg cursor-pointer"
-                      onClick={() => (window.location.href = upcomingEvent.link || '#')}
-                    >
-                      Register
-                    </Button>
-                  )}
+                  <Button
+                    variant={"site_btn"}
+                    className="w-30 px-6 py-2 text-lg cursor-pointer"
+                    onClick={handleOpenRegisterModal}
+                  >
+                    Register
+                  </Button>
                 </div>
               </div>
 
@@ -162,6 +225,85 @@ export default function UpcomingEventsDBRG() {
           )}
         </CardContent>
       </Card>
+
+      {/* Registration Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-[#2F2F2F] border-none text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-[#C6A95F]">
+              Register for Event
+            </DialogTitle>
+          </DialogHeader>
+
+          {upcomingEvent && (
+            <form onSubmit={formik.handleSubmit} className="space-y-4 mt-2">
+              <p className="text-white/80 text-sm">
+                You are registering for: <span className="text-white font-medium">{upcomingEvent.title}</span>
+              </p>
+
+              <div className="space-y-2">
+                <Label className="text-white">Full Name</Label>
+                <Input
+                  name="fullName"
+                  placeholder="Enter your full name"
+                  value={formik.values.fullName}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`bg-white text-black rounded-lg ${
+                    formik.touched.fullName && formik.errors.fullName ? "border-red-500" : ""
+                  }`}
+                />
+                {formik.touched.fullName && formik.errors.fullName && (
+                  <p className="text-red-400 text-xs mt-1">{formik.errors.fullName}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white">Email</Label>
+                <Input
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`bg-white text-black rounded-lg ${
+                    formik.touched.email && formik.errors.email ? "border-red-500" : ""
+                  }`}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <p className="text-red-400 text-xs mt-1">{formik.errors.email}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 bg-transparent border-white/30 text-white hover:bg-white/10"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isRegistering}
+                  className="flex-1 bg-[#C6A95F] text-black hover:bg-[#b89a4f]"
+                >
+                  {isRegistering ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Registering...
+                    </>
+                  ) : (
+                    "Register"
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

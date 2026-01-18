@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, RefreshCw, Loader2 } from "lucide-react";
-import { getNotifications } from "@/services/notificationApi";
+import { getUserNotifications } from "@/services/notificationApi";
 import type { Notification } from "@/types/notification";
 import { toast } from "react-toastify";
 
@@ -42,14 +42,15 @@ export default function NotificationList({
     }
 
     try {
-      const response = await getNotifications({
+      const response = await getUserNotifications({
         PageNumber: page,
         PageSize: pageSize,
       });
 
-      if (response.status && response.data?.items) {
-        const newNotifications = response.data.items;
-        setTotalCount(response.data.totalCount || 0);
+      if (response.status && response.data) {
+        // Response data is array directly
+        const newNotifications = response.data;
+        setTotalCount(newNotifications.length);
 
         if (append) {
           // Append for infinite scroll
@@ -258,7 +259,7 @@ export default function NotificationList({
                           {notification.title}
                         </p>
                         <p className="text-[11px] sm:text-[12px] leading-tight text-[#141522] opacity-80 font-normal truncate mt-0.5">
-                          {notification.message}
+                          {notification.message.replace(/<[^>]*>/g, '').substring(0, 50)}...
                         </p>
                       </div>
                     </div>

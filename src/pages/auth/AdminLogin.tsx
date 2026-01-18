@@ -39,8 +39,8 @@ const AdminLogin: React.FC = () => {
 
       const data = res.data.data;
 
-      // Only allow admin users (userType = 2)
-      if (data.userType !== 2) {
+      // Allow admin users (userType = 2) and special users (userType = 3)
+      if (data.userType !== 2 && data.userType !== 3) {
         toast.error("Only admin users can login here.", { autoClose: 4000 });
         return;
       }
@@ -57,11 +57,14 @@ const AdminLogin: React.FC = () => {
         membershipType: data.application?.result?.membershipType?.toString(),
         accessToken: data.accessToken,
         permissions: data.permissions || [],
+        loginSource: 'admin' as const,
       };
 
       login(userData);
 
       toast.success("Admin login successful!", { autoClose: 3000 });
+
+      // All users from admin login (userType 2 and 3) go to admin dashboard
       navigate("/admin/dashboard");
     } catch (err: any) {
       if (err.response?.data?.message) {

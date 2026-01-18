@@ -39,8 +39,8 @@ const Login: React.FC = () => {
 
       const data = res.data.data;
 
-      // Check userType (0 or 1 = normal user)
-      if (data.userType !== 0 && data.userType !== 1) {
+      // Check userType (0 or 1 = normal user, 3 = special user)
+      if (data.userType !== 0 && data.userType !== 1 && data.userType !== 3) {
         toast.error("Admins must login from the admin portal.", { autoClose: 4000 });
         return;
       }
@@ -57,11 +57,14 @@ const Login: React.FC = () => {
         membershipType: data.application?.membershipType?.toString(),
         accessToken: data.accessToken,
         application: data.application || null,
+        loginSource: 'member' as const,
       };
 
       login(userData);
 
       toast.success("Login successful!", { autoClose: 3000 });
+
+      // Route based on userType - userType 3 is a member user
       navigate("/dashboard");
     } catch (err: any) {
       if (err.response?.data?.message) {

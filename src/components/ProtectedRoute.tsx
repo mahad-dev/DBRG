@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, user } = useAuth();
   const location = useLocation();
 
   if (!isAuthenticated) {
@@ -18,11 +18,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   }
 
   if (requiredRole && role !== requiredRole) {
-    // Redirect to appropriate dashboard if role doesn't match
-    if (role === 'admin') {
-      return <Navigate to="/admin/dashboard" replace />;
+    // Special handling for userType 3 - they can access both roles but only from their login source
+    if (user?.userType === 3) {
+      // userType 3 can only access admin routes if they logged in from admin login
+      if (requiredRole === 'admin' && user.loginSource !== 'admin') {
+        return <Navigate to="/dashboard" replace />;
+      }
+      // userType 3 can only access member routes if they logged in from member login
+      if (requiredRole === 'member' && user.loginSource !== 'member') {
+        return <Navigate to="/admin/dashboard" replace />;
+      }
     } else {
-      return <Navigate to="/dashboard" replace />;
+      // Regular users - redirect to appropriate dashboard if role doesn't match
+      if (role === 'admin') {
+        return <Navigate to="/admin/dashboard" replace />;
+      } else {
+        return <Navigate to="/dashboard" replace />;
+      }
     }
   }
 

@@ -18,7 +18,7 @@ export const createNotification = async (
 };
 
 /**
- * Get notifications with pagination
+ * Get notifications with pagination (Admin)
  */
 export const getNotifications = async (
   params?: GetNotificationsParams
@@ -27,4 +27,36 @@ export const getNotifications = async (
   return response.data;
 };
 
-// Note: markAsRead and deleteNotification will be implemented in Phase 2
+/**
+ * Get user notifications (Member)
+ */
+export const getUserNotifications = async (
+  params?: GetNotificationsParams
+): Promise<ApiResponse<Notification[]>> => {
+  const response = await apiClient.get('/Notification/GetUserNotifications', { params });
+  return response.data;
+};
+
+/**
+ * Mark a notification as read
+ */
+export const markNotificationAsRead = async (
+  notificationId: number
+): Promise<ApiResponse<string>> => {
+  const response = await apiClient.put('/Notification/MarkNotificationsAsRead', null, {
+    params: { notificationId }
+  });
+  return response.data;
+};
+
+/**
+ * Delete a user notification
+ */
+export const deleteUserNotification = async (
+  notificationId: number
+): Promise<ApiResponse<string>> => {
+  const response = await apiClient.delete('/Notification/DeleteUserNotification', {
+    params: { notificationId }
+  });
+  return response.data;
+};

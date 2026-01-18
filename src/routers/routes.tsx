@@ -8,6 +8,7 @@ import ResourceLibrary from "@/pages/dashboard/ResourseLibrary";
 import TrackingStatus from "@/pages/dashboard/TrackStatus";
 import UpcomingEvents from "@/pages/dashboard/UpcomingEvents";
 import UploadDetails from "@/pages/dashboard/UploadDetails";
+import MemberSettings from "@/pages/dashboard/Settings";
 import EventsPage from "@/pages/events";
 import HomePage from "@/pages/home";
 import Layout from "@/pages/layout";
@@ -84,6 +85,7 @@ const dashboardLayoutRoutes: RouteConfig[] = [
   { path: "members-directory", element: <ApplicationGuard><MemberDirectory /></ApplicationGuard>, name: "MemberDirectory" },
   { path: "resource-library", element: <ApplicationGuard><ResourceLibrary /></ApplicationGuard>, name: "ResourceLibrary" },
   { path: "notifications", element: <ApplicationGuard><Notifications /></ApplicationGuard>, name: "Notifications" },
+  { path: "settings", element: <MemberSettings />, name: "MemberSettings" },
   { path: "upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetails /></ApplicationGuard>, name: "UploadDetails" },
   { path: "member-type/principal-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsPrincipalMember /></ApplicationGuard>, name: "UploadDetailsPrincipalMember" },
   { path: "member-type/member-bank/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsMemberBank /></ApplicationGuard>, name: "UploadDetailsMemberBank" },

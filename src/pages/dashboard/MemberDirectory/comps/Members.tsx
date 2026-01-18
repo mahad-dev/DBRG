@@ -13,6 +13,7 @@ import { Search, ChevronLeft, ChevronRight, Loader2, Mail } from "lucide-react";
 import { memberDirectoryApi, type Member } from "@/services/memberDirectoryApi";
 import { toast } from "react-toastify";
 import ContactMemberModal from "./ContactMemberModal";
+import ViewProfileModal from "./ViewProfileModal";
 
 // Helper function to get initials from name or email
 const getInitials = (name: string, email: string): string => {
@@ -62,6 +63,8 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
   const pageSize = 6;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedMemberForProfile, setSelectedMemberForProfile] = useState<Member | null>(null);
 
   // Common countries list (you can expand this)
   // const countries = [
@@ -262,6 +265,10 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
                   </Button>
 
                   <Button
+                    onClick={() => {
+                      setSelectedMemberForProfile(member);
+                      setIsProfileModalOpen(true);
+                    }}
                     className="
                       cursor-pointer
                       font-inter font-normal text-[14px] leading-[100%] tracking-normal text-black text-center
@@ -323,6 +330,15 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
           memberName={selectedMember.name}
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
+        />
+      )}
+
+      {/* View Profile Modal */}
+      {selectedMemberForProfile && (
+        <ViewProfileModal
+          userId={selectedMemberForProfile.id}
+          isOpen={isProfileModalOpen}
+          onOpenChange={setIsProfileModalOpen}
         />
       )}
 
