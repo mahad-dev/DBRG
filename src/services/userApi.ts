@@ -378,6 +378,17 @@ class UserApi {
       throw error;
     }
   }
+
+  async getCompanyDelegate(userId: string): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.get('/User/GetCompanyDelegate', {
+        params: { userId }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const userApi = new UserApi();

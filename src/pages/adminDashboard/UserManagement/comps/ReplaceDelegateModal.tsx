@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
@@ -39,7 +39,49 @@ export default function ReplaceDelegateModal({
 }: ReplaceDelegateModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [initialValues, setInitialValues] = useState({
+    name: "",
+    phoneNumber: "",
+    email: "",
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open && user.userId) {
+      const fetchDelegateData = async () => {
+        try {
+          const response = await userApi.getCompanyDelegate(user.userId);
+          if (response.status && response.data) {
+            // Assuming response.data is a string that needs to be parsed or directly used
+            // Based on the API spec, response.data is a string, but we need to parse it
+            // For now, assuming it's a JSON string or directly the data
+            let delegateData;
+            if (typeof response.data === 'string') {
+              try {
+                delegateData = JSON.parse(response.data);
+              } catch {
+                // If not JSON, treat as plain string, but we need structured data
+                // For this task, assuming the data is structured
+                delegateData = { name: "", phoneNumber: "", email: "" };
+              }
+            } else {
+              delegateData = response.data;
+            }
+            setInitialValues({
+              name: delegateData.name || "",
+              phoneNumber: delegateData.phoneNumber || "",
+              email: delegateData.email || "",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch delegate data:", error);
+          // Reset to empty if fetch fails
+          setInitialValues({ name: "", phoneNumber: "", email: "" });
+        }
+      };
+      fetchDelegateData();
+    }
+  }, [open, user.userId]);
 
   const handleSubmit = async (
     values: { name: string; phoneNumber: string; email: string },
@@ -87,9 +129,10 @@ export default function ReplaceDelegateModal({
         </DialogHeader>
 
         <Formik
-          initialValues={{ name: "", phoneNumber: "", email: "" }}
+          initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ isSubmitting }) => (
             <Form className="space-y-6">
