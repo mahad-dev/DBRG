@@ -314,9 +314,9 @@ export default function ApprovedApplicationsTable() {
                     </TableRow>
                   ) : (
                     data.map((item) => (
-                      <TableRow key={item.userId}>
+                      <TableRow key={item.name}>
                         <TableCell className="max-w-[200px] truncate">
-                          {item.userId || "N/A"}
+                          {item.name || "N/A"}
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate">
                           {item.company || "N/A"}
@@ -389,7 +389,7 @@ function FooterPagination({
 }
 
 /* ================= ACTION MENU ================= */
-function ActionMenu({ canEdit, userId }: { canEdit: boolean; userId: string }) {
+function ActionMenu({ userId }: { canEdit: boolean; userId: string }) {
   const { hasPermission } = useAuth();
   const canGet = hasPermission('APPLICATION_MANAGEMENT.GET');
   const navigate = useNavigate();
@@ -409,11 +409,11 @@ function ActionMenu({ canEdit, userId }: { canEdit: boolean; userId: string }) {
             View Details
           </DropdownMenuItem>
         )}
-        {canEdit && (
+        {/* {canEdit && (
           <DropdownMenuItem className="cursor-pointer">
             Revoke
           </DropdownMenuItem>
-        )}
+        )} */}
 
       </DropdownMenuContent>
     </DropdownMenu>

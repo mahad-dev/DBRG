@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 
 /* ================= VALIDATION ================= */
 const AdminLoginSchema = Yup.object().shape({
@@ -22,6 +23,7 @@ const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const initialValues = { email: "", password: "" };
 
@@ -39,8 +41,8 @@ const AdminLogin: React.FC = () => {
 
       const data = res.data.data;
 
-      // Only allow admin users (userType = 2)
-      if (data.userType !== 2) {
+      // Allow admin users (userType = 2) and special users (userType = 3)
+      if (data.userType !== 2 && data.userType !== 3) {
         toast.error("Only admin users can login here.", { autoClose: 4000 });
         return;
       }
@@ -57,11 +59,14 @@ const AdminLogin: React.FC = () => {
         membershipType: data.application?.result?.membershipType?.toString(),
         accessToken: data.accessToken,
         permissions: data.permissions || [],
+        loginSource: 'admin' as const,
       };
 
       login(userData);
 
       toast.success("Admin login successful!", { autoClose: 3000 });
+
+      // All users from admin login (userType 2 and 3) go to admin dashboard
       navigate("/admin/dashboard");
     } catch (err: any) {
       if (err.response?.data?.message) {
@@ -130,14 +135,23 @@ const AdminLogin: React.FC = () => {
                   <Label htmlFor="password" className="text-white text-sm tracking-wide">
                     Password
                   </Label>
-                  <Field
-                    as={Input}
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Enter admin password"
-                    className="w-full mt-2 bg-[#1a1a1a] border border-gray-700 text-white placeholder-gray-500 py-6 rounded-xl focus:ring-2 focus:ring-[#C6A95F]"
-                  />
+                  <div className="relative">
+                    <Field
+                      as={Input}
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter admin password"
+                      className="w-full mt-2 bg-[#1a1a1a] border border-gray-700 text-white placeholder-gray-500 py-6 rounded-xl focus:ring-2 focus:ring-[#C6A95F] pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-white"
+                    >
+                      {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                    </button>
+                  </div>
                   {errors.password && touched.password && (
                     <div className="text-red-400 text-sm mt-1">{errors.password}</div>
                   )}

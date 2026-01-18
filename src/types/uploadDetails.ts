@@ -119,6 +119,8 @@ export interface AffiliateMember {
 export interface SpecialConsideration {
   message: string;
   status?: number; // 1: Pending, 2: Approved, 3: Rejected
+  askMoreDetailsRequest?: string | null;
+  askMoreDetailsResponse?: string | null;
 }
 
 export interface Applicability {

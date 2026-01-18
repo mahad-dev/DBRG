@@ -1,33 +1,42 @@
 import { Button } from "@/components/ui/button";
-
-const pressReleases = [
-  {
-    id: 1,
-    title: "[Press Release Title]",
-    description:
-      "DBRG announces a new partnership with international regulators to promote ethical standards in the gold refining sector.",
-    link: "#",
-    image: null,
-  },
-  {
-    id: 2,
-    title: "[Press Release Title]",
-    description:
-      "DBRG launches a new industry initiative focused on sustainability in gold refining processes.",
-    link: "#",
-    image: null,
-  },
-  {
-    id: 3,
-    title: "[Press Release Title]",
-    description:
-      "Announcing DBRG's upcoming conference on innovation and technology in the gold refining industry.",
-    link: "/static/pressRelease1.jpg",
-    image: "/static/pressRelease1.jpg",
-  },
-];
+import { useState, useEffect } from "react";
+import { getPublicNews } from "@/services/cmsApi";
+import type { CmsItem } from "@/types/cms";
+import { Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function PressRelease() {
+  const [pressReleases, setPressReleases] = useState<CmsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPressReleases = async () => {
+      try {
+        setLoading(true);
+        const response = await getPublicNews({
+          PageNumber: 1,
+          PageSize: 10,
+        });
+
+        if (response.status && response.data?.items) {
+          // Filter only press releases (items with "press release" in title/description)
+          const pressReleasesOnly = response.data.items.filter((item) => {
+            const searchText = `${item.title} ${item.description}`.toLowerCase();
+            return searchText.includes('press release');
+          });
+          setPressReleases(pressReleasesOnly);
+        }
+      } catch (error: any) {
+        console.error('Failed to fetch press releases:', error);
+        toast.error('Failed to load press releases');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPressReleases();
+  }, []);
+
   return (
     <section
       className="w-full text-white px-4 md:px-12 py-16 font-gilory relative"
@@ -51,44 +60,62 @@ export default function PressRelease() {
         </p>
       </div>
 
-      {/* Cards */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-        {pressReleases.map((release) => (
-          <div
-            key={release.id}
-            className="rounded-xl p-4 flex flex-col justify-between bg-transparent"
-          >
-            {/* Image */}
-            <div className="w-full h-[220px] rounded-xl mb-4 overflow-hidden bg-[#D9D9D9] flex items-center justify-center">
-              {release.image ? (
-                <img
-                  src={release.image}
-                  alt={release.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-[#D9D9D9]" />
+      {/* Loading State */}
+      {loading ? (
+        <div className="flex justify-center items-center py-20 relative z-10">
+          <Loader2 className="w-12 h-12 animate-spin text-[#C6A95F]" />
+        </div>
+      ) : pressReleases.length === 0 ? (
+        <div className="text-center py-20 text-white/60 relative z-10">
+          No press releases available at the moment
+        </div>
+      ) : (
+        /* Cards */
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+          {pressReleases.slice(0, 6).map((release) => (
+            <div
+              key={release.id}
+              className="rounded-xl p-4 flex flex-col justify-between bg-transparent"
+            >
+              {/* Image */}
+              <div className="w-full h-[220px] rounded-xl mb-4 overflow-hidden bg-[#D9D9D9] flex items-center justify-center">
+                {release.bannerPath ? (
+                  <img
+                    src={release.bannerPath}
+                    alt={release.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = '/static/pressRelease1.jpg';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#D9D9D9]" />
+                )}
+              </div>
+
+              <h3 className="text-[22px] md:text-[26px] font-gilory font-bold mb-2">
+                {release.title}
+              </h3>
+
+              <p className="text-[16px] md:text-[22px] font-gilory leading-[1.2] mb-4">
+                {release.description.length > 150
+                  ? `${release.description.substring(0, 150)}...`
+                  : release.description}
+              </p>
+              {release.link && (
+                <div>
+                  <Button
+                    onClick={() => window.open(release.link, '_blank')}
+                    className="underline m-0 p-0 text-[16px] md:text-[18px]"
+                  >
+                    Read Full Article
+                  </Button>
+                </div>
               )}
             </div>
-
-            <h3 className="text-[22px] md:text-[26px] font-gilory font-bold mb-2">
-              {release.title}
-            </h3>
-
-            <p className="text-[16px] md:text-[22px] font-gilory leading-[1.2] mb-4">
-              {release.description}
-            </p>
-              <div>
-            <Button
-              onClick={() => (window.location.href = release.link)}
-              className="underline m-0 p-0 text-[16px] md:text-[18px]"
-            >
-              Read Full Article
-            </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

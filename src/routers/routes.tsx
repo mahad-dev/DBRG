@@ -8,6 +8,7 @@ import ResourceLibrary from "@/pages/dashboard/ResourseLibrary";
 import TrackingStatus from "@/pages/dashboard/TrackStatus";
 import UpcomingEvents from "@/pages/dashboard/UpcomingEvents";
 import UploadDetails from "@/pages/dashboard/UploadDetails";
+import MemberSettings from "@/pages/dashboard/Settings";
 import EventsPage from "@/pages/events";
 import HomePage from "@/pages/home";
 import Layout from "@/pages/layout";
@@ -26,6 +27,7 @@ import AdminDashboardLayout from "@/pages/adminDashboard/layout";
 import UserManagement from "@/pages/adminDashboard/UserManagement";
 import SendNotifications from "@/pages/adminDashboard/SendNotifications";
 import CMS from "@/pages/adminDashboard/CMS";
+import EventRegistrations from "@/pages/adminDashboard/CMS/EventRegistrations";
 import PaymentDetails from "@/pages/adminDashboard/PaymentDetails";
 import SpecialConsideration from "@/pages/adminDashboard/SpecialConsideration";
 import Settings from "@/pages/adminDashboard/Settings";
@@ -84,6 +86,7 @@ const dashboardLayoutRoutes: RouteConfig[] = [
   { path: "members-directory", element: <ApplicationGuard><MemberDirectory /></ApplicationGuard>, name: "MemberDirectory" },
   { path: "resource-library", element: <ApplicationGuard><ResourceLibrary /></ApplicationGuard>, name: "ResourceLibrary" },
   { path: "notifications", element: <ApplicationGuard><Notifications /></ApplicationGuard>, name: "Notifications" },
+  { path: "settings", element: <MemberSettings />, name: "MemberSettings" },
   { path: "upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetails /></ApplicationGuard>, name: "UploadDetails" },
   { path: "member-type/principal-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsPrincipalMember /></ApplicationGuard>, name: "UploadDetailsPrincipalMember" },
   { path: "member-type/member-bank/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsMemberBank /></ApplicationGuard>, name: "UploadDetailsMemberBank" },
@@ -99,6 +102,7 @@ const adminDashboardRoutes: RouteConfig[] = [
   { path: "user-management", element: <UserManagement />, name: "UserManagement" },
   { path: "send-notification", element: <SendNotifications />, name: "SendNotifications" },
   { path: "cms", element: <CMS />, name: "CMS" },
+  { path: "cms/event-registrations/:eventId", element: <EventRegistrations />, name: "EventRegistrations" },
   { path: "payment-details", element: <PaymentDetails />, name: "PaymentDetails" },
   { path: "special-consideration", element: <SpecialConsideration />, name: "SpecialConsideration" },
   { path: "settings", element: <Settings />, name: "Settings" },

@@ -17,6 +17,7 @@ import { userApi } from "@/services/userApi";
 import type { User } from "@/services/userApi";
 import { ServiceCheckbox } from "@/components/custom/ui/ServiceCheckbox";
 import { toast } from "react-toastify";
+import { Eye, EyeOff, RefreshCw } from "lucide-react";
 
 interface Permission {
   id: number;
@@ -31,6 +32,30 @@ interface PermissionGroup {
   children: Permission[];
 }
 
+// Generate random password
+const generatePassword = (length: number = 12): string => {
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const special = '!@#$%^&*';
+  const allChars = uppercase + lowercase + numbers + special;
+
+  let password = '';
+  // Ensure at least one of each type
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += special[Math.floor(Math.random() * special.length)];
+
+  // Fill the rest randomly
+  for (let i = password.length; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+
+  // Shuffle the password
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+};
+
 const AddMember = () => {
   const [permissions, setPermissions] = useState<PermissionGroup[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,6 +64,7 @@ const AddMember = () => {
   const [isAddExisting, setIsAddExisting] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [formikKey, setFormikKey] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const [initialValues, setInitialValues] = useState({
     name: '',
     phone: '',
@@ -67,10 +93,15 @@ const AddMember = () => {
     }
     setLoading(true);
     try {
-      await userApi.updateUser(updateData);
-      toast.success('User updated successfully');
+      const response = await userApi.updateUser(updateData);
+      // Check response status for proper toast
+      if (response.status) {
+        toast.success(response.message || 'User updated successfully');
+      } else {
+        toast.error(response.message || 'Failed to update user');
+      }
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to update user, please try again');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to update user, please try again');
       console.error('Failed to update user:', error);
     } finally {
       setLoading(false);
@@ -233,6 +264,7 @@ const AddMember = () => {
                       onChange={handleChange}
                       placeholder="xyz@gmail.com"
                       className="bg-white text-black"
+                      disabled={isAddExisting}
                     />
                   </div>
                 </div>
@@ -257,14 +289,37 @@ const AddMember = () => {
                   {!isAddExisting && (
                     <div className="space-y-2">
                       <Label className="text-white">Password</Label>
-                      <Input
-                        name="password"
-                        type="password"
-                        value={values.password}
-                        onChange={handleChange}
-                        placeholder="Enter password"
-                        className="bg-white text-black"
-                      />
+                      <div className="relative">
+                        <Input
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          value={values.password}
+                          onChange={handleChange}
+                          placeholder="Enter password"
+                          className="bg-white text-black pr-20"
+                        />
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newPassword = generatePassword();
+                              setFieldValue('password', newPassword);
+                              setShowPassword(true);
+                            }}
+                            className="p-1 text-gray-500 hover:text-gray-700"
+                            title="Generate password"
+                          >
+                            <RefreshCw size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="p-1 text-gray-500 hover:text-gray-700"
+                          >
+                            {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -281,7 +336,11 @@ const AddMember = () => {
                           onChange={() => {
                             const isChecked = values.selectedPermissions.includes(group.parent.id);
                             if (isChecked) {
-                              setFieldValue('selectedPermissions', values.selectedPermissions.filter(id => id !== group.parent.id));
+                              // When unchecking parent, also uncheck all children
+                              const childIds = group.children.map(c => c.id);
+                              setFieldValue('selectedPermissions',
+                                values.selectedPermissions.filter(id => id !== group.parent.id && !childIds.includes(id))
+                              );
                             } else {
                               setFieldValue('selectedPermissions', [...values.selectedPermissions, group.parent.id]);
                             }
@@ -306,9 +365,12 @@ const AddMember = () => {
                                       values.selectedPermissions.filter(id => id !== child.id)
                                     );
                                   } else {
-                                    setFieldValue('selectedPermissions',
-                                      [...values.selectedPermissions, child.id]
-                                    );
+                                    // When selecting child, also select parent if not already selected
+                                    const newPermissions = [...values.selectedPermissions, child.id];
+                                    if (!values.selectedPermissions.includes(group.parent.id)) {
+                                      newPermissions.push(group.parent.id);
+                                    }
+                                    setFieldValue('selectedPermissions', newPermissions);
                                   }
                                 }}
                                 id={`child-${child.id}`}

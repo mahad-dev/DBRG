@@ -68,7 +68,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </div>
 
           {/* MENU ITEMS */}
-          <nav className="flex flex-col gap-2 text-[18px] font-medium">
+          <nav className="flex flex-col gap-2 text-[16px] font-medium">
             <NavItem
               icon={<LayoutDashboard size={24} />}
               label="Dashboard"

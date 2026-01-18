@@ -57,6 +57,28 @@ export interface ApiResponse {
   status: boolean;
 }
 
+export interface UserProfile {
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  pictureId?: number;
+  pictureUrl?: string;
+  companyName?: string;
+  companyAddress?: string;
+  companyCountry?: string;
+  licenseNumber?: string;
+  directorName?: string;
+  directorPassportId?: string;
+  directorPassportDocumentId?: number;
+  directorNationalId?: string;
+  directorNationalDocumentId?: number;
+  businessLicenseDocumentId?: number;
+  proofOfAddressDocumentId?: number;
+  identityProofDocumentId?: number;
+  paymentDocumentIds?: number[];
+}
+
 export interface GetApprovedApplicationsParams {
   Status?: number;
   Search?: string;
@@ -66,6 +88,7 @@ export interface GetApprovedApplicationsParams {
 }
 
 export interface ApprovedApplication {
+  name: string;
   userId: string;
   company: string | null;
   country: string | null;
@@ -287,6 +310,69 @@ class UserApi {
   }): Promise<ApiResponse> {
     try {
       const response = await apiClient.put('/Payment/Update', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getUserProfile(userId?: string): Promise<ApiResponse> {
+    try {
+      const uid = userId || localStorage.getItem('userId');
+      const response = await apiClient.get('/User/ShowUserProfile', {
+        params: { userId: uid }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateUserProfile(data: {
+    companyName?: string;
+    companyAddress?: string;
+    companyCountry?: string;
+    licenseNumber?: string;
+    directorName?: string;
+    directorPassportId?: string;
+    directorPassportDocumentId?: number;
+    directorNationalId?: string;
+    directorNationalDocumentId?: number;
+    businessLicenseDocumentId?: number;
+    proofOfAddressDocumentId?: number;
+    identityProofDocumentId?: number;
+    pictureId?: number;
+    paymentDocumentIds?: number[];
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.put('/User/UpdateUserProfile', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async resetPassword(data: {
+    oldPassword: string;
+    newPassword: string;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.post('/User/ResetPassword', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProfileWithPassword(data: {
+    name?: string | null;
+    phoneNumber?: string | null;
+    pictureId?: number | null;
+    oldPassword?: string | null;
+    newPassword?: string | null;
+  }): Promise<ApiResponse> {
+    try {
+      const response = await apiClient.put('/User/UpdateProfileWithPassword', data);
       return response.data;
     } catch (error) {
       throw error;

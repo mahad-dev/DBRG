@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Eye, EyeOff } from "lucide-react";
 
 /* ================= TYPES ================= */
 interface SignupFormValues {
@@ -53,6 +54,8 @@ const SignupSchema: Yup.Schema<SignupFormValues> = Yup.object({
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const initialValues: SignupFormValues = {
     fullName: "",
@@ -170,13 +173,22 @@ const Signup: React.FC = () => {
                 {/* PASSWORD */}
                 <div>
                   <Label className="text-white">Password</Label>
-                  <Field
-                    as={Input}
-                    name="password"
-                    type="password"
-                    placeholder="Create a strong password"
-                    className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl"
-                  />
+                  <div className="relative">
+                    <Field
+                      as={Input}
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a strong password"
+                      className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-white"
+                    >
+                      {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                    </button>
+                  </div>
                   {errors.password && touched.password && (
                     <p className="text-red-400 text-sm mt-1">{errors.password}</p>
                   )}
@@ -185,13 +197,22 @@ const Signup: React.FC = () => {
                 {/* CONFIRM PASSWORD */}
                 <div>
                   <Label className="text-white">Confirm Password</Label>
-                  <Field
-                    as={Input}
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Re-enter your password"
-                    className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl"
-                  />
+                  <div className="relative">
+                    <Field
+                      as={Input}
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Re-enter your password"
+                      className="mt-2 bg-[#1a1a1a] border-gray-700 text-white py-6 rounded-xl pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-white"
+                    >
+                      {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                    </button>
+                  </div>
                   {errors.confirmPassword && touched.confirmPassword && (
                     <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
                   )}
