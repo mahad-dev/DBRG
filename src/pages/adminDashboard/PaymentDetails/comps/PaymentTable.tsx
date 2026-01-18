@@ -78,9 +78,8 @@ const formatTime = (dateString: string): string => {
 /* ================= EXPORT FUNCTIONS ================= */
 
 const downloadCSV = (data: PaymentItem[]) => {
-  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const headers = ["Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
   const csvData = data.map(item => [
-    item.userId || "N/A",
     item.companyName || "N/A",
     formatDate(item.date),
     formatTime(item.date),
@@ -94,9 +93,8 @@ const downloadCSV = (data: PaymentItem[]) => {
 };
 
 const downloadExcel = (data: PaymentItem[]) => {
-  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const headers = ["Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
   const excelData = data.map(item => [
-    item.userId || "N/A",
     item.companyName || "N/A",
     formatDate(item.date),
     formatTime(item.date),
@@ -110,9 +108,8 @@ const downloadExcel = (data: PaymentItem[]) => {
 };
 
 const downloadPDF = (data: PaymentItem[]) => {
-  const headers = ["Name", "Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
+  const headers = ["Company", "Date", "Time", "Status", "Amount", "Invoice Number", "VAT Number"];
   const pdfData = data.map(item => [
-    item.userId || "N/A",
     item.companyName || "N/A",
     formatDate(item.date),
     formatTime(item.date),
@@ -345,10 +342,9 @@ export default function PaymentTable() {
               {data.map((item) => (
                 <div key={item.id} className="border border-white rounded-lg p-4 bg-white/5 shadow-lg">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-white flex-1">{item.userId || "N/A"}</h3>
+                    <h3 className="text-lg font-semibold text-white flex-1">{item.companyName || "N/A"}</h3>
                     <ActionMenu canEdit={hasEditAccess} payment={item} onEdit={handleEdit} />
                   </div>
-                  <p className="text-sm text-white/80 mb-3 leading-relaxed">{item.companyName || "N/A"}</p>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium px-2 py-1 rounded-full text-white">
                       {getStatusText(item.paymentStatus)}
@@ -372,8 +368,7 @@ export default function PaymentTable() {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="bg-white/5">
-                    <TableHead className="py-4 px-2">Name</TableHead>
-                    <TableHead className="py-4 px-4 sm:px-16">Company</TableHead>
+                    <TableHead className="py-4 px-4">Company</TableHead>
                     <TableHead className="py-4 px-2">Date</TableHead>
                     <TableHead className="py-4 px-2">Time</TableHead>
                     <TableHead className="py-4 px-2">Status</TableHead>
@@ -386,12 +381,6 @@ export default function PaymentTable() {
                   {loading ? (
                     Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
                       <TableRow key={i}>
-                        <TableCell className="py-4 px-2">
-                          <div className="flex items-center gap-3">
-                            <Skeleton className="w-9 h-9 rounded-full" />
-                            <Skeleton className="h-4 w-32" />
-                          </div>
-                        </TableCell>
                         <TableCell className="py-4 px-4 sm:px-16">
                           <Skeleton className="h-4 w-40" />
                         </TableCell>
@@ -414,24 +403,14 @@ export default function PaymentTable() {
                     ))
                   ) : data.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-12 text-center">
+                      <TableCell colSpan={6} className="py-12 text-center">
                         <p className="text-white/60">No payments found</p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     data.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="py-4 px-2 flex items-center gap-3">
-                          <img
-                            src="/static/UserImg.png"
-                            alt="user"
-                            width={36}
-                            height={36}
-                            className="rounded-full"
-                          />
-                          {item.userId || "N/A"}
-                        </TableCell>
-                        <TableCell className="py-4 px-4 sm:px-16">
+                        <TableCell className="py-4 px-4 ">
                           {item.companyName || "N/A"}
                         </TableCell>
                         <TableCell className="py-4 px-2">{formatDate(item.date)}</TableCell>

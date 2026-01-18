@@ -19,7 +19,7 @@ export default function Settings() {
   }, [])
 
   return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div className="min-h-full flex flex-col gap-4 sm:gap-6 pb-6">
       <ProfileSetting />
       <AddMember />
       <EmailConfiguration />

@@ -25,6 +25,7 @@ import ApprovedDialog from "./ApproveModal";
 import RejectDialog from "./RejectModal";
 import apiClient from "@/services/apiClient";
 import RemarksDialog from "./ApplicationRemarksModal";
+import AskMoreDetailsModal from "./AskMoreDetailsModal";
 import { useAuth } from "@/context/AuthContext";
 import { COUNTRIES } from "@/constants/countries";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
@@ -117,6 +118,7 @@ export default function ApplicantsTable() {
   const [approveModal, setApproveModal] = useState(false);
   const [rejectModal, setRejectModal] = useState(false);
   const [addRemarksModal,setAddRemarksModal]=useState(false);
+  const [askMoreDetailsModal, setAskMoreDetailsModal] = useState(false);
   const [selectedApplicant, setSelectedApplicant] =
     useState<Applicant | null>(null);
 
@@ -200,6 +202,21 @@ export default function ApplicantsTable() {
     } catch (error: any) {
       console.error("Reject Error:", error);
       toast.error(error?.message || "Failed to add remarks");
+    }
+  };
+
+  const handleAskMoreDetails = async (details: string) => {
+    if (!selectedApplicant) return;
+    try {
+      await apiClient.put('/UploadDetails/AskMoreDetails', {
+        applicationId: selectedApplicant.id,
+        details,
+      });
+      setAskMoreDetailsModal(false);
+      fetchApplicants();
+    } catch (error: any) {
+      console.error("Ask More Details Error:", error);
+      toast.error(error?.message || "Failed to request more details");
     }
   };
 
@@ -399,6 +416,10 @@ export default function ApplicantsTable() {
                             onRemark={()=>{
                               setAddRemarksModal(true);
                             }}
+                            onAskMoreDetails={() => {
+                              setSelectedApplicant(item);
+                              setAskMoreDetailsModal(true);
+                            }}
                             canEdit={hasEditAccess}
                             userId={item.userId}
                           />
@@ -436,6 +457,17 @@ export default function ApplicantsTable() {
         open={addRemarksModal}
         onOpenChange={setAddRemarksModal}
         onConfirm={handleRemarks}
+      />
+
+      <AskMoreDetailsModal
+        open={askMoreDetailsModal}
+        onOpenChange={setAskMoreDetailsModal}
+        onConfirm={handleAskMoreDetails}
+        userName={selectedApplicant?.name}
+        companyName={selectedApplicant?.company}
+        status={getStatusText(selectedApplicant?.status || 0)}
+        applicationDate={selectedApplicant?.submissionDate}
+        country={selectedApplicant?.country || undefined}
       />
     </>
   );
@@ -483,12 +515,14 @@ function ActionMenu({
   onApprove,
   onReject,
   onRemark,
+  onAskMoreDetails,
   canEdit,
   userId,
 }: {
   onApprove: () => void;
   onReject: () => void;
   onRemark: () => void;
+  onAskMoreDetails: () => void;
   canEdit: boolean;
   userId: string;
 }) {
@@ -517,7 +551,7 @@ function ActionMenu({
             Reject
           </DropdownMenuItem>
         )}
-        {canEdit && <DropdownMenuItem className="cursor-pointer">Ask for more details</DropdownMenuItem>}
+        {/* {canEdit && <DropdownMenuItem onClick={onAskMoreDetails} className="cursor-pointer">Ask for more details</DropdownMenuItem>} */}
         {canEdit && <DropdownMenuItem onClick={onRemark} className="cursor-pointer">Add Remarks</DropdownMenuItem>}
 
       </DropdownMenuContent>

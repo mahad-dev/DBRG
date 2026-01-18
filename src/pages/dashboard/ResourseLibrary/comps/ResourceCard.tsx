@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
+import { Loader2 } from "lucide-react";
+import apiClient from "@/services/apiClient";
 
 interface ResourceCardProps {
   title: string;
@@ -10,6 +13,7 @@ interface ResourceCardProps {
   date: string;
   img: string;
   documentPaths?: string[];
+  documentIds?: number[];
   link?: string;
 }
 
@@ -19,19 +23,77 @@ export default function ResourceCard({
   date,
   img,
   documentPaths,
+  documentIds,
   link,
 }: ResourceCardProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = () => {
-    if (documentPaths?.length) {
-      const fileUrl = documentPaths[0];
-      const a = document.createElement("a");
-      a.href = fileUrl;
-      a.download = fileUrl.split("/").pop() || "download";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      toast.success("Download started");
+  const handleDownload = async () => {
+    // Use documentIds for download via API
+    if (documentIds?.length) {
+      const documentId = documentIds[0];
+      const fileName = documentPaths?.[0]
+        ? decodeURIComponent(documentPaths[0].split("/").pop()?.split("?")[0] || "").replace(/^\d+_/, "")
+        : title;
+
+      try {
+        setIsDownloading(true);
+        const response = await apiClient.post(
+          `/UploadDetails/DownloadDocument`,
+          null,
+          {
+            params: { documentId },
+            responseType: "blob",
+          }
+        );
+
+        // Get filename from Content-Disposition header if available
+        const contentDisposition = response.headers["content-disposition"];
+        let downloadFileName = fileName || "document";
+
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (filenameMatch && filenameMatch[1]) {
+            downloadFileName = filenameMatch[1].replace(/['"]/g, '');
+          }
+        } else {
+          const contentType = response.headers["content-type"];
+          if (contentType) {
+            const mimeToExt: Record<string, string> = {
+              "application/pdf": ".pdf",
+              "image/png": ".png",
+              "image/jpeg": ".jpg",
+              "image/jpg": ".jpg",
+              "image/gif": ".gif",
+              "application/msword": ".doc",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+              "application/vnd.ms-excel": ".xls",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+            };
+            const ext = mimeToExt[contentType] || "";
+            if (ext && !downloadFileName.toLowerCase().endsWith(ext)) {
+              downloadFileName = `${downloadFileName}${ext}`;
+            }
+          }
+        }
+
+        const blob = new Blob([response.data], { type: response.headers["content-type"] });
+        const url = window.URL.createObjectURL(blob);
+        const linkEl = document.createElement("a");
+        linkEl.href = url;
+        linkEl.download = downloadFileName;
+        document.body.appendChild(linkEl);
+        linkEl.click();
+        document.body.removeChild(linkEl);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("Document downloaded successfully");
+      } catch (error: any) {
+        console.error("Error downloading document:", error);
+        toast.error(error?.message || "Failed to download document");
+      } finally {
+        setIsDownloading(false);
+      }
     } else {
       toast.error("No document available to download");
     }
@@ -39,7 +101,6 @@ export default function ResourceCard({
 
   const handleView = () => {
     if (link) window.open(link, "_blank");
-    else if (documentPaths?.length) window.open(documentPaths[0], "_blank");
     else toast.error("No document available to view");
   };
 
@@ -76,9 +137,17 @@ export default function ResourceCard({
           <div className="flex items-center justify-between mt-auto">
             <Button
               onClick={handleDownload}
-              className="bg-[#C6A95F] cursor-pointer text-black text-xs px-4 py-2 rounded-lg hover:bg-[#b8964f]"
+              disabled={isDownloading}
+              className="bg-[#C6A95F] cursor-pointer text-black text-xs px-4 py-2 rounded-lg hover:bg-[#b8964f] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Download
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  Downloading...
+                </>
+              ) : (
+                "Download"
+              )}
             </Button>
 
             <Button

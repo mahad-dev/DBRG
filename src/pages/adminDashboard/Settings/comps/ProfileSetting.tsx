@@ -241,11 +241,11 @@ const ProfileSetting = () => {
 
   if (loading && !profile) {
     return (
-      <div className="font-inter">
-        <h1 className="text-[#C6A95F] text-3xl font-semibold mb-6">
+      <div className="font-inter px-4 sm:px-0">
+        <h1 className="text-[#C6A95F] text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6">
           Profile Settings
         </h1>
-        <div className="bg-[#3e3e3e] rounded-lg p-6 w-[680px]">
+        <div className="bg-[#3e3e3e] rounded-lg p-4 sm:p-6 w-full max-w-[680px]">
           <p className="text-white">Loading...</p>
         </div>
       </div>
@@ -253,21 +253,21 @@ const ProfileSetting = () => {
   }
 
   return (
-    <div className="font-inter">
+    <div className="font-inter px-4 sm:px-0">
       {/* Title */}
-      <h1 className="text-[#C6A95F] text-3xl font-semibold mb-6">
+      <h1 className="text-[#C6A95F] text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6">
         Profile Settings
       </h1>
 
       {/* Card */}
-      <div className="bg-[#3e3e3e] rounded-lg p-6 w-[680px]">
+      <div className="bg-[#3e3e3e] rounded-lg p-4 sm:p-6 w-full max-w-[680px]">
         {/* Profile Picture */}
-        <div className="mb-6 flex items-center gap-4">
-          <div className="relative">
+        <div className="mb-6 flex flex-col sm:flex-row items-center gap-4">
+          <div className="relative shrink-0">
             <img
               src={profileImage}
               alt="Profile"
-              className="w-24 h-24 rounded-full object-cover border-2 border-[#C6A95F]"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#C6A95F]"
               onError={(e) => {
                 e.currentTarget.src = "/static/UserImg.png";
               }}
@@ -285,7 +285,7 @@ const ProfileSetting = () => {
               )}
             </button>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <p className="text-white font-semibold mb-1">Profile Picture</p>
             <p className="text-[#B3B3B3] text-sm">Click the camera icon to upload a new picture</p>
             <p className="text-[#B3B3B3] text-xs mt-1">Max size: 5MB (JPG, PNG, GIF)</p>
@@ -308,12 +308,12 @@ const ProfileSetting = () => {
             value={formData.name}
             onChange={handleInputChange}
             placeholder="Enter your name"
-            className="w-80 h-10 bg-white rounded-md text-black px-3"
+            className="w-full sm:w-80 h-10 bg-white rounded-md text-black px-3"
           />
         </div>
 
         {/* Phone & Email */}
-        <div className="grid grid-cols-2 gap-17 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-5">
           <div>
             <label className="block text-sm mb-2">Phone Number</label>
             <input
@@ -322,7 +322,7 @@ const ProfileSetting = () => {
               value={formData.phone}
               onChange={handleInputChange}
               placeholder="+91-987-654-3210"
-              className="w-80 h-10 bg-white rounded-md text-black px-3"
+              className="w-full h-10 bg-white rounded-md text-black px-3"
             />
           </div>
 
@@ -345,7 +345,7 @@ const ProfileSetting = () => {
           <label className="block text-sm mb-2">Reset Password</label>
 
           {/* Old Password */}
-          <div className="relative w-80 mb-4">
+          <div className="relative w-full sm:w-80 mb-4">
             <input
               type={showOldPassword ? "text" : "password"}
               name="oldPassword"
@@ -363,9 +363,9 @@ const ProfileSetting = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-17">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* New Password */}
-            <div className="relative w-80">
+            <div className="relative w-full">
               <input
                 type={showNewPassword ? "text" : "password"}
                 name="newPassword"
@@ -405,18 +405,18 @@ const ProfileSetting = () => {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-end gap-6 mt-6">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-6 mt-6">
           <button
             onClick={handleCancel}
             disabled={loading}
-            className="cursor-pointer px-6 py-1 border border-white rounded-md text-white disabled:opacity-50"
+            className="cursor-pointer px-6 py-2 sm:py-1 border border-white rounded-md text-white disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSaveChanges}
             disabled={loading || uploading}
-            className="cursor-pointer px-6 py-1 bg-[#C6A95F] text-white rounded-md font-medium disabled:opacity-50"
+            className="cursor-pointer px-6 py-2 sm:py-1 bg-[#C6A95F] text-white rounded-md font-medium disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>

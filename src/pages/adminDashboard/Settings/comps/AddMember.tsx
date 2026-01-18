@@ -179,19 +179,19 @@ const AddMember = () => {
     <Formik key={formikKey} initialValues={initialValues} onSubmit={handleSubmit} enableReinitialize>
       {({ values, handleChange, setFieldValue }) => (
         <Form>
-          <div className="mt-5 font-inter overflow-visible">
-            <Card className="w-[680px] bg-[#3e3e3e] border-none overflow-visible">
+          <div className="mt-5 font-inter overflow-visible px-4 sm:px-0">
+            <Card className="w-full max-w-[680px] bg-[#3e3e3e] border-none overflow-visible">
               {/* Header */}
-              <CardHeader>
-                <CardTitle className="text-3xl font-semibold text-[#C6A95F]">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-2xl sm:text-3xl font-semibold text-[#C6A95F]">
                   Add / Manage Member
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="space-y-5 overflow-visible">
+              <CardContent className="space-y-5 overflow-visible p-4 sm:p-6 pt-0 sm:pt-0">
                 {/* User Selection */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                     <Label className="text-white">
                       {isAddExisting ? 'Select Existing User' : 'Add New User'}
                     </Label>
@@ -199,7 +199,7 @@ const AddMember = () => {
                       type="button"
                       variant="outline"
                       onClick={() => setIsAddExisting(!isAddExisting)}
-                      className="cursor-pointer text-white border-white hover:bg-white hover:text-black"
+                      className="cursor-pointer text-white border-white hover:bg-white hover:text-black w-full sm:w-auto text-sm"
                     >
                       {isAddExisting ? 'Add Member' : 'Add an existing user'}
                     </Button>
@@ -243,7 +243,7 @@ const AddMember = () => {
                 </div>
 
                 {/* Phone & Email */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label className="text-white">Phone Number</Label>
                     <Input
@@ -270,7 +270,7 @@ const AddMember = () => {
                 </div>
 
                 {/* Role & Password */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label className="text-white">Role</Label>
                     <Select
@@ -388,7 +388,7 @@ const AddMember = () => {
                 <div className="flex justify-end pt-4">
                   <Button
                     type="submit"
-                    className="cursor-pointer disabled:cursor-not-allowed bg-[#C6A95F] text-white hover:bg-[#b99a52]"
+                    className="cursor-pointer disabled:cursor-not-allowed bg-[#C6A95F] text-white hover:bg-[#b99a52] w-full sm:w-auto"
                     disabled={loading}
                   >
                     {loading ? 'Updating...' : 'Update'}

@@ -130,22 +130,22 @@ const EmailConfiguration = () => {
   }, []);
 
   return (
-    <div className="font-inter mt-5 overflow-visible">
-      <Card className="bg-[#3e3e3e] border-[#3e3e3e] max-w-[900px] overflow-visible">
-        <CardHeader>
-          <CardTitle className="text-[#C6A95F] text-3xl font-semibold">
+    <div className="font-inter mt-5 overflow-visible px-4 sm:px-0">
+      <Card className="bg-[#3e3e3e] border-[#3e3e3e] w-full max-w-[900px] overflow-visible">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-[#C6A95F] text-2xl sm:text-3xl font-semibold">
             Email Configuration
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-6 overflow-visible">
+        <CardContent className="space-y-6 overflow-visible p-4 sm:p-6 pt-0 sm:pt-0">
           <form onSubmit={formik.handleSubmit}>
             {/* New Member Application */}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-white">Action</Label>
                 <Select value="1" disabled>
-                  <SelectTrigger className="max-w-md bg-white! text-black border-none">
+                  <SelectTrigger className="w-full sm:max-w-md bg-white! text-black border-none">
                     <SelectValue className="bg-white">
                       {actionMap[1]}
                     </SelectValue>
@@ -164,7 +164,7 @@ const EmailConfiguration = () => {
                   value={formik.values.action1_notify}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full max-w-lg bg-white text-black border-none"
+                  className="w-full sm:max-w-lg bg-white text-black border-none"
                   placeholder="email@example.com, email2@example.com"
                 />
                 {formik.touched.action1_notify &&
@@ -183,7 +183,7 @@ const EmailConfiguration = () => {
               <div className="space-y-2">
                 <Label className="text-white">Action</Label>
                 <Select value="2" disabled>
-                  <SelectTrigger className="max-w-md bg-white text-black border-none">
+                  <SelectTrigger className="w-full sm:max-w-md bg-white text-black border-none">
                     <SelectValue>{actionMap[2]}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -192,7 +192,7 @@ const EmailConfiguration = () => {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-white">First Approval</Label>
                   <Input
@@ -240,7 +240,7 @@ const EmailConfiguration = () => {
               <div className="space-y-2">
                 <Label className="text-white">Action</Label>
                 <Select value="3" disabled>
-                  <SelectTrigger className="max-w-md bg-white text-black border-none">
+                  <SelectTrigger className="w-full sm:max-w-md bg-white text-black border-none">
                     <SelectValue>{actionMap[3]}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -249,7 +249,7 @@ const EmailConfiguration = () => {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-white">Approval</Label>
                   <Input
@@ -296,7 +296,7 @@ const EmailConfiguration = () => {
                 type="submit"
                 variant="site_btn"
                 disabled={formik.isSubmitting}
-                className="cursor-pointer disabled:cursor-not-allowed px-6"
+                className="cursor-pointer disabled:cursor-not-allowed px-6 w-full sm:w-auto"
               >
                 {formik.isSubmitting ? (
                   <>

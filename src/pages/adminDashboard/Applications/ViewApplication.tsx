@@ -47,6 +47,7 @@ export default function ViewApplication() {
   const userId = searchParams.get("userId");
 
   const [loading, setLoading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [data, setData] = useState<APIResponse["data"] | null>(null);
 
   useEffect(() => {
@@ -72,19 +73,72 @@ export default function ViewApplication() {
     }
   };
 
-  const handleDownloadDocument = async (documentPath: string) => {
-    if (!documentPath) {
-      toast.error("Document path not available");
+  const handleDownloadDocument = async (documentId: number, fileName: string) => {
+    if (!documentId) {
+      toast.error("Document ID not available");
       return;
     }
 
     try {
-      // Open the document in a new tab
-      window.open(documentPath, "_blank");
-      toast.success("Opening document");
+      setDownloadingId(documentId);
+      const response = await apiClient.post(
+        `/UploadDetails/DownloadDocument`,
+        null,
+        {
+          params: { documentId },
+          responseType: "blob",
+        }
+      );
+
+      // Get filename from Content-Disposition header if available
+      const contentDisposition = response.headers["content-disposition"];
+      let downloadFileName = fileName || "document";
+
+      if (contentDisposition) {
+        // Try to extract filename from header
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          downloadFileName = filenameMatch[1].replace(/['"]/g, '');
+        }
+      } else {
+        // Fallback: get extension from content-type
+        const contentType = response.headers["content-type"];
+        if (contentType) {
+          const mimeToExt: Record<string, string> = {
+            "application/pdf": ".pdf",
+            "image/png": ".png",
+            "image/jpeg": ".jpg",
+            "image/jpg": ".jpg",
+            "image/gif": ".gif",
+            "application/msword": ".doc",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+            "application/vnd.ms-excel": ".xls",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+          };
+          const ext = mimeToExt[contentType] || "";
+          if (ext && !downloadFileName.toLowerCase().endsWith(ext)) {
+            downloadFileName = `${downloadFileName}${ext}`;
+          }
+        }
+      }
+
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = downloadFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Document downloaded successfully");
     } catch (error: any) {
-      console.error("Error opening document:", error);
-      toast.error(error?.message || "Failed to open document");
+      console.error("Error downloading document:", error);
+      toast.error(error?.message || "Failed to download document");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -177,8 +231,9 @@ export default function ViewApplication() {
                 {data.applicability.signedAMLDeclarationPath && (
                   <DocumentField
                     label="Signed AML Declaration"
-                    documentPath={data.applicability.signedAMLDeclarationPath}
+                    documentId={data.applicability.signedAMLDeclaration}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.applicability.signedAMLDeclaration}
                   />
                 )}
               </Section>
@@ -217,15 +272,17 @@ export default function ViewApplication() {
                 {data.companyDetails.tradeLicenseDocumentPath && (
                   <DocumentField
                     label="Trade License Document"
-                    documentPath={data.companyDetails.tradeLicenseDocumentPath}
+                    documentId={data.companyDetails.tradeLicenseDocument}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.companyDetails.tradeLicenseDocument}
                   />
                 )}
                 {data.companyDetails.certificateOfIncorporationPath && (
                   <DocumentField
                     label="Certificate of Incorporation"
-                    documentPath={data.companyDetails.certificateOfIncorporationPath}
+                    documentId={data.companyDetails.certificateOfIncorporation}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.companyDetails.certificateOfIncorporation}
                   />
                 )}
 
@@ -308,8 +365,9 @@ export default function ViewApplication() {
                 {data.bankRelationReq.bankReferenceLetterFilePath && (
                   <DocumentField
                     label="Bank Reference Letter"
-                    documentPath={data.bankRelationReq.bankReferenceLetterFilePath}
+                    documentId={data.bankRelationReq.bankReferenceLetterFileId}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.bankRelationReq.bankReferenceLetterFileId}
                   />
                 )}
               </Section>
@@ -334,18 +392,20 @@ export default function ViewApplication() {
                   label="Has Required Net Worth"
                   value={data.financialThreshold.hasRequiredNetWorth ? "Yes" : "No"}
                 />
-                {data.financialThreshold.bullionTurnoverProofFileIdPath && (
+                {data.financialThreshold.bullionTurnoverProofPath && (
                   <DocumentField
                     label="Bullion Turnover Proof"
-                    documentPath={data.financialThreshold.bullionTurnoverProofFileIdPath}
+                    documentId={data.financialThreshold.bullionTurnoverProofFileId}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.financialThreshold.bullionTurnoverProofFileId}
                   />
                 )}
                 {data.financialThreshold.netWorthProofPath && (
                   <DocumentField
                     label="Net Worth Proof"
-                    documentPath={data.financialThreshold.netWorthProofPath}
+                    documentId={data.financialThreshold.netWorthProofFileId}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.financialThreshold.netWorthProofFileId}
                   />
                 )}
               </Section>
@@ -379,15 +439,17 @@ export default function ViewApplication() {
                 {data.regulatorCompliance.amlCftPolicyDocumentFilePath && (
                   <DocumentField
                     label="AML/CFT Policy Document"
-                    documentPath={data.regulatorCompliance.amlCftPolicyDocumentFilePath}
+                    documentId={data.regulatorCompliance.amlCftPolicyDocumentFileId}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.regulatorCompliance.amlCftPolicyDocumentFileId}
                   />
                 )}
                 {data.regulatorCompliance.supplyChainPolicyDocumentFilePath && (
                   <DocumentField
                     label="Supply Chain Policy Document"
-                    documentPath={data.regulatorCompliance.supplyChainPolicyDocumentFilePath}
+                    documentId={data.regulatorCompliance.supplyChainPolicyDocumentFileId}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.regulatorCompliance.supplyChainPolicyDocumentFileId}
                   />
                 )}
               </Section>
@@ -400,85 +462,97 @@ export default function ViewApplication() {
                   {data.requiredDocs.tradeLicenseAndMoaPath && (
                     <DocumentField
                       label="Trade License & MOA"
-                      documentPath={data.requiredDocs.tradeLicenseAndMoaPath}
+                      documentId={data.requiredDocs.tradeLicenseAndMoaFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.tradeLicenseAndMoaFileId}
                     />
                   )}
                   {data.requiredDocs.auditedFinancialStatementsPath && (
                     <DocumentField
                       label="Audited Financial Statements"
-                      documentPath={data.requiredDocs.auditedFinancialStatementsPath}
+                      documentId={data.requiredDocs.auditedFinancialStatementsFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.auditedFinancialStatementsFileId}
                     />
                   )}
                   {data.requiredDocs.netWorthCertificatePath && (
                     <DocumentField
                       label="Net Worth Certificate"
-                      documentPath={data.requiredDocs.netWorthCertificatePath}
+                      documentId={data.requiredDocs.netWorthCertificateFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.netWorthCertificateFileId}
                     />
                   )}
                   {data.requiredDocs.amlCftPolicyPath && (
                     <DocumentField
                       label="AML/CFT Policy"
-                      documentPath={data.requiredDocs.amlCftPolicyPath}
+                      documentId={data.requiredDocs.amlCftPolicyFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.amlCftPolicyFileId}
                     />
                   )}
                   {data.requiredDocs.supplyChainCompliancePolicyPath && (
                     <DocumentField
                       label="Supply Chain Compliance Policy"
-                      documentPath={data.requiredDocs.supplyChainCompliancePolicyPath}
+                      documentId={data.requiredDocs.supplyChainCompliancePolicyFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.supplyChainCompliancePolicyFileId}
                     />
                   )}
                   {data.requiredDocs.noUnresolvedAmlNoticesDeclarationPath && (
                     <DocumentField
                       label="No Unresolved AML Notices Declaration"
-                      documentPath={data.requiredDocs.noUnresolvedAmlNoticesDeclarationPath}
+                      documentId={data.requiredDocs.noUnresolvedAmlNoticesDeclarationFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.noUnresolvedAmlNoticesDeclarationFileId}
                     />
                   )}
                   {data.requiredDocs.boardResolutionPath && (
                     <DocumentField
                       label="Board Resolution"
-                      documentPath={data.requiredDocs.boardResolutionPath}
+                      documentId={data.requiredDocs.boardResolutionFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.boardResolutionFileId}
                     />
                   )}
                   {data.requiredDocs.ownershipStructurePath && (
                     <DocumentField
                       label="Ownership Structure"
-                      documentPath={data.requiredDocs.ownershipStructurePath}
+                      documentId={data.requiredDocs.ownershipStructureFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.ownershipStructureFileId}
                     />
                   )}
                   {data.requiredDocs.certifiedTrueCopyPath && (
                     <DocumentField
                       label="Certified True Copy"
-                      documentPath={data.requiredDocs.certifiedTrueCopyPath}
+                      documentId={data.requiredDocs.certifiedTrueCopyFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.certifiedTrueCopyFileId}
                     />
                   )}
                   {data.requiredDocs.latestAssuranceReportPath && (
                     <DocumentField
                       label="Latest Assurance Report"
-                      documentPath={data.requiredDocs.latestAssuranceReportPath}
+                      documentId={data.requiredDocs.latestAssuranceReportFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.latestAssuranceReportFileId}
                     />
                   )}
                   {data.requiredDocs.uboProofDocumentsPath && (
                     <DocumentField
                       label="UBO Proof Documents"
-                      documentPath={data.requiredDocs.uboProofDocumentsPath}
+                      documentId={data.requiredDocs.uboProofDocumentsFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.uboProofDocumentsFileId}
                     />
                   )}
                   {data.requiredDocs.certifiedIdsPath && (
                     <DocumentField
                       label="Certified IDs"
-                      documentPath={data.requiredDocs.certifiedIdsPath}
+                      documentId={data.requiredDocs.certifiedIdsFileId}
                       onDownload={handleDownloadDocument}
+                      isDownloading={downloadingId === data.requiredDocs.certifiedIdsFileId}
                     />
                   )}
                 </div>
@@ -517,8 +591,9 @@ export default function ViewApplication() {
                 {data.declarationConsent.digitalSignatureFilePath && (
                   <DocumentField
                     label="Digital Signature"
-                    documentPath={data.declarationConsent.digitalSignatureFilePath}
+                    documentId={data.declarationConsent.digitalSignatureFileId}
                     onDownload={handleDownloadDocument}
+                    isDownloading={downloadingId === data.declarationConsent.digitalSignatureFileId}
                   />
                 )}
               </Section>
@@ -577,23 +652,37 @@ function Field({ label, value }: { label: string; value: string | number }) {
 
 function DocumentField({
   label,
-  documentPath,
+  documentId,
   onDownload,
+  isDownloading,
 }: {
   label: string;
-  documentPath: string;
-  onDownload: (documentPath: string) => void;
+  documentId: number;
+  onDownload: (documentId: number, fileName: string) => void;
+  isDownloading: boolean;
 }) {
+  if (!documentId) return null;
+
   return (
     <div className="flex items-center justify-between p-4 border border-white/20 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
       <span className="text-white font-medium">{label}</span>
       <Button
         size="sm"
-        onClick={() => onDownload(documentPath)}
-        className="bg-[#C6A95F] hover:bg-[#bfa14f] text-white cursor-pointer"
+        onClick={() => onDownload(documentId, label)}
+        disabled={isDownloading}
+        className="bg-[#C6A95F] hover:bg-[#bfa14f] text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Download className="w-4 h-4 mr-2" />
-        Download
+        {isDownloading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Downloading...
+          </>
+        ) : (
+          <>
+            <Download className="w-4 h-4 mr-2" />
+            Download
+          </>
+        )}
       </Button>
     </div>
   );
