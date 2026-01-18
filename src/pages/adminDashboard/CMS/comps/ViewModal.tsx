@@ -231,7 +231,7 @@ export default function ViewModal({
                   <Button
                     onClick={handleViewRegistrations}
                     variant="outline"
-                    className="flex-1 border-[#C6A95F] text-[#C6A95F] hover:bg-[#C6A95F]/10"
+                    className="flex-1 cursor-pointer border-[#C6A95F] text-[#C6A95F] hover:bg-[#C6A95F]/10"
                   >
                     <Users className="w-4 h-4 mr-2" />
                     View Event Registrations
@@ -249,7 +249,7 @@ export default function ViewModal({
                 <Button
                   onClick={() => onOpenChange(false)}
                   variant="outline"
-                  className="flex-1 border-white/20 text-white hover:bg-white/10"
+                  className="flex-1 cursor-pointer border-white/20 text-white hover:bg-white/10"
                 >
                   Close
                 </Button>
