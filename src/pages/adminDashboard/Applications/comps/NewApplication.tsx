@@ -515,7 +515,7 @@ function ActionMenu({
   onApprove,
   onReject,
   onRemark,
-  onAskMoreDetails,
+  // onAskMoreDetails,
   canEdit,
   userId,
 }: {
