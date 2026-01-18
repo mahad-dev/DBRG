@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { userApi, type UserProfile } from "@/services/userApi";
+import apiClient from "@/services/apiClient";
 import { toast } from "react-toastify";
 import { Camera, X, Plus } from "lucide-react";
 import UploadBox from "@/components/custom/ui/UploadBox";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -24,6 +26,7 @@ interface PaymentDocument {
   file: File | null;
   documentId: number | null;
   prefilledUrl: string | null;
+  name: string | null;
 }
 
 const ProfileSetting = () => {
@@ -52,33 +55,38 @@ const ProfileSetting = () => {
     documentId: null,
     prefilledUrl: null,
   });
+  const [directorDocumentName, setDirectorDocumentName] = useState<string | null>(null);
 
   const [businessLicense, setBusinessLicense] = useState<DocumentFile>({
     file: null,
     documentId: null,
     prefilledUrl: null,
   });
+  const [businessLicenseName, setBusinessLicenseName] = useState<string | null>(null);
 
   const [proofOfAddress, setProofOfAddress] = useState<DocumentFile>({
     file: null,
     documentId: null,
     prefilledUrl: null,
   });
+  const [proofOfAddressName, setProofOfAddressName] = useState<string | null>(null);
 
   const [idProof, setIdProof] = useState<DocumentFile>({
     file: null,
     documentId: null,
     prefilledUrl: null,
   });
+  const [idProofName, setIdProofName] = useState<string | null>(null);
 
   const [passportPhoto, setPassportPhoto] = useState<DocumentFile>({
     file: null,
     documentId: null,
     prefilledUrl: null,
   });
+  const [passportPhotoName, setPassportPhotoName] = useState<string | null>(null);
 
   const [paymentDocuments, setPaymentDocuments] = useState<PaymentDocument[]>([
-    { id: "payment_1", file: null, documentId: null, prefilledUrl: null },
+    { id: "payment_1", file: null, documentId: null, prefilledUrl: null, name: null },
   ]);
 
   // File input refs
@@ -96,9 +104,37 @@ const ProfileSetting = () => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const response = await userApi.getUserProfile();
-      if (response.status && response.data) {
-        const data = response.data;
+      const response = await apiClient.get('/User/GetUserProfile');
+      if (response.data.status && response.data.data) {
+        // Handle if data is string or object
+        let rawData = response.data.data;
+        if (typeof rawData === 'string') {
+          rawData = JSON.parse(rawData);
+        }
+
+        // Map response to UserProfile interface
+        const data: UserProfile = {
+          userId: '', // Not provided in response
+          name: rawData.name || '',
+          email: rawData.email || '',
+          phone: rawData.phoneNumber || '',
+          pictureId: rawData.pictureId,
+          pictureUrl: rawData.pictureUrl,
+          companyName: rawData.companyName,
+          companyAddress: rawData.companyAddress,
+          companyCountry: rawData.companyCountry,
+          licenseNumber: rawData.licenseNumber,
+          directorName: rawData.directorName,
+          directorPassportId: rawData.directorPassportId,
+          directorPassportDocumentId: rawData.directorPassportDocumentId,
+          directorNationalId: rawData.directorNationalId,
+          directorNationalDocumentId: rawData.directorNationalDocumentId,
+          businessLicenseDocumentId: rawData.businessLicenseDocumentId,
+          proofOfAddressDocumentId: rawData.proofOfAddressDocumentId,
+          identityProofDocumentId: rawData.identityProofDocumentId,
+          paymentDocumentIds: rawData.paymentDocumentIds,
+        };
+
         setProfile(data);
 
         setFormData({
@@ -128,12 +164,14 @@ const ProfileSetting = () => {
             documentId: data.directorPassportDocumentId!,
             prefilledUrl: `${apiBaseUrl}/UploadDetails/GetDocument?documentId=${data.directorPassportDocumentId}`,
           }));
+          setDirectorDocumentName(rawData.directorPassportDocumentName || null);
         } else if (data.directorNationalDocumentId) {
           setDirectorDocument(prev => ({
             ...prev,
             documentId: data.directorNationalDocumentId!,
             prefilledUrl: `${apiBaseUrl}/UploadDetails/GetDocument?documentId=${data.directorNationalDocumentId}`,
           }));
+          setDirectorDocumentName(rawData.directorNationalDocumentName || null);
         }
 
         if (data.businessLicenseDocumentId) {
@@ -142,6 +180,7 @@ const ProfileSetting = () => {
             documentId: data.businessLicenseDocumentId!,
             prefilledUrl: `${apiBaseUrl}/UploadDetails/GetDocument?documentId=${data.businessLicenseDocumentId}`,
           }));
+          setBusinessLicenseName(rawData.businessLicenseDocumentName || null);
         }
 
         if (data.proofOfAddressDocumentId) {
@@ -150,6 +189,7 @@ const ProfileSetting = () => {
             documentId: data.proofOfAddressDocumentId!,
             prefilledUrl: `${apiBaseUrl}/UploadDetails/GetDocument?documentId=${data.proofOfAddressDocumentId}`,
           }));
+          setProofOfAddressName(rawData.proofOfAddressDocumentName || null);
         }
 
         if (data.identityProofDocumentId) {
@@ -158,16 +198,32 @@ const ProfileSetting = () => {
             documentId: data.identityProofDocumentId!,
             prefilledUrl: `${apiBaseUrl}/UploadDetails/GetDocument?documentId=${data.identityProofDocumentId}`,
           }));
+          setIdProofName(rawData.identityProofDocumentName || null);
+        }
+
+        // Set passport photo
+        if (data.directorPassportDocumentId) {
+          setPassportPhoto(prev => ({
+            ...prev,
+            documentId: data.directorPassportDocumentId!,
+            prefilledUrl:`${apiBaseUrl}/UploadDetails/GetDocument?documentId=${data.directorPassportDocumentId}`,
+          }));
+          setPassportPhotoName(rawData.directorPassportDocumentName || null);
         }
 
         if (data.paymentDocumentIds && data.paymentDocumentIds.length > 0) {
           setPaymentDocuments(
-            data.paymentDocumentIds.map((docId: number, index: number) => ({
-              id: `payment_${index + 1}`,
-              file: null,
-              documentId: docId,
-              prefilledUrl: `${apiBaseUrl}/UploadDetails/GetDocument?documentId=${docId}`,
-            }))
+            data.paymentDocumentIds.map((docId: number, index: number) => {
+              // Find the corresponding name from paymentDocumentNames
+              const docName = rawData.paymentDocumentNames?.find((nameObj: any) => nameObj.key === docId)?.value || null;
+              return {
+                id: `payment_${index + 1}`,
+                file: null,
+                documentId: docId,
+                prefilledUrl: `${apiBaseUrl}/UploadDetails/GetDocument?documentId=${docId}`,
+                name: docName,
+              };
+            })
           );
         }
       }
@@ -306,7 +362,7 @@ const ProfileSetting = () => {
     const newId = `payment_${Date.now()}`;
     setPaymentDocuments(prev => [
       ...prev,
-      { id: newId, file: null, documentId: null, prefilledUrl: null },
+      { id: newId, file: null, documentId: null, prefilledUrl: null, name: null },
     ]);
   };
 
@@ -314,7 +370,7 @@ const ProfileSetting = () => {
     if (paymentDocuments.length > 1) {
       setPaymentDocuments(prev => prev.filter(doc => doc.id !== id));
     } else {
-      setPaymentDocuments([{ id: "payment_1", file: null, documentId: null, prefilledUrl: null }]);
+      setPaymentDocuments([{ id: "payment_1", file: null, documentId: null, prefilledUrl: null, name: null }]);
     }
   };
 
@@ -374,12 +430,87 @@ const ProfileSetting = () => {
 
   if (loading && !profile) {
     return (
-      <div className="font-inter p-4 md:p-6">
+      <div className="font-inter p-2 sm:p-4 md:p-6 w-full">
         <h1 className="text-[#C6A95F] text-2xl md:text-3xl font-semibold mb-6">
           Profile Settings
         </h1>
-        <div className="bg-[#353535] rounded-lg p-6">
-          <p className="text-white">Loading...</p>
+
+        <div className="bg-[#353535] rounded-lg p-4 sm:p-6 w-full max-w-4xl">
+          {/* Profile Picture Section Skeleton */}
+          <div className="mb-8 flex justify-center">
+            <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full" />
+          </div>
+
+          {/* Section 01 - Company Details Skeleton */}
+          <div className="flex mb-6">
+            <div className="flex flex-col items-center mr-4">
+              <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+              <Skeleton className="w-px flex-1 my-2" />
+            </div>
+            <div className="flex-1">
+              <Skeleton className="h-6 w-48 mb-4" />
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full max-w-md" />
+                <Skeleton className="h-10 w-full" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 02 - Director Details Skeleton */}
+          <div className="flex mb-6">
+            <div className="flex flex-col items-center mr-4">
+              <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+              <Skeleton className="w-px flex-1 my-2" />
+            </div>
+            <div className="flex-1">
+              <Skeleton className="h-6 w-40 mb-4" />
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full max-w-md" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <Skeleton className="h-32 w-full max-w-sm" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 03 - Document Uploads Skeleton */}
+          <div className="flex mb-6">
+            <div className="flex flex-col items-center mr-4">
+              <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+              <Skeleton className="w-px flex-1 my-2" />
+            </div>
+            <div className="flex-1">
+              <Skeleton className="h-6 w-40 mb-4" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 04 - Payment Skeleton */}
+          <div className="flex">
+            <div className="flex flex-col items-center mr-4">
+              <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+            </div>
+            <div className="flex-1">
+              <Skeleton className="h-6 w-20 mb-4" />
+              <Skeleton className="h-4 w-full mb-4" />
+              <div className="space-y-4">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+              <Skeleton className="h-11 w-full sm:w-auto px-6 mt-6" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -559,13 +690,17 @@ const ProfileSetting = () => {
                   id="director_doc"
                   file={directorDocument.file}
                   prefilledUrl={directorDocument.prefilledUrl}
+                  prefilledName={directorDocumentName}
                   onClick={() => directorDocRef.current?.click()}
                   onDrop={async (e) => {
                     e.preventDefault();
                     const file = e.dataTransfer?.files?.[0] ?? null;
                     if (file) await handleDocumentUpload(file, setDirectorDocument, directorDocument);
                   }}
-                  onRemove={() => setDirectorDocument({ file: null, documentId: null, prefilledUrl: null })}
+                  onRemove={() => {
+                    setDirectorDocument({ file: null, documentId: null, prefilledUrl: null });
+                    setDirectorDocumentName(null);
+                  }}
                 />
               </div>
             </div>
@@ -603,13 +738,17 @@ const ProfileSetting = () => {
                     id="business_license"
                     file={businessLicense.file}
                     prefilledUrl={businessLicense.prefilledUrl}
+                    prefilledName={businessLicenseName}
                     onClick={() => businessLicenseRef.current?.click()}
                     onDrop={async (e) => {
                       e.preventDefault();
                       const file = e.dataTransfer?.files?.[0] ?? null;
                       if (file) await handleDocumentUpload(file, setBusinessLicense, businessLicense);
                     }}
-                    onRemove={() => setBusinessLicense({ file: null, documentId: null, prefilledUrl: null })}
+                    onRemove={() => {
+                      setBusinessLicense({ file: null, documentId: null, prefilledUrl: null });
+                      setBusinessLicenseName(null);
+                    }}
                   />
                 </div>
 
@@ -630,13 +769,17 @@ const ProfileSetting = () => {
                     id="proof_of_address"
                     file={proofOfAddress.file}
                     prefilledUrl={proofOfAddress.prefilledUrl}
+                    prefilledName={proofOfAddressName}
                     onClick={() => proofOfAddressRef.current?.click()}
                     onDrop={async (e) => {
                       e.preventDefault();
                       const file = e.dataTransfer?.files?.[0] ?? null;
                       if (file) await handleDocumentUpload(file, setProofOfAddress, proofOfAddress);
                     }}
-                    onRemove={() => setProofOfAddress({ file: null, documentId: null, prefilledUrl: null })}
+                    onRemove={() => {
+                      setProofOfAddress({ file: null, documentId: null, prefilledUrl: null });
+                      setProofOfAddressName(null);
+                    }}
                   />
                 </div>
 
@@ -657,13 +800,17 @@ const ProfileSetting = () => {
                     id="id_proof"
                     file={idProof.file}
                     prefilledUrl={idProof.prefilledUrl}
+                    prefilledName={idProofName}
                     onClick={() => idProofRef.current?.click()}
                     onDrop={async (e) => {
                       e.preventDefault();
                       const file = e.dataTransfer?.files?.[0] ?? null;
                       if (file) await handleDocumentUpload(file, setIdProof, idProof);
                     }}
-                    onRemove={() => setIdProof({ file: null, documentId: null, prefilledUrl: null })}
+                    onRemove={() => {
+                      setIdProof({ file: null, documentId: null, prefilledUrl: null });
+                      setIdProofName(null);
+                    }}
                   />
                 </div>
 
@@ -684,13 +831,17 @@ const ProfileSetting = () => {
                     id="passport_photo"
                     file={passportPhoto.file}
                     prefilledUrl={passportPhoto.prefilledUrl}
+                    prefilledName={passportPhotoName}
                     onClick={() => passportPhotoRef.current?.click()}
                     onDrop={async (e) => {
                       e.preventDefault();
                       const file = e.dataTransfer?.files?.[0] ?? null;
                       if (file) await handleDocumentUpload(file, setPassportPhoto, passportPhoto);
                     }}
-                    onRemove={() => setPassportPhoto({ file: null, documentId: null, prefilledUrl: null })}
+                    onRemove={() => {
+                      setPassportPhoto({ file: null, documentId: null, prefilledUrl: null });
+                      setPassportPhotoName(null);
+                    }}
                   />
                 </div>
             </div>
@@ -736,6 +887,7 @@ const ProfileSetting = () => {
                           id={`payment_doc_${doc.id}`}
                           file={doc.file}
                           prefilledUrl={doc.prefilledUrl}
+                          prefilledName={doc.name}
                           onClick={() => paymentDocRefs.current[doc.id]?.click()}
                           onDrop={async (e) => {
                             e.preventDefault();

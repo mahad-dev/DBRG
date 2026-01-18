@@ -7,6 +7,7 @@ interface UploadBoxProps {
   title?: string;
   file: File | null;
   prefilledUrl?: string | null;
+  prefilledName?: string | null;
   onClick: () => void;
   onDrop: (e: React.DragEvent) => void;
   id?: string;
@@ -43,6 +44,7 @@ export const UploadBox: React.FC<UploadBoxProps> = ({
   title,
   file,
   prefilledUrl,
+  prefilledName,
   onClick,
   onDrop,
   id,
@@ -130,7 +132,7 @@ export const UploadBox: React.FC<UploadBoxProps> = ({
           ) : prefilledUrl ? (
             // Prefilled document
             <div className="text-[18px] text-center wrap-break-word px-1">
-              <div className="font-medium">{getFilenameFromUrl(prefilledUrl)}</div>
+              <div className="font-medium">{prefilledName || getFilenameFromUrl(prefilledUrl)}</div>
               <div className="text-[13px] text-gray-600">Previously uploaded</div>
             </div>
           ) : (
