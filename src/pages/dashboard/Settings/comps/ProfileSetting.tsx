@@ -524,7 +524,7 @@ const ProfileSetting = () => {
                     <SelectTrigger className="w-full h-10 sm:h-11 bg-white text-black rounded-md border-0 text-sm sm:text-base">
                       <SelectValue placeholder="Select Document" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       <SelectItem value="Passport">Passport</SelectItem>
                       <SelectItem value="National ID">National ID</SelectItem>
                     </SelectContent>
