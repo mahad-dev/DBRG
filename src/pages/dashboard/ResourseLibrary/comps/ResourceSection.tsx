@@ -11,6 +11,7 @@ interface ResourceSectionProps {
     date: string;
     img: string;
     documentPaths?: string[];
+    documentIds?: number[];
     link?: string;
   }[];
   enableScroll?: boolean;

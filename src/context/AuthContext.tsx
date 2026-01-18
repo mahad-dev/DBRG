@@ -83,6 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const email = localStorage.getItem('email');
     const userType = localStorage.getItem('userType');
     const membershipType = localStorage.getItem('membershipType');
+    const loginSource = localStorage.getItem('loginSource') as 'member' | 'admin' | undefined;
     const permissionsStr = localStorage.getItem('permissions');
     const applicationStr = localStorage.getItem('application');
 
@@ -113,6 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         userType: parseInt(userType),
         membershipType: membershipType || undefined,
+        loginSource,
         permissions: parsedPermissions,
         application: parsedApplication,
       };
@@ -122,8 +124,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const [role, setRole] = useState<'member' | 'admin' | null>(() => {
     const userType = localStorage.getItem('userType');
+    const loginSource = localStorage.getItem('loginSource') as 'member' | 'admin' | undefined;
     if (userType) {
-      return parseInt(userType) === 2 ? 'admin' : 'member';
+      const type = parseInt(userType);
+      if (type === 2) {
+        return 'admin';
+      } else if (type === 3) {
+        return loginSource === 'admin' ? 'admin' : 'member';
+      } else {
+        return 'member';
+      }
     }
     return null;
   });
@@ -189,6 +199,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('name', userData.name);
     localStorage.setItem('email', userData.email);
     localStorage.setItem('userType', userData.userType.toString());
+    if (userData.loginSource) {
+      localStorage.setItem('loginSource', userData.loginSource);
+    }
     if (userData.membershipType) {
       localStorage.setItem('membershipType', userData.membershipType);
     }
@@ -236,6 +249,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('email');
     localStorage.removeItem('userType');
     localStorage.removeItem('membershipType');
+    localStorage.removeItem('loginSource');
     localStorage.removeItem('permissions');
     localStorage.removeItem('application');
   };

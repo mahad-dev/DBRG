@@ -18,6 +18,8 @@ import NewsPage from "@/pages/news";
 import ReportsPage from "@/pages/reports";
 import Signup from "@/pages/auth/Signup";
 import AdminLogin from "@/pages/auth/AdminLogin";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
 import type { ReactElement } from "react";
 import Login from "@/pages/auth/Login";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -133,6 +135,16 @@ export const publicRoutes: RouteConfig[] = [
     path: "/login",
     element: <Login />,
     name: "Login",
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+    name: "ForgotPassword",
+  },
+  {
+    path: "/forget-password",
+    element: <ResetPassword />,
+    name: "ResetPassword",
   },
   {
     path: "/signup",

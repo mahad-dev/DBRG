@@ -36,6 +36,20 @@ interface EditAndAddModalProps {
   onSuccess?: () => void;
 }
 
+// Banner image validation schema
+const bannerImageSchema = Yup.mixed<File>()
+  .test('bannerFileType', 'Only image files are allowed for banner (PNG, JPG, JPEG, GIF, WebP)', function(value) {
+    if (!value) return true; // Optional field
+    const file = value as File;
+    return file.type.startsWith('image/') &&
+           ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type);
+  })
+  .test('bannerFileSize', 'Banner image size must be less than 5MB', function(value) {
+    if (!value) return true;
+    const file = value as File;
+    return file.size <= 5 * 1024 * 1024; // 5MB
+  });
+
 // Validation schema
 const validationSchema = Yup.object({
   title: Yup.string()
@@ -69,6 +83,7 @@ export default function EditAndAddModal({
   const [files, setFiles] = useState<File[]>([]); // New files to upload
   const [existingDocuments, setExistingDocuments] = useState<{ id: number; path: string; name: string }[]>([]); // Existing documents from API
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerError, setBannerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(false);
   const [editItem, setEditItem] = useState<CmsItem | null>(null);
@@ -148,6 +163,18 @@ export default function EditAndAddModal({
 
   const handleSubmit = async (values: typeof formik.values) => {
     console.log("handleSubmit called"); // Debug log
+
+    // Validate banner file if present
+    if (bannerFile) {
+      try {
+        await bannerImageSchema.validate(bannerFile);
+        setBannerError(null);
+      } catch (error: any) {
+        setBannerError(error.message);
+        toast.error(error.message);
+        return; // Stop submission if banner validation fails
+      }
+    }
 
     try {
       setLoading(true);
@@ -508,24 +535,47 @@ export default function EditAndAddModal({
                     const input = document.createElement('input');
                     input.type = 'file';
                     input.accept = 'image/*';
-                    input.onchange = (e) => {
+                    input.onchange = async (e) => {
                       const target = e.target as HTMLInputElement;
                       if (target.files?.[0]) {
-                        setBannerFile(target.files[0]);
+                        const file = target.files[0];
+                        try {
+                          await bannerImageSchema.validate(file);
+                          setBannerFile(file);
+                          setBannerError(null);
+                        } catch (error: any) {
+                          setBannerError(error.message);
+                          toast.error(error.message);
+                          setBannerFile(null);
+                        }
                       }
                     };
                     input.click();
                   }}
-                  onDrop={(e) => {
+                  onDrop={async (e) => {
                     if (loading) return;
                     e.preventDefault();
                     const droppedFile = e.dataTransfer.files[0];
                     if (droppedFile) {
-                      setBannerFile(droppedFile);
+                      try {
+                        await bannerImageSchema.validate(droppedFile);
+                        setBannerFile(droppedFile);
+                        setBannerError(null);
+                      } catch (error: any) {
+                        setBannerError(error.message);
+                        toast.error(error.message);
+                        setBannerFile(null);
+                      }
                     }
                   }}
-                  onRemove={() => !loading && setBannerFile(null)}
+                  onRemove={() => {
+                    !loading && setBannerFile(null);
+                    setBannerError(null);
+                  }}
                 />
+                {bannerError && (
+                  <p className="text-red-400 text-xs mt-1">{bannerError}</p>
+                )}
 
           {/* Save Button */}
           <Button

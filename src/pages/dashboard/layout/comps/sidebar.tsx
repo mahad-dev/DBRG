@@ -98,7 +98,6 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               icon={<Clock3 size={26} />}
               label="Track Status"
               to="/dashboard/track-status"
-              disabled={!isApplicationCompleted}
             />
             <NavItem
               icon={<BookOpen size={26} />}

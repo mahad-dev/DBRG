@@ -166,10 +166,16 @@ const Login: React.FC = () => {
           </Formik>
 
           {/* LINKS */}
-          <div className="mt-5 text-center">
+          <div className="mt-5 text-center space-y-2">
+            <Link
+              to="/forgot-password"
+              className="text-[#C6A95F] hover:underline text-sm sm:text-base cursor-pointer block"
+            >
+              Forgot Password?
+            </Link>
             <Link
               to="/signup"
-              className="text-[#C6A95F] hover:underline text-sm sm:text-base cursor-pointer"
+              className="text-[#C6A95F] hover:underline text-sm sm:text-base cursor-pointer block"
             >
               Don't have an account? Sign up
             </Link>

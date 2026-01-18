@@ -13,6 +13,7 @@ import { getCmsById, registerEvent } from "@/services/cmsApi";
 import type { CmsItem } from "@/types/cms";
 import { Loader2, Calendar, Clock, ExternalLink, Download, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
+import apiClient from "@/services/apiClient";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
@@ -33,6 +34,7 @@ export default function EventDetails() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -75,6 +77,72 @@ export default function EventDetails() {
   const handleOpenRegisterModal = () => {
     formik.resetForm();
     setIsModalOpen(true);
+  };
+
+  const handleDownloadDocument = async (documentId: number, fileName: string) => {
+    if (!documentId) {
+      toast.error("Document ID not available");
+      return;
+    }
+
+    try {
+      setDownloadingId(documentId);
+      const response = await apiClient.post(
+        `/UploadDetails/DownloadDocument`,
+        null,
+        {
+          params: { documentId },
+          responseType: "blob",
+        }
+      );
+
+      // Get filename from Content-Disposition header if available
+      const contentDisposition = response.headers["content-disposition"];
+      let downloadFileName = fileName || "document";
+
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          downloadFileName = filenameMatch[1].replace(/['"]/g, '');
+        }
+      } else {
+        const contentType = response.headers["content-type"];
+        if (contentType) {
+          const mimeToExt: Record<string, string> = {
+            "application/pdf": ".pdf",
+            "image/png": ".png",
+            "image/jpeg": ".jpg",
+            "image/jpg": ".jpg",
+            "image/gif": ".gif",
+            "application/msword": ".doc",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+            "application/vnd.ms-excel": ".xls",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+          };
+          const ext = mimeToExt[contentType] || "";
+          if (ext && !downloadFileName.toLowerCase().endsWith(ext)) {
+            downloadFileName = `${downloadFileName}${ext}`;
+          }
+        }
+      }
+
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = downloadFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Document downloaded successfully");
+    } catch (error: any) {
+      console.error("Error downloading document:", error);
+      toast.error(error?.message || "Failed to download document");
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   useEffect(() => {
@@ -237,30 +305,32 @@ export default function EventDetails() {
         </div>
 
         {/* Documents Section */}
-        {event.documentPaths && event.documentPaths.length > 0 && (
+        {event.documentIds && event.documentIds.length > 0 && (
           <div className="bg-[#FFFFFF0D] rounded-xl p-6 md:p-8">
             <h2 className="text-2xl font-semibold text-[#C6A95F] mb-4 font-gilroy">
               Event Documents & Resources
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {event.documentPaths.map((docPath, index) => {
+              {event.documentIds.map((docId, index) => {
+                const docPath = event.documentPaths?.[index] || "";
                 const urlParts = docPath.split("/");
                 const fileNameWithParams = urlParts[urlParts.length - 1];
                 const fileName = fileNameWithParams.split("?")[0];
                 const decodedFileName = decodeURIComponent(fileName);
-                const displayName = decodedFileName.replace(/^\d+_/, "");
+                const displayName = decodedFileName.replace(/^\d+_/, "") || `Document ${index + 1}`;
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
                 const isImage = imageExtensions.some(ext =>
                   decodedFileName.toLowerCase().endsWith(ext)
                 );
+                const isDownloading = downloadingId === docId;
 
                 return (
                   <div
-                    key={index}
+                    key={docId}
                     className="bg-[#FFFFFF1A] rounded-xl overflow-hidden hover:bg-[#FFFFFF26] transition-all hover:scale-105 shadow-lg"
                   >
                     <div className="relative w-full h-48 bg-[#2a2a2a] flex items-center justify-center overflow-hidden group">
-                      {isImage ? (
+                      {isImage && docPath ? (
                         <>
                           <img
                             src={docPath}
@@ -272,9 +342,14 @@ export default function EventDetails() {
                               variant="ghost"
                               size="lg"
                               className="text-white hover:text-[#C6A95F] cursor-pointer"
-                              onClick={() => window.open(docPath, "_blank")}
+                              onClick={() => handleDownloadDocument(docId, displayName)}
+                              disabled={isDownloading}
                             >
-                              <Download className="w-6 h-6" />
+                              {isDownloading ? (
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                              ) : (
+                                <Download className="w-6 h-6" />
+                              )}
                             </Button>
                           </div>
                         </>
@@ -295,11 +370,21 @@ export default function EventDetails() {
                       <Button
                         variant="site_btn"
                         size="sm"
-                        className="w-full flex items-center justify-center gap-2 cursor-pointer"
-                        onClick={() => window.open(docPath, "_blank")}
+                        className="w-full flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        onClick={() => handleDownloadDocument(docId, displayName)}
+                        disabled={isDownloading}
                       >
-                        <Download className="w-4 h-4" />
-                        Download
+                        {isDownloading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4" />
+                            Download
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
