@@ -25,6 +25,7 @@ import { useStep8DeclarationConsent } from '@/hooks/useStep8DeclarationConsent';
 import { Formik, Form } from 'formik';
 import { principalMemberStep8Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step8Agreement() {
   const { state, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, dispatch } = useUploadDetails();
@@ -33,6 +34,7 @@ export default function Step8Agreement() {
   const [pendingUploads, setPendingUploads] = useState<number>(0);
 
   const sigPadRef = useRef<SignaturePad>(null);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const [openSigPad, setOpenSigPad] = useState(false);
 
@@ -277,13 +279,14 @@ export default function Step8Agreement() {
                     Upload Digital Signature
                   </Button>
                   {existingSignaturePath && !values.signatureURL && (
-                    <a
-                      href={existingSignaturePath}
-                      target="_blank"
-                      className="text-[#C6A95F] underline mt-2 block cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={() => downloadDocument(extractIdFromPath(existingSignaturePath), "signature")}
+                      disabled={downloadingId === extractIdFromPath(existingSignaturePath)}
+                      className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                     >
-                      View previously uploaded signature
-                    </a>
+                      {downloadingId === extractIdFromPath(existingSignaturePath) ? 'Downloading...' : 'Download signature'}
+                    </button>
                   )}
                   {touched.signatureURL && errors.signatureURL && (
                     <p className="text-red-500 text-sm mt-1">{errors.signatureURL as string}</p>

@@ -23,11 +23,13 @@ import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelatio
 import { Formik } from "formik";
 import { affiliateMemberStep3Schema } from "@/validation";
 import { extractDocumentIdFromPath } from "@/validation/utils/fileValidation";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step4BankRelationshipRequirement() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const {
     isClient24Months,
@@ -230,13 +232,14 @@ export default function Step4BankRelationshipRequirement() {
           <p className="text-red-500 text-sm mt-2">{errors.bankReferenceLetterFile as string}</p>
         )}
         {formData.bankRelationReq?.bankReferenceLetterFilePath && !bankFile && (
-          <a
-            href={formData.bankRelationReq.bankReferenceLetterFilePath}
-            target="_blank"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath), "bank reference letter")}
+            disabled={downloadingId === extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View previously uploaded bank reference letter
-          </a>
+            {downloadingId === extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath) ? 'Downloading...' : 'Download bank reference letter'}
+          </button>
         )}
       </div>
 

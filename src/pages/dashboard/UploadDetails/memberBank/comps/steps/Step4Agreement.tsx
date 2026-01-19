@@ -24,6 +24,7 @@ import { useStep8DeclarationConsent } from "@/hooks/useStep8DeclarationConsent";
 import { Formik, Form } from "formik";
 import { memberBankStep4Schema } from "@/validation";
 import { extractDocumentIdFromPath } from "@/validation/utils/fileValidation";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step4Agreement() {
   const {
@@ -41,6 +42,7 @@ export default function Step4Agreement() {
 
   const sigPadRef = useRef<SignaturePad>(null);
   const [openSigPad, setOpenSigPad] = useState(false);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   // Use the hook for prefilling
   const {
@@ -317,14 +319,14 @@ export default function Step4Agreement() {
                   </Button>
 
                   {existingSignaturePath && !values.signatureURL && (
-                    <a
-                      href={existingSignaturePath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block mt-2 text-[#C6A95F] underline text-sm"
+                    <button
+                      type="button"
+                      onClick={() => downloadDocument(extractIdFromPath(existingSignaturePath), "signature")}
+                      disabled={downloadingId === extractIdFromPath(existingSignaturePath)}
+                      className="block mt-2 text-[#C6A95F] underline text-sm cursor-pointer disabled:opacity-50"
                     >
-                      View previously uploaded signature
-                    </a>
+                      {downloadingId === extractIdFromPath(existingSignaturePath) ? 'Downloading...' : 'Download signature'}
+                    </button>
                   )}
                   {touched.signatureURL && errors.signatureURL && (
                     <p className="text-red-500 text-sm mt-1">{errors.signatureURL as string}</p>

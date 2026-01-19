@@ -8,11 +8,13 @@ import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
 import { Formik } from "formik";
 import { affiliateMemberStep6Schema } from "@/validation";
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step5RequiredDocumentChecklist(): React.ReactElement {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
   const formData = state.data;
   const isSaving = state.isSaving;
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   console.log("Step6RequiredDocumentChecklist formData?.memberRequiredDocuments:", formData?.memberRequiredDocuments);
 
@@ -315,14 +317,15 @@ export default function Step5RequiredDocumentChecklist(): React.ReactElement {
                       {errors[`${it.id}_file` as keyof typeof errors] as string}
                     </p>
                   )}
-                  {documentPaths[it.id] && (
-                    <a
-                      href={documentPaths[it.id] || undefined}
-                      target="_blank"
-                      className="text-[#C6A95F] underline mt-2 block"
+                  {documentPaths[it.id] && !files[it.id] && (
+                    <button
+                      type="button"
+                      onClick={() => downloadDocument(extractIdFromPath(documentPaths[it.id]), it.label)}
+                      disabled={downloadingId === extractIdFromPath(documentPaths[it.id])}
+                      className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                     >
-                      View previously uploaded {it.label}
-                    </a>
+                      {downloadingId === extractIdFromPath(documentPaths[it.id]) ? 'Downloading...' : `Download ${it.label}`}
+                    </button>
                   )}
                 </div>
               )}

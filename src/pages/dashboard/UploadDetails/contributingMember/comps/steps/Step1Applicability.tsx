@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Formik } from "formik";
 import { contributingMemberStep1Schema } from "@/validation";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step1Applicability() {
   const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, getUploadDetails } = useUploadDetails();
@@ -34,6 +35,7 @@ export default function Step1Applicability() {
   // Track pending uploads
   const [pendingUploads, setPendingUploads] = useState(0);
   const [signedAMLDocumentId, setSignedAMLDocumentId] = useState<number | null>(null);
+  const { downloadDocument, downloadingId, extractIdFromPath: extractIdFromPathHook } = useDocumentDownload();
 
   // Helper to extract document ID from S3 path
   const extractIdFromPath = (path: string | null): number | null => {
@@ -507,13 +509,14 @@ return (
             )}
 
             {existingSignedAMLPath && !signedAMLFile && (
-              <a
-                href={existingSignedAMLPath}
-                target="_blank"
-                className="mt-2 inline-block text-[#C6A95F] underline"
+              <button
+                type="button"
+                onClick={() => downloadDocument(extractIdFromPathHook(existingSignedAMLPath), "AML Declaration")}
+                disabled={downloadingId === extractIdFromPathHook(existingSignedAMLPath)}
+                className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
               >
-                View previously uploaded AML Declaration
-              </a>
+                {downloadingId === extractIdFromPathHook(existingSignedAMLPath) ? 'Downloading...' : 'Download AML Declaration'}
+              </button>
             )}
           </div>
         </div>

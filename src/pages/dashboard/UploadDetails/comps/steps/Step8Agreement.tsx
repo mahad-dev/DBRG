@@ -22,6 +22,7 @@ import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
 import { parseApiError } from "@/utils/errorHandler";
 import { useStep8DeclarationConsent } from '@/hooks/useStep8DeclarationConsent';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step8Agreement() {
   const { state, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, dispatch } = useUploadDetails();
@@ -29,6 +30,7 @@ export default function Step8Agreement() {
   const isSaving = state.isSaving;
 
   const sigPadRef = useRef<SignaturePad>(null);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const [openSigPad, setOpenSigPad] = useState(false);
 
@@ -63,13 +65,6 @@ export default function Step8Agreement() {
   };
 
   const clearSignature = () => sigPadRef.current?.clear();
-
-  // Extract ID from S3 path
-  const extractIdFromPath = (path: string | null): number | null => {
-    if (!path) return null;
-    const match = path.match(/\/(\d+)_/);
-    return match ? parseInt(match[1], 10) : null;
-  };
 
   const emptyToNull = (value: any): any => {
     if (value === "" || value === undefined) return null;
@@ -213,13 +208,13 @@ export default function Step8Agreement() {
                 Upload Digital Signature
               </Button>
               {existingSignaturePath && !signatureURL && (
-                <a
-                  href={existingSignaturePath}
-                  target="_blank"
-                  className="text-[#C6A95F] underline mt-2 block"
+                <button
+                  onClick={() => downloadDocument(extractIdFromPath(existingSignaturePath), "signature")}
+                  disabled={downloadingId === extractIdFromPath(existingSignaturePath)}
+                  className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                 >
-                  View previously uploaded signature
-                </a>
+                  {downloadingId === extractIdFromPath(existingSignaturePath) ? 'Downloading...' : 'Download signature'}
+                </button>
               )}
             </div>
           </div>

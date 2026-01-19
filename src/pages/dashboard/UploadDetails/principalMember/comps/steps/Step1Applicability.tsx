@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { Formik, Form } from 'formik';
 import { principalMemberStep1Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step1Applicability() {
   const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, getUploadDetails } = useUploadDetails();
@@ -29,6 +30,7 @@ export default function Step1Applicability() {
   const formData = state.data;
   const isSaving = state.isSaving;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   // Track pending file uploads
   const [pendingUploads, setPendingUploads] = useState<number>(0);
@@ -516,13 +518,14 @@ export default function Step1Applicability() {
                     }}
                   />
                   {existingEvidencePath && !evidenceFile && (
-                    <a
-                      href={existingEvidencePath}
-                      target="_blank"
-                      className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={() => downloadDocument(extractIdFromPath(existingEvidencePath), "Evidence Document")}
+                      disabled={downloadingId === extractIdFromPath(existingEvidencePath)}
+                      className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                     >
-                      View Previous Document
-                    </a>
+                      {downloadingId === extractIdFromPath(existingEvidencePath) ? 'Downloading...' : 'Download Previous Document'}
+                    </button>
                   )}
                   {touched.evidenceFile && errors.evidenceFile && (
                     <p className="text-red-500 text-sm mt-2">{errors.evidenceFile as string}</p>
@@ -595,13 +598,14 @@ export default function Step1Applicability() {
                   }}
                 />
                 {existingSignedAMLPath && !signedAMLFile && (
-                  <a
-                    href={existingSignedAMLPath}
-                    target="_blank"
-                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                  <button
+                    type="button"
+                    onClick={() => downloadDocument(extractIdFromPath(existingSignedAMLPath), "Signed AML Declaration")}
+                    disabled={downloadingId === extractIdFromPath(existingSignedAMLPath)}
+                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                   >
-                    View Previous Document
-                  </a>
+                    {downloadingId === extractIdFromPath(existingSignedAMLPath) ? 'Downloading...' : 'Download Previous Document'}
+                  </button>
                 )}
                 {touched.signedAMLFile && errors.signedAMLFile && (
                   <>

@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import { useStep8DeclarationConsent } from '@/hooks/useStep8DeclarationConsent';
 import { Formik } from "formik";
 import { contributingMemberStep8Schema } from "@/validation";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step8Agreement() {
   const { state, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, dispatch } = useUploadDetails();
@@ -30,6 +31,7 @@ export default function Step8Agreement() {
   const isSaving = state.isSaving;
 
   const sigPadRef = useRef<SignaturePad>(null);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const [openSigPad, setOpenSigPad] = useState(false);
   const [pendingUploads, setPendingUploads] = useState(0);
@@ -62,8 +64,8 @@ export default function Step8Agreement() {
     return value;
   };
 
-  // Extract ID from S3 path
-  const extractIdFromPath = (path: string | null): number | null => {
+  // Extract ID from S3 path (local version)
+  const extractIdFromPathLocal = (path: string | null): number | null => {
     if (!path) return null;
     const match = path.match(/\/(\d+)_/);
     return match ? parseInt(match[1], 10) : null;
@@ -95,7 +97,7 @@ export default function Step8Agreement() {
         authorisedSignatoryName: emptyToNull(signatoryName),
         designation: emptyToNull(designation),
         date: emptyToNull(selectedDate ? selectedDate.toISOString() : ""),
-        digitalSignatureFileId: signatureDocumentId || extractIdFromPath(existingSignaturePath),
+        digitalSignatureFileId: signatureDocumentId || extractIdFromPathLocal(existingSignaturePath),
       };
 
       const payload = {
@@ -248,13 +250,14 @@ export default function Step8Agreement() {
                 <p className="text-red-500 text-sm mt-2">{errors.signatureURL as string}</p>
               )}
               {existingSignaturePath && !signatureURL && (
-                <a
-                  href={existingSignaturePath}
-                  target="_blank"
-                  className="text-[#C6A95F] underline mt-2 block"
+                <button
+                  type="button"
+                  onClick={() => downloadDocument(extractIdFromPath(existingSignaturePath), "signature")}
+                  disabled={downloadingId === extractIdFromPath(existingSignaturePath)}
+                  className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                 >
-                  View previously uploaded signature
-                </a>
+                  {downloadingId === extractIdFromPath(existingSignaturePath) ? 'Downloading...' : 'Download signature'}
+                </button>
               )}
             </div>
           </div>

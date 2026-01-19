@@ -21,12 +21,14 @@ import { toast } from "react-toastify";
 import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
 import { Formik } from "formik";
 import { contributingMemberStep3Schema } from "@/validation";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step4BankRelationshipRequirement() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const [pendingUploads, setPendingUploads] = useState(0);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const {
     isClient24Months,
@@ -248,14 +250,15 @@ export default function Step4BankRelationshipRequirement() {
         {touched.bankReferenceLetterFile && errors.bankReferenceLetterFile && !values.bankReferenceLetterFileId && (
           <p className="text-red-500 text-sm mt-2">{errors.bankReferenceLetterFile as string}</p>
         )}
-        {bankReferenceLetterFilePath && (
-          <a
-            href={bankReferenceLetterFilePath}
-            target="_blank"
-            className="text-[#C6A95F] underline mt-2 block"
+        {bankReferenceLetterFilePath && !bankFile && (
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(bankReferenceLetterFilePath), "bank reference letter")}
+            disabled={downloadingId === extractIdFromPath(bankReferenceLetterFilePath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View previously uploaded bank reference letter
-          </a>
+            {downloadingId === extractIdFromPath(bankReferenceLetterFilePath) ? 'Downloading...' : 'Download bank reference letter'}
+          </button>
         )}
       </div>
 

@@ -24,6 +24,7 @@ import { useStep8DeclarationConsent } from '@/hooks/useStep8DeclarationConsent';
 import { Formik } from "formik";
 import { affiliateMemberStep8Schema } from "@/validation";
 import { extractDocumentIdFromPath } from "@/validation/utils/fileValidation";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step8Agreement() {
   const { state, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, dispatch } = useUploadDetails();
@@ -31,6 +32,7 @@ export default function Step8Agreement() {
   const isSaving = state.isSaving;
 
   const sigPadRef = useRef<SignaturePad>(null);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const [openSigPad, setOpenSigPad] = useState(false);
   const [pendingUploads, setPendingUploads] = useState(0);
@@ -254,13 +256,14 @@ export default function Step8Agreement() {
                 <p className="text-red-500 text-sm mt-2">{errors.signatureURL as string}</p>
               )}
               {existingSignaturePath && !signatureURL && (
-                <a
-                  href={existingSignaturePath}
-                  target="_blank"
-                  className="text-[#C6A95F] underline mt-2 block"
+                <button
+                  type="button"
+                  onClick={() => downloadDocument(extractIdFromPath(existingSignaturePath), "signature")}
+                  disabled={downloadingId === extractIdFromPath(existingSignaturePath)}
+                  className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                 >
-                  View previously uploaded signature
-                </a>
+                  {downloadingId === extractIdFromPath(existingSignaturePath) ? 'Downloading...' : 'Download signature'}
+                </button>
               )}
             </div>
           </div>
