@@ -340,6 +340,16 @@ export default function Step3Regulatory() {
                           setFieldValue('ongoingDetailsFileId', null);
                         }}
                       />
+                      {formData.regulatorCompliance?.investigationSupportingDocumentPath?.[0] && !hook.ongoingDetailsFile && (
+                        <button
+                          type="button"
+                          onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.investigationSupportingDocumentPath?.[0]), "Supporting Document")}
+                          disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.investigationSupportingDocumentPath?.[0])}
+                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
+                        >
+                          {downloadingId === extractIdFromPath(formData.regulatorCompliance?.investigationSupportingDocumentPath?.[0]) ? 'Downloading...' : 'Download Previous Document'}
+                        </button>
+                      )}
                       {touched.ongoingDetailsFile && errors.ongoingDetailsFile && (
                         <p className="text-red-500 text-sm mt-1">{errors.ongoingDetailsFile as string}</p>
                       )}

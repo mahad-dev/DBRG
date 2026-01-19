@@ -10,12 +10,14 @@ import { parseApiError } from '@/utils/errorHandler';
 import { Formik, Form } from 'formik';
 import { principalMemberStep6Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step6RequiredDocumentChecklist(): React.ReactElement {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
   const formData = state.data;
   const isSaving = state.isSaving;
   const [pendingUploads, setPendingUploads] = useState<number>(0);
+  const { downloadDocument, downloadingId, extractIdFromPath: extractIdFromPathHook } = useDocumentDownload();
 
   const {
     items,
@@ -279,13 +281,14 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                   }}
                 />
                 {(formData.memberRequiredDocuments as any)?.[pathMap[it.id]] && !files[it.id] && (
-                  <a
-                    href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
-                    target="_blank"
-                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                  <button
+                    type="button"
+                    onClick={() => downloadDocument(extractIdFromPathHook((formData.memberRequiredDocuments as any)[pathMap[it.id]]), it.label)}
+                    disabled={downloadingId === extractIdFromPathHook((formData.memberRequiredDocuments as any)[pathMap[it.id]])}
+                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                   >
-                    View Previous Document
-                  </a>
+                    {downloadingId === extractIdFromPathHook((formData.memberRequiredDocuments as any)[pathMap[it.id]]) ? 'Downloading...' : 'Download Previous Document'}
+                  </button>
                 )}
                 {(touched as any)[`${it.id}_file`] && (errors as any)[`${it.id}_file`] && (
                   <p className="text-red-500 text-sm mt-2">{(errors as any)[`${it.id}_file`] as string}</p>

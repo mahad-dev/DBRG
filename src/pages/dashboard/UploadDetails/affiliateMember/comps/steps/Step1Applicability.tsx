@@ -545,11 +545,11 @@ export default function Step1Applicability() {
               {existingOfficeProofPath && !officeProofFile && (
                 <button
                   type="button"
-                  onClick={() => downloadDocument(extractIdFromPathLocal(existingOfficeProofPath), "office proof document")}
+                  onClick={() => downloadDocument(extractIdFromPathLocal(existingOfficeProofPath), "Office Proof Document")}
                   disabled={downloadingId === extractIdFromPathLocal(existingOfficeProofPath)}
                   className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                 >
-                  {downloadingId === extractIdFromPathLocal(existingOfficeProofPath) ? 'Downloading...' : 'Download document'}
+                  {downloadingId === extractIdFromPathLocal(existingOfficeProofPath) ? 'Downloading...' : 'Download Previous Document'}
                 </button>
               )}
             </div>
@@ -634,11 +634,11 @@ export default function Step1Applicability() {
           {existingTradeLicensePath && !tradeLicenseFile && (
             <button
               type="button"
-              onClick={() => downloadDocument(extractIdFromPathLocal(existingTradeLicensePath), "trade license document")}
+              onClick={() => downloadDocument(extractIdFromPathLocal(existingTradeLicensePath), "Trade License Document")}
               disabled={downloadingId === extractIdFromPathLocal(existingTradeLicensePath)}
               className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
             >
-              {downloadingId === extractIdFromPathLocal(existingTradeLicensePath) ? 'Downloading...' : 'Download document'}
+              {downloadingId === extractIdFromPathLocal(existingTradeLicensePath) ? 'Downloading...' : 'Download Previous Document'}
             </button>
           )}
         </div>
@@ -681,11 +681,11 @@ export default function Step1Applicability() {
           {existingSignedAMLPath && !signedAMLFile && (
             <button
               type="button"
-              onClick={() => downloadDocument(extractIdFromPathLocal(existingSignedAMLPath), "AML Declaration")}
+              onClick={() => downloadDocument(extractIdFromPathLocal(existingSignedAMLPath), "Signed AML Declaration")}
               disabled={downloadingId === extractIdFromPathLocal(existingSignedAMLPath)}
               className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
             >
-              {downloadingId === extractIdFromPathLocal(existingSignedAMLPath) ? 'Downloading...' : 'Download AML Declaration'}
+              {downloadingId === extractIdFromPathLocal(existingSignedAMLPath) ? 'Downloading...' : 'Download Previous Document'}
             </button>
           )}
         </div>
