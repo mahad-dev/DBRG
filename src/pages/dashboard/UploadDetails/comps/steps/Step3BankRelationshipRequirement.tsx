@@ -20,11 +20,13 @@ import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from "react-toastify";
 import { parseApiError } from "@/utils/errorHandler";
 import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelationshipRequirement";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step3BankRelationshipRequirement() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const {
     isClient24Months,
@@ -158,14 +160,14 @@ export default function Step3BankRelationshipRequirement() {
           id="bank-upload"
           onRemove={() => setBankFile(null)}
         />
-        {formData.bankRelationReq?.bankReferenceLetterFilePath  && (
-          <a
-            href={formData.bankRelationReq.bankReferenceLetterFilePath}
-            target="_blank"
-            className="text-[#C6A95F] underline mt-2 block"
+        {formData.bankRelationReq?.bankReferenceLetterFilePath && !bankFile && (
+          <button
+            onClick={() => downloadDocument(extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath), "bank reference letter")}
+            disabled={downloadingId === extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View previously uploaded bank reference letter
-          </a>
+            {downloadingId === extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath) ? 'Downloading...' : 'Download bank reference letter'}
+          </button>
         )}
       </div>
 

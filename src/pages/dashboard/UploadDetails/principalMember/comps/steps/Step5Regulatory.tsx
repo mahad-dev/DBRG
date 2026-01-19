@@ -14,11 +14,13 @@ import { toast } from 'react-toastify';
 import { parseApiError } from '@/utils/errorHandler';
 import { principalMemberStep5Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step5Regulatory() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
   const isSaving = state.isSaving;
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   // Track pending file uploads
   const [pendingUploads, setPendingUploads] = useState<number>(0);
@@ -420,13 +422,14 @@ export default function Step5Regulatory() {
                       }}
                     />
                     {formData.regulatorCompliance?.amlCftPolicyDocumentFilePath && !hook.amlPolicyFile && (
-                      <a
-                        href={formData.regulatorCompliance.amlCftPolicyDocumentFilePath}
-                        target="_blank"
-                        className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                      <button
+                        type="button"
+                        onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.amlCftPolicyDocumentFilePath), "AML/CFT Policy")}
+                        disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.amlCftPolicyDocumentFilePath)}
+                        className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                       >
-                        View Previous Document
-                      </a>
+                        {downloadingId === extractIdFromPath(formData.regulatorCompliance?.amlCftPolicyDocumentFilePath) ? 'Downloading...' : 'Download Previous Document'}
+                      </button>
                     )}
                     {touched.amlPolicyFile && errors.amlPolicyFile && (
                       <p className="text-red-500 text-sm mt-2">{errors.amlPolicyFile as string}</p>
@@ -565,13 +568,14 @@ export default function Step5Regulatory() {
                         }}
                       />
                       {formData.regulatorCompliance?.declarationNoPenaltyFilePath && !hook.declarationFile && (
-                        <a
-                          href={formData.regulatorCompliance.declarationNoPenaltyFilePath}
-                          target="_blank"
-                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                        <button
+                          type="button"
+                          onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.declarationNoPenaltyFilePath), "Declaration No Penalty")}
+                          disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.declarationNoPenaltyFilePath)}
+                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                         >
-                          View Previous Document
-                        </a>
+                          {downloadingId === extractIdFromPath(formData.regulatorCompliance?.declarationNoPenaltyFilePath) ? 'Downloading...' : 'Download Previous Document'}
+                        </button>
                       )}
                       {touched.declarationFile && errors.declarationFile && (
                         <p className="text-red-500 text-sm mt-2">{errors.declarationFile as string}</p>
@@ -656,13 +660,14 @@ export default function Step5Regulatory() {
                         }}
                       />
                       {formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath && !hook.supplyChainDueDiligenceFile && (
-                        <a
-                          href={formData.regulatorCompliance.supplyChainPolicyDocumentFilePath}
-                          target="_blank"
-                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                        <button
+                          type="button"
+                          onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath), "Supply Chain Policy")}
+                          disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath)}
+                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                         >
-                          View Previous Document
-                        </a>
+                          {downloadingId === extractIdFromPath(formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath) ? 'Downloading...' : 'Download Previous Document'}
+                        </button>
                       )}
                       {touched.supplyChainDueDiligenceFile && errors.supplyChainDueDiligenceFile && (
                         <p className="text-red-500 text-sm mt-2">{errors.supplyChainDueDiligenceFile as string}</p>
@@ -729,13 +734,14 @@ export default function Step5Regulatory() {
                         }}
                       />
                       {formData.regulatorCompliance?.assuranceReportFilePath && !hook.responsibleSourcingFile && (
-                        <a
-                          href={formData.regulatorCompliance.assuranceReportFilePath}
-                          target="_blank"
-                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                        <button
+                          type="button"
+                          onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.assuranceReportFilePath), "Assurance Report")}
+                          disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.assuranceReportFilePath)}
+                          className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                         >
-                          View Previous Document
-                        </a>
+                          {downloadingId === extractIdFromPath(formData.regulatorCompliance?.assuranceReportFilePath) ? 'Downloading...' : 'Download Previous Document'}
+                        </button>
                       )}
                       {touched.responsibleSourcingFile && errors.responsibleSourcingFile && (
                         <p className="text-red-500 text-sm mt-2">{errors.responsibleSourcingFile as string}</p>

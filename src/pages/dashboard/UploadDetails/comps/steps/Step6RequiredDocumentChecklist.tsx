@@ -7,6 +7,7 @@ import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
 import { parseApiError } from '@/utils/errorHandler';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step6RequiredDocumentChecklist(): React.ReactElement {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
@@ -32,6 +33,7 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
   } = useStep6RequiredDocuments(formData?.memberRequiredDocuments);
 
   const [selectedDocType, setSelectedDocType] = useState<string>(""); // radio toggle state
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   // Auto-select otherForms if there are other forms in the data
   React.useEffect(() => {
@@ -183,13 +185,13 @@ export default function Step6RequiredDocumentChecklist(): React.ReactElement {
                   onRemove={() => removeItemFile(it.id)}
                 />
                 {(formData.memberRequiredDocuments as any)?.[pathMap[it.id]] && !files[it.id] && (
-                  <a
-                    href={(formData.memberRequiredDocuments as any)[pathMap[it.id]]}
-                    target="_blank"
-                    className="text-[#C6A95F] underline mt-2 block"
+                  <button
+                    onClick={() => downloadDocument(extractIdFromPath((formData.memberRequiredDocuments as any)[pathMap[it.id]]), it.label)}
+                    disabled={downloadingId === extractIdFromPath((formData.memberRequiredDocuments as any)[pathMap[it.id]])}
+                    className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                   >
-                    View previously uploaded {it.label}
-                  </a>
+                    {downloadingId === extractIdFromPath((formData.memberRequiredDocuments as any)[pathMap[it.id]]) ? 'Downloading...' : `Download ${it.label}`}
+                  </button>
                 )}
               </div>
             </div>

@@ -11,6 +11,7 @@ import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
 import { Formik } from "formik";
 import { contributingMemberStep5Schema } from "@/validation";
+import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 
 export default function Step3Regulatory() {
   const { state,dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
@@ -20,6 +21,7 @@ export default function Step3Regulatory() {
 
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const [pendingUploads, setPendingUploads] = useState(0);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const hook = useStep5Regulatory(formData.regulatorCompliance);
 
@@ -503,13 +505,14 @@ export default function Step3Regulatory() {
                 <p className="text-red-500 text-sm mt-2">{errors.amlPolicyFile as string}</p>
               )}
               {formData.regulatorCompliance?.amlCftPolicyDocumentFilePath && !hook.amlPolicyFile && (
-                <a
-                  href={formData.regulatorCompliance.amlCftPolicyDocumentFilePath}
-                  target="_blank"
-                  className="text-[#C6A95F] underline mt-2 block"
+                <button
+                  type="button"
+                  onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.amlCftPolicyDocumentFilePath), "AML/CFT policy document")}
+                  disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.amlCftPolicyDocumentFilePath)}
+                  className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                 >
-                  View previously uploaded AML/CFT policy document
-                </a>
+                  {downloadingId === extractIdFromPath(formData.regulatorCompliance?.amlCftPolicyDocumentFilePath) ? 'Downloading...' : 'Download AML/CFT policy document'}
+                </button>
               )}
             </div>
           )}
@@ -695,13 +698,14 @@ export default function Step3Regulatory() {
                   <p className="text-red-500 text-sm mt-2">{errors.declarationFile as string}</p>
                 )}
                 {formData.regulatorCompliance?.declarationNoPenaltyFilePath && !hook.declarationFile && (
-                  <a
-                    href={formData.regulatorCompliance.declarationNoPenaltyFilePath}
-                    target="_blank"
-                    className="text-[#C6A95F] underline mt-2 block"
+                  <button
+                    type="button"
+                    onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.declarationNoPenaltyFilePath), "declaration document")}
+                    disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.declarationNoPenaltyFilePath)}
+                    className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                   >
-                    View previously uploaded declaration document
-                  </a>
+                    {downloadingId === extractIdFromPath(formData.regulatorCompliance?.declarationNoPenaltyFilePath) ? 'Downloading...' : 'Download declaration document'}
+                  </button>
                 )}
               </div>
             </div>
@@ -808,13 +812,14 @@ export default function Step3Regulatory() {
                   <p className="text-red-500 text-sm mt-2">{errors.supplyChainDueDiligenceFile as string}</p>
                 )}
                 {formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath && !hook.supplyChainDueDiligenceFile && (
-                  <a
-                    href={formData.regulatorCompliance.supplyChainPolicyDocumentFilePath}
-                    target="_blank"
-                    className="text-[#C6A95F] underline mt-2 block"
+                  <button
+                    type="button"
+                    onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath), "supply chain policy document")}
+                    disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath)}
+                    className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                   >
-                    View previously uploaded supply chain policy document
-                  </a>
+                    {downloadingId === extractIdFromPath(formData.regulatorCompliance?.supplyChainPolicyDocumentFilePath) ? 'Downloading...' : 'Download supply chain policy document'}
+                  </button>
                 )}
               </div>
             )}
@@ -891,13 +896,14 @@ export default function Step3Regulatory() {
                   <p className="text-red-500 text-sm mt-2">{errors.responsibleSourcingFile as string}</p>
                 )}
                 {formData.regulatorCompliance?.assuranceReportFilePath && !hook.responsibleSourcingFile && (
-                  <a
-                    href={formData.regulatorCompliance.assuranceReportFilePath}
-                    target="_blank"
-                    className="text-[#C6A95F] underline mt-2 block"
+                  <button
+                    type="button"
+                    onClick={() => downloadDocument(extractIdFromPath(formData.regulatorCompliance?.assuranceReportFilePath), "responsible sourcing audit evidence")}
+                    disabled={downloadingId === extractIdFromPath(formData.regulatorCompliance?.assuranceReportFilePath)}
+                    className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
                   >
-                    View previously uploaded responsible sourcing audit evidence
-                  </a>
+                    {downloadingId === extractIdFromPath(formData.regulatorCompliance?.assuranceReportFilePath) ? 'Downloading...' : 'Download responsible sourcing audit evidence'}
+                  </button>
                 )}
               </div>
             )}

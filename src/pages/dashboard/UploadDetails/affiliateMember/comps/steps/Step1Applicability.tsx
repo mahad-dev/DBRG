@@ -17,6 +17,7 @@ import { useStep1Applicability } from '@/hooks/useStep1Applicability';
 import { useAuth } from '@/context/AuthContext';
 import { Formik, Form } from 'formik';
 import { affiliateMemberStep1Schema } from '@/validation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step1Applicability() {
   const { state, dispatch, uploadDocument, saveUploadDetails, updateFormData, setCurrentStep, getUploadDetails } = useUploadDetails();
@@ -28,6 +29,7 @@ export default function Step1Applicability() {
 
   // Track pending file uploads
   const [pendingUploads, setPendingUploads] = useState<number>(0);
+  const { downloadDocument, downloadingId } = useDocumentDownload();
 
   // ---- Special Consideration rules from GET ----
   const isSpecialConsiderationPresent =
@@ -63,8 +65,8 @@ export default function Step1Applicability() {
   const [tradeLicenseDocumentId, setTradeLicenseDocumentId] = useState<number | null>(null);
   const [signedAMLDocumentId, setSignedAMLDocumentId] = useState<number | null>(null);
 
-  // Helper to extract document ID from S3 path
-  const extractIdFromPath = (path: string | null): number | null => {
+  // Helper to extract document ID from S3 path (local version with fallback)
+  const extractIdFromPathLocal = (path: string | null): number | null => {
     if (!path) return null;
     // Try to match pattern: /12345_filename or 12345_filename
     const match = path.match(/\/(\d+)_/);
@@ -104,7 +106,7 @@ export default function Step1Applicability() {
       }
 
       // Try backend ID first, fallback to path extraction
-      officeProofId = backendId ?? extractIdFromPath(path);
+      officeProofId = backendId ?? extractIdFromPathLocal(path);
       console.log('✅ useMemo: Office proof - Path:', path, 'Backend ID:', backendId, 'Extracted ID:', officeProofId);
     }
 
@@ -125,7 +127,7 @@ export default function Step1Applicability() {
       }
 
       // Try backend ID first, fallback to path extraction
-      tradeLicenseId = backendId ?? extractIdFromPath(path);
+      tradeLicenseId = backendId ?? extractIdFromPathLocal(path);
       console.log('✅ useMemo: Trade license - Path:', path, 'Backend ID:', backendId, 'Extracted ID:', tradeLicenseId);
     }
 
@@ -140,7 +142,7 @@ export default function Step1Applicability() {
         backendId = parseInt(affiliateData.signedAMLDeclaration, 10);
       }
 
-      signedAMLId = backendId ?? extractIdFromPath(affiliateData.signedAMLDeclarationPath);
+      signedAMLId = backendId ?? extractIdFromPathLocal(affiliateData.signedAMLDeclarationPath);
       console.log('✅ useMemo: Signed AML - Path:', affiliateData.signedAMLDeclarationPath, 'Backend ID:', backendId, 'Extracted ID:', signedAMLId);
     }
 
@@ -313,22 +315,16 @@ export default function Step1Applicability() {
       });
 
       // CRITICAL FIX: If validation passed but IDs are still null, extract from existing paths
-      const extractIdFromPath = (path: string | null): number | null => {
-        if (!path) return null;
-        const match = path.match(/\/(\d+)_/);
-        return match ? parseInt(match[1], 10) : null;
-      };
-
       if (!finalOfficeProofId && existingOfficeProofPath) {
-        finalOfficeProofId = extractIdFromPath(existingOfficeProofPath);
+        finalOfficeProofId = extractIdFromPathLocal(existingOfficeProofPath);
         console.warn('⚠️ Office proof ID was null, extracted from path:', finalOfficeProofId);
       }
       if (!finalTradeLicenseId && existingTradeLicensePath) {
-        finalTradeLicenseId = extractIdFromPath(existingTradeLicensePath);
+        finalTradeLicenseId = extractIdFromPathLocal(existingTradeLicensePath);
         console.warn('⚠️ Trade license ID was null, extracted from path:', finalTradeLicenseId);
       }
       if (!finalSignedAMLId && existingSignedAMLPath) {
-        finalSignedAMLId = extractIdFromPath(existingSignedAMLPath);
+        finalSignedAMLId = extractIdFromPathLocal(existingSignedAMLPath);
         console.warn('⚠️ Signed AML ID was null, extracted from path:', finalSignedAMLId);
       }
 
@@ -547,13 +543,14 @@ export default function Step1Applicability() {
                 <p className="text-red-500 text-sm mt-1">{errors.uaeOfficeProofDocuments as string}</p>
               )}
               {existingOfficeProofPath && !officeProofFile && (
-                <a
-                  href={existingOfficeProofPath}
-                  target="_blank"
-                  className="mt-2 inline-block text-[#C6A95F] underline"
+                <button
+                  type="button"
+                  onClick={() => downloadDocument(extractIdFromPathLocal(existingOfficeProofPath), "office proof document")}
+                  disabled={downloadingId === extractIdFromPathLocal(existingOfficeProofPath)}
+                  className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                 >
-                  View previously uploaded document
-                </a>
+                  {downloadingId === extractIdFromPathLocal(existingOfficeProofPath) ? 'Downloading...' : 'Download document'}
+                </button>
               )}
             </div>
           )}
@@ -635,13 +632,14 @@ export default function Step1Applicability() {
             <p className="text-red-500 text-sm mt-1">{errors.eligibilitySupportingDocuments as string}</p>
           )}
           {existingTradeLicensePath && !tradeLicenseFile && (
-            <a
-              href={existingTradeLicensePath}
-              target="_blank"
-              className="mt-2 inline-block text-[#C6A95F] underline"
+            <button
+              type="button"
+              onClick={() => downloadDocument(extractIdFromPathLocal(existingTradeLicensePath), "trade license document")}
+              disabled={downloadingId === extractIdFromPathLocal(existingTradeLicensePath)}
+              className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
             >
-              View previously uploaded document
-            </a>
+              {downloadingId === extractIdFromPathLocal(existingTradeLicensePath) ? 'Downloading...' : 'Download document'}
+            </button>
           )}
         </div>
 
@@ -681,13 +679,14 @@ export default function Step1Applicability() {
             <p className="text-red-500 text-sm mt-1">{errors.signedAMLDeclaration as string}</p>
           )}
           {existingSignedAMLPath && !signedAMLFile && (
-            <a
-              href={existingSignedAMLPath}
-              target="_blank"
-              className="mt-2 inline-block text-[#C6A95F] underline"
+            <button
+              type="button"
+              onClick={() => downloadDocument(extractIdFromPathLocal(existingSignedAMLPath), "AML Declaration")}
+              disabled={downloadingId === extractIdFromPathLocal(existingSignedAMLPath)}
+              className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
             >
-              View previously uploaded AML Declaration
-            </a>
+              {downloadingId === extractIdFromPathLocal(existingSignedAMLPath) ? 'Downloading...' : 'Download AML Declaration'}
+            </button>
           )}
         </div>
 
@@ -745,14 +744,7 @@ export default function Step1Applicability() {
           onOpenChange={setSpecialConsiderationOpen}
           onSubmit={async (message: string) => {
             try {
-              // Extract ID from S3 path
-              const extractIdFromPath = (path: string | null): number | null => {
-                if (!path) return null;
-                const match = path.match(/\/(\d+)_/);
-                return match ? parseInt(match[1], 10) : null;
-              };
-
-              let signedAMLDocumentId = extractIdFromPath(existingSignedAMLPath);
+              let signedAMLDocumentId = extractIdFromPathLocal(existingSignedAMLPath);
 
               // Prepare applicability data based on membership type
               let applicabilityData: any = {};

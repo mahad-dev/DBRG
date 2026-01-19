@@ -22,10 +22,12 @@ import { useStep3BankRelationshipRequirement } from "@/hooks/useStep3BankRelatio
 import { Formik, Form } from 'formik';
 import { principalMemberStep3Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step3BankRelationshipRequirement() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const hook = useStep3BankRelationshipRequirement(formData.bankRelationReq);
   const {
@@ -236,13 +238,14 @@ export default function Step3BankRelationshipRequirement() {
                 }}
               />
               {formData.bankRelationReq?.bankReferenceLetterFilePath && !bankFile && (
-                <a
-                  href={formData.bankRelationReq.bankReferenceLetterFilePath}
-                  target="_blank"
-                  className="mt-2 inline-block text-[#C6A95F] underline"
+                <button
+                  type="button"
+                  onClick={() => downloadDocument(extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath), "Bank Reference Letter")}
+                  disabled={downloadingId === extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath)}
+                  className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                 >
-                  View Previous Document
-                </a>
+                  {downloadingId === extractIdFromPath(formData.bankRelationReq?.bankReferenceLetterFilePath) ? 'Downloading...' : 'Download Previous Document'}
+                </button>
               )}
               {touched.bankReferenceLetterFile && errors.bankReferenceLetterFile && (
                 <p className="text-red-500 text-sm mt-2">{errors.bankReferenceLetterFile as string}</p>

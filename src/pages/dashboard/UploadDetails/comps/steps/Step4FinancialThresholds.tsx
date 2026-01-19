@@ -12,6 +12,7 @@ import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
 import { toast } from 'react-toastify';
 import { parseApiError } from '@/utils/errorHandler';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step4FinancialThresholds() {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
@@ -19,6 +20,7 @@ export default function Step4FinancialThresholds() {
   const isSaving = state.isSaving;
 
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const {
     paidUpCapital,
@@ -182,14 +184,14 @@ export default function Step4FinancialThresholds() {
             id="bullion-upload"
             onRemove={() => setBullionFile(null)}
           />
-          {bullionTurnoverProofFileIdPath && (
-            <a
-              href={bullionTurnoverProofFileIdPath}
-              target="_blank"
-              className="text-[#C6A95F] underline mt-2 block"
+          {bullionTurnoverProofFileIdPath && !bullionFile && (
+            <button
+              onClick={() => downloadDocument(extractIdFromPath(bullionTurnoverProofFileIdPath), "bullion turnover proof")}
+              disabled={downloadingId === extractIdFromPath(bullionTurnoverProofFileIdPath)}
+              className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
             >
-              View previously uploaded bullion turnover proof
-            </a>
+              {downloadingId === extractIdFromPath(bullionTurnoverProofFileIdPath) ? 'Downloading...' : 'Download bullion turnover proof'}
+            </button>
           )}
         </div>
       </div>
@@ -233,13 +235,13 @@ export default function Step4FinancialThresholds() {
             Download Template
           </Button>
           {netWorthProofPath && !netWorthFile && (
-            <a
-              href={netWorthProofPath}
-              target="_blank"
-              className="text-[#C6A95F] underline mt-2 block"
+            <button
+              onClick={() => downloadDocument(extractIdFromPath(netWorthProofPath), "net worth proof")}
+              disabled={downloadingId === extractIdFromPath(netWorthProofPath)}
+              className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
             >
-              View previously uploaded net worth proof
-            </a>
+              {downloadingId === extractIdFromPath(netWorthProofPath) ? 'Downloading...' : 'Download net worth proof'}
+            </button>
           )}
         </div>
       </div>

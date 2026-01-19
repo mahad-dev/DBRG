@@ -16,6 +16,7 @@ import {
 import { toast } from "react-toastify";
 import { parseApiError } from "@/utils/errorHandler";
 import { useStep1Applicability } from '@/hooks/useStep1Applicability';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 import { useState } from "react";
 
 export default function Step1Applicability() {
@@ -25,6 +26,7 @@ export default function Step1Applicability() {
   const isSaving = state.isSaving;
   const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const [currentSetValue, setCurrentSetValue] = useState<((value: boolean) => void) | null>(null);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   // Use the custom hook
   const {
@@ -352,13 +354,13 @@ export default function Step1Applicability() {
               onRemove={removeEvidenceFile}
             />
             {existingEvidencePath && !evidenceFile && (
-              <a
-                href={existingEvidencePath}
-                target="_blank"
-                className="text-[#C6A95F] underline mt-2 block"
+              <button
+                onClick={() => downloadDocument(extractIdFromPath(existingEvidencePath), "evidence")}
+                disabled={downloadingId === extractIdFromPath(existingEvidencePath)}
+                className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
               >
-                View previously uploaded evidence
-              </a>
+                {downloadingId === extractIdFromPath(existingEvidencePath) ? 'Downloading...' : 'Download evidence'}
+              </button>
             )}
           </div>
         </div>
@@ -395,13 +397,13 @@ export default function Step1Applicability() {
             onRemove={removeSignedAMLFile}
           />
           {existingSignedAMLPath && !signedAMLFile && (
-            <a
-              href={existingSignedAMLPath}
-              target="_blank"
-              className="text-[#C6A95F] underline mt-2 block"
+            <button
+              onClick={() => downloadDocument(extractIdFromPath(existingSignedAMLPath), "AML Declaration")}
+              disabled={downloadingId === extractIdFromPath(existingSignedAMLPath)}
+              className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
             >
-              View previously uploaded AML Declaration
-            </a>
+              {downloadingId === extractIdFromPath(existingSignedAMLPath) ? 'Downloading...' : 'Download AML Declaration'}
+            </button>
           )}
         </div>
       </div>

@@ -24,6 +24,7 @@ import { toast } from 'react-toastify';
 import { parseApiError } from '@/utils/errorHandler';
 import { Formik } from 'formik';
 import { affiliateMemberStep2Schema } from '@/validation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 interface StepProps {
   onNext?: () => void;
@@ -33,6 +34,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
   const isSaving = state.isSaving;
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   // Use the hook with prefill data
   const {
@@ -492,14 +494,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.tradeLicenseDocumentPath && !uploadBoxes.tradeLicense && (
-          <a
-            href={form.tradeLicenseDocumentPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.tradeLicenseDocumentPath), "Trade License")}
+            disabled={downloadingId === extractIdFromPath(form.tradeLicenseDocumentPath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded Trade License
-          </a>
+            {downloadingId === extractIdFromPath(form.tradeLicenseDocumentPath) ? 'Downloading...' : 'Download Trade License'}
+          </button>
         )}
       </div>
 
@@ -661,14 +663,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.certificateOfIncorporationPath && !uploadBoxes.coi && (
-          <a
-            href={form.certificateOfIncorporationPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.certificateOfIncorporationPath), "Certificate of Incorporation")}
+            disabled={downloadingId === extractIdFromPath(form.certificateOfIncorporationPath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded Certificate of Incorporation
-          </a>
+            {downloadingId === extractIdFromPath(form.certificateOfIncorporationPath) ? 'Downloading...' : 'Download Certificate of Incorporation'}
+          </button>
         )}
       </div>
 
@@ -730,14 +732,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.passportDocumentPath && !uploadBoxes.passport && (
-          <a
-            href={form.passportDocumentPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.passportDocumentPath), "Passport")}
+            disabled={downloadingId === extractIdFromPath(form.passportDocumentPath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded Passport
-          </a>
+            {downloadingId === extractIdFromPath(form.passportDocumentPath) ? 'Downloading...' : 'Download Passport'}
+          </button>
         )}
       </div>
 
@@ -799,14 +801,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.nationalIdDocumentPath && !uploadBoxes.nationalId && (
-          <a
-            href={form.nationalIdDocumentPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.nationalIdDocumentPath), "National ID")}
+            disabled={downloadingId === extractIdFromPath(form.nationalIdDocumentPath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded National ID
-          </a>
+            {downloadingId === extractIdFromPath(form.nationalIdDocumentPath) ? 'Downloading...' : 'Download National ID'}
+          </button>
         )}
       </div>
 
@@ -868,14 +870,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.vatDocumentPath && !uploadBoxes.vatDoc && (
-          <a
-            href={form.vatDocumentPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.vatDocumentPath), "VAT Document")}
+            disabled={downloadingId === extractIdFromPath(form.vatDocumentPath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded VAT Document
-          </a>
+            {downloadingId === extractIdFromPath(form.vatDocumentPath) ? 'Downloading...' : 'Download VAT Document'}
+          </button>
         )}
       </div>
 
@@ -937,14 +939,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.taxRegistrationDocumentPath && !uploadBoxes.taxRegDoc && (
-          <a
-            href={form.taxRegistrationDocumentPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.taxRegistrationDocumentPath), "Tax Registration")}
+            disabled={downloadingId === extractIdFromPath(form.taxRegistrationDocumentPath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded Tax Registration Document
-          </a>
+            {downloadingId === extractIdFromPath(form.taxRegistrationDocumentPath) ? 'Downloading...' : 'Download Tax Registration Document'}
+          </button>
         )}
       </div>
 
@@ -1124,14 +1126,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.addressProofDocumentPath && !uploadBoxes.addressProof && (
-          <a
-            href={form.addressProofDocumentPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.addressProofDocumentPath), "Address Proof")}
+            disabled={downloadingId === extractIdFromPath(form.addressProofDocumentPath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded Address Proof
-          </a>
+            {downloadingId === extractIdFromPath(form.addressProofDocumentPath) ? 'Downloading...' : 'Download Address Proof'}
+          </button>
         )}
       </div>
 
@@ -1370,14 +1372,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             )}
 
             {s.proofFilePath && !s.proofFile && (
-              <a
-                href={s.proofFilePath}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#C6A95F] underline mt-2 block"
+              <button
+                type="button"
+                onClick={() => downloadDocument(extractIdFromPath(s.proofFilePath), "Shareholding Proof")}
+                disabled={downloadingId === extractIdFromPath(s.proofFilePath)}
+                className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
               >
-                View Existing Document
-              </a>
+                {downloadingId === extractIdFromPath(s.proofFilePath) ? 'Downloading...' : 'Download Shareholding Proof'}
+              </button>
             )}
           </div>
 
@@ -1630,14 +1632,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
             )}
 
             {u.confirmationFilePath && !u.confirmationFile && (
-              <a
-                href={u.confirmationFilePath}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#C6A95F] underline mt-2 block"
+              <button
+                type="button"
+                onClick={() => downloadDocument(extractIdFromPath(u.confirmationFilePath), "UBO Confirmation")}
+                disabled={downloadingId === extractIdFromPath(u.confirmationFilePath)}
+                className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
               >
-                View Existing Document
-              </a>
+                {downloadingId === extractIdFromPath(u.confirmationFilePath) ? 'Downloading...' : 'Download UBO Confirmation'}
+              </button>
             )}
           </div>
 
@@ -2053,14 +2055,14 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         )}
 
         {form.accreditationCertificatePath && !uploadBoxes.tradeAssociationCertificate && (
-          <a
-            href={form.accreditationCertificatePath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#C6A95F] underline mt-2 block"
+          <button
+            type="button"
+            onClick={() => downloadDocument(extractIdFromPath(form.accreditationCertificatePath), "Accreditation Certificate")}
+            disabled={downloadingId === extractIdFromPath(form.accreditationCertificatePath)}
+            className="text-[#C6A95F] underline mt-2 block cursor-pointer disabled:opacity-50"
           >
-            View Uploaded Accreditation Certificate
-          </a>
+            {downloadingId === extractIdFromPath(form.accreditationCertificatePath) ? 'Downloading...' : 'Download Accreditation Certificate'}
+          </button>
         )}
       </div>
 

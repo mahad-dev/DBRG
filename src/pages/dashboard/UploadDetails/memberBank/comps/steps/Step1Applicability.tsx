@@ -24,6 +24,7 @@ import {
   ServiceType,
   RefiningOrTradingType,
 } from "@/types/uploadDetails";
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 /* --------------------------------------------------------------------- */
 /* Helpers                                                               */
@@ -36,7 +37,7 @@ const serviceMap: Record<string, ServiceType> = {
   financial: ServiceType.FinancialServicesInUAE,
 };
 
-const extractIdFromPath = (path: string | null): number | null => {
+const extractIdFromPathLocal = (path: string | null): number | null => {
   if (!path) return null;
   const match = path.match(/\/(\d+)_/);
   return match ? Number(match[1]) : null;
@@ -59,6 +60,7 @@ export default function Step1Applicability() {
   const navigate = useNavigate();
   const formData = state.data;
   const isSaving = state.isSaving;
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const [specialConsiderationOpen, setSpecialConsiderationOpen] =
     useState(false);
@@ -301,7 +303,7 @@ export default function Step1Applicability() {
 
     try {
       // Use document IDs from immediate uploads (no upload on save)
-      const signedId = signedAMLDocumentId || extractIdFromPath(existingSignedAMLPath);
+      const signedId = signedAMLDocumentId || extractIdFromPathLocal(existingSignedAMLPath);
 
       const membershipType = membership === "principal" ? MembershipType.PrincipalMember :
                            membership === "member_bank" ? MembershipType.MemberBank :
@@ -550,13 +552,14 @@ export default function Step1Applicability() {
               )}
 
               {existingSignedAMLPath && !signedAMLFile && (
-                <a
-                  href={existingSignedAMLPath}
-                  target="_blank"
-                  className="text-[#C6A95F] underline block mt-2"
+                <button
+                  type="button"
+                  onClick={() => downloadDocument(extractIdFromPath(existingSignedAMLPath), "Signed AML Declaration")}
+                  disabled={downloadingId === extractIdFromPath(existingSignedAMLPath)}
+                  className="text-[#C6A95F] underline block mt-2 cursor-pointer disabled:opacity-50"
                 >
-                  View uploaded document
-                </a>
+                  {downloadingId === extractIdFromPath(existingSignedAMLPath) ? 'Downloading...' : 'Download Previous Document'}
+                </button>
               )}
             </div>
           </div>

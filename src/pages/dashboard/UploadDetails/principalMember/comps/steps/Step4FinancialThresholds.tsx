@@ -14,12 +14,14 @@ import { parseApiError } from '@/utils/errorHandler';
 import { Formik, Form } from 'formik';
 import { principalMemberStep4Schema } from '@/validation';
 import { extractDocumentIdFromPath } from '@/validation/utils/fileValidation';
+import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
 export default function Step4FinancialThresholds() {
   const { state, uploadDocument, saveUploadDetails, setCurrentStep, dispatch } = useUploadDetails();
   const formData = state.data;
   const isSaving = state.isSaving;
   const [pendingUploads, setPendingUploads] = useState<number>(0);
+  const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
 
   const {
@@ -299,13 +301,14 @@ export default function Step4FinancialThresholds() {
                   }}
                 />
                 {bullionTurnoverProofFileIdPath && !bullionFile && (
-                  <a
-                    href={bullionTurnoverProofFileIdPath}
-                    target="_blank"
-                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                  <button
+                    type="button"
+                    onClick={() => downloadDocument(extractIdFromPath(bullionTurnoverProofFileIdPath), "Bullion Turnover Proof")}
+                    disabled={downloadingId === extractIdFromPath(bullionTurnoverProofFileIdPath)}
+                    className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                   >
-                    View Previous Document
-                  </a>
+                    {downloadingId === extractIdFromPath(bullionTurnoverProofFileIdPath) ? 'Downloading...' : 'Download Previous Document'}
+                  </button>
                 )}
                 {touched.bullionTurnoverFile && errors.bullionTurnoverFile && (
                   <p className="text-red-500 text-sm mt-2">{errors.bullionTurnoverFile as string}</p>
@@ -381,13 +384,14 @@ export default function Step4FinancialThresholds() {
                     }}
                   />
                   {netWorthProofPath && !netWorthFile && (
-                    <a
-                      href={netWorthProofPath}
-                      target="_blank"
-                      className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={() => downloadDocument(extractIdFromPath(netWorthProofPath), "Net Worth Proof")}
+                      disabled={downloadingId === extractIdFromPath(netWorthProofPath)}
+                      className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
                     >
-                      View Previous Document
-                    </a>
+                      {downloadingId === extractIdFromPath(netWorthProofPath) ? 'Downloading...' : 'Download Previous Document'}
+                    </button>
                   )}
                   {touched.netWorthFile && errors.netWorthFile && (
                     <p className="text-red-500 text-sm mt-2">{errors.netWorthFile as string}</p>
