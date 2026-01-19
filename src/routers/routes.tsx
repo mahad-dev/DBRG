@@ -84,7 +84,7 @@ const dashboardLayoutRoutes: RouteConfig[] = [
   { path: "", element: <ApplicationGuard><Dashboard /></ApplicationGuard>, name: "Dashboard" },
   { path: "upcoming-events", element: <ApplicationGuard><UpcomingEvents /></ApplicationGuard>, name: "UpcomingEvents" },
   { path: "upcoming-events/:id", element: <ApplicationGuard><EventDetails /></ApplicationGuard>, name: "EventDetails" },
-  { path: "track-status", element: <ApplicationGuard><TrackingStatus /></ApplicationGuard>, name: "TrackingStatus" },
+  { path: "track-status", element: <TrackingStatus />, name: "TrackingStatus" },
   { path: "members-directory", element: <ApplicationGuard><MemberDirectory /></ApplicationGuard>, name: "MemberDirectory" },
   { path: "resource-library", element: <ApplicationGuard><ResourceLibrary /></ApplicationGuard>, name: "ResourceLibrary" },
   { path: "notifications", element: <ApplicationGuard><Notifications /></ApplicationGuard>, name: "Notifications" },

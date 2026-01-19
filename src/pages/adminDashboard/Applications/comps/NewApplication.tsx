@@ -208,7 +208,7 @@ export default function ApplicantsTable() {
   const handleAskMoreDetails = async (details: string) => {
     if (!selectedApplicant) return;
     try {
-      await apiClient.put('/UploadDetails/AskMoreDetails', {
+      await apiClient.post('/UploadDetails/AskMoreDetails', {
         applicationId: selectedApplicant.id,
         details,
       });
@@ -515,7 +515,7 @@ function ActionMenu({
   onApprove,
   onReject,
   onRemark,
-  // onAskMoreDetails,
+  onAskMoreDetails,
   canEdit,
   userId,
 }: {
@@ -551,7 +551,7 @@ function ActionMenu({
             Reject
           </DropdownMenuItem>
         )}
-        {/* {canEdit && <DropdownMenuItem onClick={onAskMoreDetails} className="cursor-pointer">Ask for more details</DropdownMenuItem>} */}
+        {canEdit && <DropdownMenuItem onClick={onAskMoreDetails} className="cursor-pointer">Ask for more details</DropdownMenuItem>}
         {canEdit && <DropdownMenuItem onClick={onRemark} className="cursor-pointer">Add Remarks</DropdownMenuItem>}
 
       </DropdownMenuContent>
