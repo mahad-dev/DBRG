@@ -108,7 +108,7 @@ export default function Step1Applicability() {
     signedRef,
     setSignedAMLFile,
     removeSignedAMLFile,
-  } = useStep1Applicability(formData.applicability, formData.application);
+  } = useStep1Applicability(formData.applicability, formData.application, "contributing");
 
   // Redirect based on existing membershipType
   useEffect(() => {

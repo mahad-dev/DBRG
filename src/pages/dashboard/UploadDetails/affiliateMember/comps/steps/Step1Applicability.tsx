@@ -48,7 +48,7 @@ export default function Step1Applicability() {
   };
 
   // Local states for affiliate member
-  const [membership, setMembership] = useState<string | null>("affiliate");
+  const [membership, setMembership] = useState<string | null>("Affiliate Member");
   const [hasUAEOffice, setHasUAEOffice] = useState<boolean | null>(null);
   const [licensedBullion, setLicensedBullion] = useState<boolean | null>(null);
   const [internationalOrg, setInternationalOrg] = useState<boolean | null>(null);
@@ -59,7 +59,7 @@ export default function Step1Applicability() {
     signedAMLFile,
     signedRef,
     setSignedAMLFile,
-  } = useStep1Applicability(formData.applicability, formData.application);
+  } = useStep1Applicability(formData.applicability, formData.application, "affiliate");
 
   // Document ID states for immediate uploads
   // Multi-document arrays for office proof and trade license

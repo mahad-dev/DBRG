@@ -73,7 +73,8 @@ export default function Step1Applicability() {
 
   const hook = useStep1Applicability(
     formData.applicability,
-    formData.application
+    formData.application,
+    "member_bank"
   );
 
   const {

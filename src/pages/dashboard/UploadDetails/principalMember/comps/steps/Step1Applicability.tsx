@@ -41,7 +41,7 @@ export default function Step1Applicability() {
   };
 
   // Use the custom hook
-  const hook = useStep1Applicability(formData.applicability, formData.application);
+  const hook = useStep1Applicability(formData.applicability, formData.application, "principal");
   const {
     membership,
     services,
