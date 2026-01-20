@@ -726,7 +726,7 @@ function ActionMenu({ user, onReplace, canEdit }: { user: User; onReplace: () =>
             </DropdownMenuItem>
           )}
           {canEdit && <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>}
-          {canEdit && (
+          {canEdit && user.status === 2 && (
             <DropdownMenuItem onClick={() => setReplaceModalOpen(true)} className="cursor-pointer">
               Replace
             </DropdownMenuItem>
