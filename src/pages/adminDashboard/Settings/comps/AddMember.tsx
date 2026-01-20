@@ -342,7 +342,7 @@ const AddMember = () => {
                                     type="button"
                                     onClick={() => {
                                       setSelectedUserId(user.userId);
-                                      setSelectedUserDisplay(user.name ? `${user.name} (${user.email})` : user.email);
+                                      setSelectedUserDisplay(user.name ? `${user.name} (${user.email})` : user.email || '');
                                       setDropdownOpen(false);
                                     }}
                                     className={`w-full px-3 py-2 text-left text-sm text-black hover:bg-gray-100 cursor-pointer ${
