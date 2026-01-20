@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, Loader2, Check, Clock, X } from "lucide-react";
+import { ArrowRight, Loader2, Check, Clock, X, FileSearch } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { uploadDetailsApi } from "@/services/uploadDetailsApi";
 
@@ -16,7 +16,7 @@ export default function Tracking() {
   const { user } = useAuth();
   const apiCalledRef = useRef(false);
 
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [steps, setSteps] = useState<Step[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [specialMessage, setSpecialMessage] = useState<string | null>(null);
   const [adminComments, setAdminComments] = useState<string | null>(null);
@@ -61,7 +61,12 @@ export default function Tracking() {
     return new Date(dateString).toLocaleDateString("en-GB");
   };
 
-  const generateSteps = (application: any): Step[] => {
+  const generateSteps = (application: any): Step[] | null => {
+    // If no application data, return null for empty state
+    if (!application || Object.keys(application).length === 0) {
+      return null;
+    }
+
     // Application Status: 0 = Pending, 1 = Under Review, 2 = Approved, 3 = Rejected
     const appStatus = application?.status ?? 0;
     const isAppCompleted = application?.isCompleted ?? false;
@@ -111,6 +116,9 @@ export default function Tracking() {
     );
   }
 
+  // Check if there's no data for empty state
+  const hasNoData = !steps || steps.length === 0;
+
   return (
     <div className="w-full min-h-screen bg-[#111] text-white px-4 sm:px-6 md:px-10 py-12 font-inter">
       {/* Header */}
@@ -122,8 +130,71 @@ export default function Tracking() {
         Timeline
       </p>
 
-      {/* Timeline */}
-      <div className="flex flex-wrap items-center gap-6 md:gap-8">
+      {/* Empty State */}
+      {hasNoData ? (
+        <div className="w-full flex flex-col items-center justify-center py-16 md:py-24">
+          <Card className="max-w-2xl w-full px-8 md:px-12 py-12 md:py-16 rounded-[30px] bg-white/10 border-none flex flex-col items-center backdrop-blur-sm">
+            {/* Icon */}
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[#C6A95F]/20 flex items-center justify-center mb-6">
+              <FileSearch className="w-12 h-12 md:w-16 md:h-16 text-[#C6A95F]" strokeWidth={1.5} />
+            </div>
+
+            {/* Title */}
+            <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-4">
+              No Application Found
+            </h2>
+
+            {/* Description */}
+            <p className="text-base md:text-lg text-white/70 text-center mb-8 max-w-md leading-relaxed">
+              You haven't submitted your membership application yet. Once you submit your application, you'll be able to track its progress here.
+            </p>
+
+            {/* Action Button */}
+            <button
+              onClick={() => window.location.href = '/dashboard/upload-details'}
+              className="px-8 py-3 cursor-pointer bg-[#C6A95F] hover:bg-[#B39850] transition-colors rounded-full text-black font-semibold text-base md:text-lg shadow-lg hover:shadow-xl"
+            >
+              Start Application
+            </button>
+          </Card>
+
+          {/* Additional Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-12 w-full max-w-4xl">
+            <Card className="px-6 py-6 rounded-2xl bg-white/5 border-none backdrop-blur-sm">
+              <div className="w-12 h-12 rounded-full bg-[#C6A95F]/20 flex items-center justify-center mb-4">
+                <span className="text-2xl font-bold text-[#C6A95F]">1</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Submit Application</h3>
+              <p className="text-sm text-white/60 leading-relaxed">
+                Complete and submit your membership application form
+              </p>
+            </Card>
+
+            <Card className="px-6 py-6 rounded-2xl bg-white/5 border-none backdrop-blur-sm">
+              <div className="w-12 h-12 rounded-full bg-[#C6A95F]/20 flex items-center justify-center mb-4">
+                <span className="text-2xl font-bold text-[#C6A95F]">2</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Under Review</h3>
+              <p className="text-sm text-white/60 leading-relaxed">
+                Our team will review your application thoroughly
+              </p>
+            </Card>
+
+            <Card className="px-6 py-6 rounded-2xl bg-white/5 border-none backdrop-blur-sm">
+              <div className="w-12 h-12 rounded-full bg-[#C6A95F]/20 flex items-center justify-center mb-4">
+                <span className="text-2xl font-bold text-[#C6A95F]">3</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Get Approved</h3>
+              <p className="text-sm text-white/60 leading-relaxed">
+                Receive approval and become a member
+              </p>
+            </Card>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Timeline */}
+          <div className="flex flex-wrap items-center gap-6 md:gap-8">
         {steps.map((step, index) => {
           const getStatusColor = (status: string) => {
             if (status === "Completed") return "bg-[#C6A95F]";
@@ -186,46 +257,48 @@ export default function Tracking() {
             </div>
           );
         })}
-      </div>
-
-      {/* Messages Section */}
-      <div className="mt-12 space-y-6">
-        {/* Special Consideration Message */}
-        {specialMessage && (
-          <div className="w-full md:w-[870px] bg-white/10 p-6 rounded-lg">
-            <p className="text-[#C6A95F] text-sm font-semibold mb-2">
-              Special Consideration Message
-            </p>
-            <p className="text-base md:text-lg leading-tight text-white">
-              {specialMessage}
-            </p>
           </div>
-        )}
 
-        {/* Admin Comments */}
-        {adminComments && (
-          <div className="w-full md:w-[870px] bg-white/10 p-6 rounded-lg">
-            <p className="text-[#C6A95F] text-sm font-semibold mb-2">
-              Admin Comments
-            </p>
-            <p className="text-base md:text-lg leading-tight text-white">
-              {adminComments}
-            </p>
-          </div>
-        )}
+          {/* Messages Section */}
+          <div className="mt-12 space-y-6">
+            {/* Special Consideration Message */}
+            {specialMessage && (
+              <div className="w-full md:w-[870px] bg-white/10 p-6 rounded-lg">
+                <p className="text-[#C6A95F] text-sm font-semibold mb-2">
+                  Special Consideration Message
+                </p>
+                <p className="text-base md:text-lg leading-tight text-white">
+                  {specialMessage}
+                </p>
+              </div>
+            )}
 
-        {/* Remarks */}
-        {remarks && (
-          <div className="w-full md:w-[870px] bg-white/10 p-6 rounded-lg">
-            <p className="text-[#C6A95F] text-sm font-semibold mb-2">
-              Remarks
-            </p>
-            <p className="text-base md:text-lg leading-tight text-white">
-              {remarks}
-            </p>
+            {/* Admin Comments */}
+            {adminComments && (
+              <div className="w-full md:w-[870px] bg-white/10 p-6 rounded-lg">
+                <p className="text-[#C6A95F] text-sm font-semibold mb-2">
+                  Admin Comments
+                </p>
+                <p className="text-base md:text-lg leading-tight text-white">
+                  {adminComments}
+                </p>
+              </div>
+            )}
+
+            {/* Remarks */}
+            {remarks && (
+              <div className="w-full md:w-[870px] bg-white/10 p-6 rounded-lg">
+                <p className="text-[#C6A95F] text-sm font-semibold mb-2">
+                  Remarks
+                </p>
+                <p className="text-base md:text-lg leading-tight text-white">
+                  {remarks}
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
