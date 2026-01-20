@@ -228,12 +228,12 @@ export default function Step4FinancialThresholds() {
           />
 
           {/* Download Template */}
-          <Button
+          {/* <Button
             variant="site_btn"
             className="w-full md:w-[220px] h-[42px] rounded-[10px] text-[18px] bg-[#C6A95F] text-black font-gilroySemiBold"
           >
             Download Template
-          </Button>
+          </Button> */}
           {netWorthProofPath && !netWorthFile && (
             <button
               onClick={() => downloadDocument(extractIdFromPath(netWorthProofPath), "net worth proof")}
