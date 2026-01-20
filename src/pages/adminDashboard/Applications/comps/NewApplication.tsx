@@ -208,15 +208,22 @@ export default function ApplicantsTable() {
   const handleAskMoreDetails = async (details: string) => {
     if (!selectedApplicant) return;
     try {
-      await apiClient.post('/UploadDetails/AskMoreDetails', {
-        applicationId: selectedApplicant.id,
+      const response = await apiClient.post('/UploadDetails/AskMoreDetails', {
+        id: selectedApplicant.id,
         details,
       });
-      setAskMoreDetailsModal(false);
-      fetchApplicants();
+
+      // Check response status
+      if (response.data.status === true) {
+        toast.success("Request sent successfully");
+        setAskMoreDetailsModal(false);
+        fetchApplicants();
+      } else {
+        toast.error(response.data.message || "Failed to request more details");
+      }
     } catch (error: any) {
       console.error("Ask More Details Error:", error);
-      toast.error(error?.message || "Failed to request more details");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to request more details");
     }
   };
 

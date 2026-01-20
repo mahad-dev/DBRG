@@ -35,8 +35,10 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
-  // Check if application is completed
-  const isApplicationCompleted = application?.isCompleted ?? false;
+  // Check if application is approved (status === 2)
+  // Status values: 0 = Pending, 1 = Under Review, 2 = Approved, 3 = Rejected
+  const applicationStatus = application?.status;
+  const isApplicationApproved = applicationStatus === 2;
 
   const handleLogout = () => {
     logout();
@@ -84,10 +86,10 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               icon={<Home size={26} />}
               label="Home"
               to="/dashboard"
-              disabled={!isApplicationCompleted}
+              disabled={!isApplicationApproved}
             />
-            {/* Show Upload Details only if application is not completed */}
-            {!isApplicationCompleted && (
+            {/* Show Upload Details if application is not approved (including Pending, Under Review, Rejected) */}
+            {!isApplicationApproved && (
               <NavItem
                 icon={<BookOpen size={26} />}
                 label="Upload Details"
@@ -103,25 +105,25 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               icon={<BookOpen size={26} />}
               label="Upcoming Events"
               to="/dashboard/upcoming-events"
-              disabled={!isApplicationCompleted}
+              disabled={!isApplicationApproved}
             />
             <NavItem
               icon={<Users size={26} />}
               label="Members Directory"
               to="/dashboard/members-directory"
-              disabled={!isApplicationCompleted}
+              disabled={!isApplicationApproved}
             />
             <NavItem
               icon={<Bell size={26} />}
               label="Notifications"
               to="/dashboard/notifications"
-              disabled={!isApplicationCompleted}
+              disabled={!isApplicationApproved}
             />
             <NavItem
               icon={<Library size={26} />}
               label="Resource Library"
               to="/dashboard/resource-library"
-              disabled={!isApplicationCompleted}
+              disabled={!isApplicationApproved}
             />
             <Button
               variant="ghost"
