@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { userApi, type UserProfile } from "@/services/userApi";
 import apiClient from "@/services/apiClient";
 import { toast } from "react-toastify";
-import { Camera, X, Plus } from "lucide-react";
+import { Camera, X, Plus, User } from "lucide-react";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -34,7 +34,7 @@ const ProfileSetting = () => {
   const [uploading, setUploading] = useState(false);
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [profileImage, setProfileImage] = useState<string>("/static/UserImg.png");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
 
   // Form data
@@ -526,14 +526,20 @@ const ProfileSetting = () => {
         {/* Profile Picture Section */}
         <div className="mb-8 flex justify-center">
           <div className="relative">
-            <img
-              src={profileImage}
-              alt="Profile"
-              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-[#C6A95F]"
-              onError={(e) => {
-                e.currentTarget.src = "/static/UserImg.png";
-              }}
-            />
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-[#C6A95F]"
+                onError={() => {
+                  setProfileImage(null);
+                }}
+              />
+            ) : (
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full bg-[#787878] border-4 border-[#C6A95F] flex items-center justify-center">
+                <User className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-white/60" />
+              </div>
+            )}
             <button
               onClick={handleProfileImageClick}
               disabled={uploading}

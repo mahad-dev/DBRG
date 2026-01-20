@@ -6,7 +6,6 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";
 
 interface AskMoreDetailsModalProps {
@@ -19,7 +18,19 @@ interface AskMoreDetailsModalProps {
   applicationDate?: string;
   membershipCategory?: string;
   requestMessage?: string;
+  pictureUrl?: string;
 }
+
+// Function to generate random background color based on name
+const getRandomColor = (name?: string) => {
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+    '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'
+  ];
+  if (!name) return colors[0];
+  const index = name.charCodeAt(0) % colors.length;
+  return colors[index];
+};
 
 const InfoRow = ({ label, value }: { label: string; value: string | undefined }) => (
   <p className="text-white text-xs">
@@ -37,8 +48,14 @@ export default function AskMoreDetailsModal({
   applicationDate,
   membershipCategory,
   requestMessage,
+  pictureUrl,
 }: AskMoreDetailsModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  const getInitial = (name?: string) => {
+    return name ? name.charAt(0).toUpperCase() : 'U';
+  };
 
   const handleSubmit = async () => {
     const textarea = document.querySelector('textarea[placeholder="Please provide additional information..."]') as HTMLTextAreaElement;
@@ -59,10 +76,21 @@ export default function AskMoreDetailsModal({
         {/* Header */}
         <DialogHeader className="flex-row justify-between items-center w-full mb-4">
           <div className="flex items-center gap-4">
-            <Avatar className="h-10 w-10 rounded-full!">
-              <AvatarImage className="rounded-full" src="/static/UserImg.png" alt="User Avatar" />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
+            {pictureUrl && !imageError ? (
+              <img
+                src={pictureUrl}
+                alt={userName || 'User'}
+                className="h-10 w-10 rounded-full object-cover shrink-0"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div
+                className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 text-white font-bold text-lg"
+                style={{ backgroundColor: getRandomColor(userName) }}
+              >
+                {getInitial(userName)}
+              </div>
+            )}
             <div className="flex flex-col">
               <p className="text-white text-lg font-bold">{userName}</p>
               <p className="text-white text-sm">{companyName}</p>

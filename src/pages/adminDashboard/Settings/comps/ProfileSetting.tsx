@@ -2,14 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { userApi, type UserProfile } from "@/services/userApi";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-toastify";
-import { Camera, Eye, EyeOff } from "lucide-react";
+import { Camera, Eye, EyeOff, User } from "lucide-react";
 
 const ProfileSetting = () => {
   const {} = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [profileImage, setProfileImage] = useState<string>("/static/UserImg.png");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [pendingPictureId, setPendingPictureId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,7 +90,7 @@ const ProfileSetting = () => {
         const picId = (profile as any).profilePictureId || profile.pictureId;
         setProfileImage(`${apiBaseUrl}/UploadDetails/GetDocument?documentId=${picId}`);
       } else {
-        setProfileImage("/static/UserImg.png");
+        setProfileImage(null);
       }
     }
   };
@@ -264,14 +264,20 @@ const ProfileSetting = () => {
         {/* Profile Picture */}
         <div className="mb-6 flex flex-col sm:flex-row items-center gap-4">
           <div className="relative shrink-0">
-            <img
-              src={profileImage}
-              alt="Profile"
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#C6A95F]"
-              onError={(e) => {
-                e.currentTarget.src = "/static/UserImg.png";
-              }}
-            />
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#C6A95F]"
+                onError={() => {
+                  setProfileImage(null);
+                }}
+              />
+            ) : (
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#787878] border-2 border-[#C6A95F] flex items-center justify-center">
+                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white/60" />
+              </div>
+            )}
             <button
               onClick={handleImageClick}
               disabled={uploading}
