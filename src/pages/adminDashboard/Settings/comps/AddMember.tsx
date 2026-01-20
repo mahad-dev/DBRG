@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Formik, Form } from "formik";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -12,12 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { userApi } from "@/services/userApi";
 import type { User } from "@/services/userApi";
 import { ServiceCheckbox } from "@/components/custom/ui/ServiceCheckbox";
 import { toast } from "react-toastify";
-import { Eye, EyeOff, RefreshCw } from "lucide-react";
+import { Eye, EyeOff, RefreshCw, Search, ChevronDown, Loader2 } from "lucide-react";
 
 interface Permission {
   id: number;
@@ -56,15 +56,27 @@ const generatePassword = (length: number = 12): string => {
   return password.split('').sort(() => Math.random() - 0.5).join('');
 };
 
+const USERS_PAGE_SIZE = 10;
+
 const AddMember = () => {
   const [permissions, setPermissions] = useState<PermissionGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [usersLoading, setUsersLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersLoadingMore, setUsersLoadingMore] = useState(false);
   const [isAddExisting, setIsAddExisting] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedUserDisplay, setSelectedUserDisplay] = useState<string>('');
   const [formikKey, setFormikKey] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [initialValues, setInitialValues] = useState({
     name: '',
     phone: '',
@@ -108,6 +120,90 @@ const AddMember = () => {
     }
   };
 
+  // Fetch users with pagination and search
+  const fetchUsers = useCallback(async (page: number, search: string, append: boolean = false) => {
+    try {
+      if (append) {
+        setUsersLoadingMore(true);
+      } else {
+        setUsersLoading(true);
+      }
+
+      const response = await userApi.getUsers({
+        Search: search || undefined,
+        PageNumber: page,
+        PageSize: USERS_PAGE_SIZE,
+      });
+
+      const newUsers = response.data;
+      setTotalCount(response.totalCount);
+      setHasMore(page < response.totalPages);
+
+      if (append) {
+        setUsers(prev => [...prev, ...newUsers]);
+      } else {
+        setUsers(newUsers);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch users:', error);
+      toast.error(error?.message || 'Failed to fetch users');
+    } finally {
+      setUsersLoading(false);
+      setUsersLoadingMore(false);
+    }
+  }, []);
+
+  // Handle scroll for infinite loading
+  const handleScroll = useCallback(() => {
+    if (!listRef.current || usersLoadingMore || !hasMore) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      fetchUsers(nextPage, searchQuery, true);
+    }
+  }, [currentPage, searchQuery, hasMore, usersLoadingMore, fetchUsers]);
+
+  // Handle search with debounce - only when dropdown is open
+  useEffect(() => {
+    if (!dropdownOpen) return;
+
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1);
+      setUsers([]);
+      fetchUsers(1, searchQuery, false);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, dropdownOpen, fetchUsers]);
+
+  // Fetch users when dropdown opens for the first time
+  useEffect(() => {
+    if (dropdownOpen && users.length === 0 && !usersLoading) {
+      fetchUsers(1, searchQuery, false);
+    }
+  }, [dropdownOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (dropdownOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [dropdownOpen]);
+
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
@@ -125,21 +221,7 @@ const AddMember = () => {
       }
     };
 
-    const fetchUsers = async () => {
-      try {
-        setUsersLoading(true);
-        const response = await userApi.getUsersWithoutFilter();
-        setUsers(response.data);
-      } catch (error: any) {
-        console.error('Failed to fetch users:', error);
-        toast.error(error?.message || 'Failed to fetch users');
-      } finally {
-        setUsersLoading(false);
-      }
-    };
-
     fetchPermissions();
-    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -206,31 +288,89 @@ const AddMember = () => {
                   </div>
 
                   {isAddExisting ? (
-                    <Select
-                      value={selectedUserId}
-                      onValueChange={(value) => setSelectedUserId(value)}
-                    >
-                      <SelectTrigger className="bg-white text-black w-full cursor-pointer">
-                        <SelectValue placeholder="Select a user" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {usersLoading ? (
-                          <SelectItem value="" disabled>
-                            Loading users...
-                          </SelectItem>
-                        ) : users.length === 0 ? (
-                          <SelectItem value="" disabled>
-                            No users exist
-                          </SelectItem>
-                        ) : (
-                          users.map((user) => (
-                            <SelectItem key={user.userId} value={user.userId}>
-                              {user.name ? `${user.name} (${user.email})` : user.email}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative" ref={dropdownRef}>
+                      {/* Trigger Button */}
+                      <button
+                        type="button"
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                        className="flex items-center justify-between w-full h-10 px-3 bg-white text-black rounded-md border border-input cursor-pointer hover:bg-gray-50"
+                      >
+                        <span className={selectedUserDisplay ? 'text-black' : 'text-gray-500'}>
+                          {selectedUserDisplay || 'Select a user'}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown Content */}
+                      {dropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                          {/* Search Input */}
+                          <div className="p-2 border-b border-gray-200">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search users..."
+                                className="w-full pl-9 pr-3 py-2 text-sm text-black border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#C6A95F] focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          {/* User List with Scroll */}
+                          <div
+                            ref={listRef}
+                            onScroll={handleScroll}
+                            className="max-h-[200px] overflow-y-auto"
+                          >
+                            {usersLoading && users.length === 0 ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                                <span className="ml-2 text-sm text-gray-500">Loading users...</span>
+                              </div>
+                            ) : users.length === 0 ? (
+                              <div className="py-4 text-center text-sm text-gray-500">
+                                No users found
+                              </div>
+                            ) : (
+                              <>
+                                {users.map((user) => (
+                                  <button
+                                    key={user.userId}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedUserId(user.userId);
+                                      setSelectedUserDisplay(user.name ? `${user.name} (${user.email})` : user.email);
+                                      setDropdownOpen(false);
+                                    }}
+                                    className={`w-full px-3 py-2 text-left text-sm text-black hover:bg-gray-100 cursor-pointer ${
+                                      selectedUserId === user.userId ? 'bg-gray-100' : ''
+                                    }`}
+                                  >
+                                    {user.name ? `${user.name} (${user.email})` : user.email}
+                                  </button>
+                                ))}
+                                {usersLoadingMore && (
+                                  <div className="flex items-center justify-center py-2">
+                                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                                    <span className="ml-2 text-xs text-gray-500">Loading more...</span>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+
+                          {/* Total count footer */}
+                          {totalCount > 0 && (
+                            <div className="px-3 py-2 border-t border-gray-200 text-xs text-gray-500">
+                              {totalCount} total users
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <Input
                       name="name"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 //   SelectTrigger,
 //   SelectValue,
 // } from "@/components/ui/select";
-import { Search, ChevronLeft, ChevronRight, Loader2, Mail } from "lucide-react";
+import { Search, Loader2, Mail } from "lucide-react";
 import { memberDirectoryApi, type Member } from "@/services/memberDirectoryApi";
 import { toast } from "react-toastify";
 import ContactMemberModal from "./ContactMemberModal";
@@ -52,19 +52,24 @@ const getMembershipTypeName = (type: number): string => {
   }
 };
 
+const PAGE_SIZE = 9;
+
 export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?: () => void }) {
   const [search, setSearch] = useState("");
   const [country] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const pageSize = 6;
+  const [hasMore, setHasMore] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedMemberForProfile, setSelectedMemberForProfile] = useState<Member | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Common countries list (you can expand this)
   // const countries = [
@@ -84,51 +89,94 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
   // ];
 
   // Fetch members from API
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async (page: number, searchQuery: string, append: boolean = false) => {
     try {
-      setLoading(true);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
       const response = await memberDirectoryApi.getMembers({
-        Search: search || undefined,
+        Search: searchQuery || undefined,
         Country: country || undefined,
-        PageNumber: currentPage,
-        PageSize: pageSize,
+        PageNumber: page,
+        PageSize: PAGE_SIZE,
       });
 
-      setMembers(response.data);
       setTotalPages(response.totalPages);
       setTotalCount(response.totalCount);
+      setHasMore(page < response.totalPages);
+
+      if (append) {
+        setMembers(prev => [...prev, ...response.data]);
+      } else {
+        setMembers(response.data);
+      }
     } catch (error: any) {
       console.error("Error fetching members:", error);
       toast.error(error.message || "Failed to fetch members");
-      setMembers([]);
-      setTotalPages(1);
-      setTotalCount(0);
+      if (!append) {
+        setMembers([]);
+        setTotalPages(1);
+        setTotalCount(0);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [country]);
 
-  // Fetch members on component mount and when filters change
+  // Load more members when scrolling
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    fetchMembers(nextPage, search, true);
+  }, [currentPage, search, hasMore, loadingMore, fetchMembers]);
+
+  // Intersection Observer for infinite scroll
   useEffect(() => {
-    fetchMembers();
-  }, [currentPage, country]);
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loadingMore, loading, loadMore]);
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchMembers(1, search, false);
+  }, [country]);
 
   // Handle search with debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setCurrentPage(1); // Reset to first page on new search
-      fetchMembers();
+      setCurrentPage(1);
+      setMembers([]);
+      setHasMore(true);
+      fetchMembers(1, search, false);
     }, 500);
 
     return () => clearTimeout(timeoutId);
   }, [search]);
-
-  // Handle page change
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
 
 
 
@@ -289,37 +337,25 @@ export default function MembersDirectory({ onSwitchToInbox }: { onSwitchToInbox?
         )}
       </div>
 
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="cursor-pointer disabled:cursor-not-allowed h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <span className="text-white font-inter font-medium text-[14px]">
-              Page {currentPage} of {totalPages}
+      {/* Infinite Scroll Trigger */}
+      {!loading && members.length > 0 && (
+        <div ref={loadMoreRef} className="flex flex-col items-center justify-center py-6">
+          {loadingMore ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-[#C6A95F]" />
+              <span className="text-white/70 font-inter font-normal text-[14px]">
+                Loading more...
+              </span>
+            </div>
+          ) : hasMore ? (
+            <span className="text-white/50 font-inter font-normal text-[12px]">
+              Scroll for more
             </span>
-            <span className="text-white/70 font-inter font-normal text-[12px]">
-              ({totalCount} members)
+          ) : totalCount > 0 ? (
+            <span className="text-white/50 font-inter font-normal text-[12px]">
+              Showing all {totalCount} members
             </span>
-          </div>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="cursor-pointer disabled:cursor-not-allowed h-10 w-10 rounded-lg border-white text-white disabled:opacity-50"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+          ) : null}
         </div>
       )}
 
