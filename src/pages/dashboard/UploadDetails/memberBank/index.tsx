@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import UploadStepper from "./comps/UploadStepper";
 import Step1Applicability from "./comps/steps/Step1Applicability";
 import Step2CompanyDetails from "./comps/steps/Step2CompanyDetails";
@@ -8,10 +8,14 @@ import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { useAuth } from '@/context/AuthContext';
 import Step3DataProtection from "./comps/steps/Step3DataProtection";
 import Step4Agreement from "./comps/steps/Step4Agreement";
+import SubmitMoreDetailsModal from "../comps/SubmitMoreDetailsModal";
+
 export default function UploadDetailsMemberBank() {
   const { state, getUploadDetails, updateFormData } = useUploadDetails();
-  const { user } = useAuth();
+  const { user, application } = useAuth();
   const currentStep = state.currentStep;
+  const [showMoreDetailsModal, setShowMoreDetailsModal] = useState(false);
+  const [showSpecialConsiderationModal, setShowSpecialConsiderationModal] = useState(false);
 
   useEffect(() => {
     if (user?.userId) {
@@ -25,6 +29,21 @@ export default function UploadDetailsMemberBank() {
     }
   }, [currentStep]);
 
+  // Check if there's an askMoreDetailsRequest from admin in application (general)
+  useEffect(() => {
+    if (application?.askMoreDetailsRequest && !application?.askMoreDetailsResponse) {
+      setShowMoreDetailsModal(true);
+    }
+  }, [application]);
+
+  // Check if there's an askMoreDetailsRequest from admin in special consideration
+  useEffect(() => {
+    const specialConsideration = state.data.specialConsideration;
+    if (specialConsideration?.askMoreDetailsRequest && !specialConsideration?.askMoreDetailsResponse) {
+      setShowSpecialConsiderationModal(true);
+    }
+  }, [state.data.specialConsideration]);
+
   const steps = [
     <Step1Applicability key={1} />,
     <Step2CompanyDetails key={2} />,
@@ -32,60 +51,55 @@ export default function UploadDetailsMemberBank() {
     <Step4Agreement key={4} />,
   ];
 
-  // Special consideration check removed since Redux is not used
+  const handleMoreDetailsSuccess = async () => {
+    // Modal already updated the application in AuthContext
+    setShowMoreDetailsModal(false);
+  };
 
-  // if (isCompleted) {
-  //   return (
-  //     <div className="flex items-center justify-center p-4">
-  //       <div className="bg-white shadow-2xl rounded-3xl max-w-lg w-full sm:w-96 p-8 sm:p-10 text-center border-t-8 border-[#C6A95F] flex flex-col items-center">
-  //         {/* Icon */}
-  //         <div className="flex justify-center mb-6">
-  //           <svg
-  //             xmlns="http://www.w3.org/2000/svg"
-  //             className="h-24 w-24 text-[#C6A95F]"
-  //             fill="none"
-  //             viewBox="0 0 24 24"
-  //             stroke="currentColor"
-  //             strokeWidth={2}
-  //           >
-  //             <path
-  //               strokeLinecap="round"
-  //               strokeLinejoin="round"
-  //               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-  //             />
-  //           </svg>
-  //         </div>
+  const handleSpecialConsiderationSuccess = () => {
+    if (user?.userId) {
+      getUploadDetails(user.userId).then((data) => {
+        if (data) {
+          updateFormData(data);
+        }
+      });
+    }
+    setShowSpecialConsiderationModal(false);
+  };
 
-  //         {/* Title */}
-  //         <h1 className="text-3xl sm:text-2xl font-bold mb-4 text-gray-800">
-  //           Form Already Submitted
-  //         </h1>
-
-  //         {/* Description */}
-  //         <p className="text-gray-600 text-sm sm:text-base mb-8 px-2 sm:px-0">
-  //           You have already completed this form. <br />
-  //           Your submission is successfully recorded and cannot be modified.
-  //         </p>
-
-  //         {/* Action Buttons */}
-  //         <div className="flex flex-col sm:flex-row justify-center gap-4 w-full px-4 sm:px-0">
-  //           <Button
-  //             variant="default"
-  //             className="w-full cursor-pointer sm:w-auto bg-[#C6A95F] hover:bg-[#b8974f] text-white"
-  //             onClick={() => navigate("/dashboard")}
-  //           >
-  //             Go to Dashboard
-  //           </Button>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  const handleCancel = () => {
+    setShowMoreDetailsModal(false);
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      <UploadStepper currentStep={currentStep} totalSteps={4} />
-      <div className="mt-4">{steps[currentStep - 1]}</div>
-    </div>
+    <>
+      <div className="flex flex-col gap-4">
+        <UploadStepper currentStep={currentStep} totalSteps={4} />
+        <div className="mt-4">{steps[currentStep - 1]}</div>
+      </div>
+
+      {/* General Application More Details Modal */}
+      {application?.askMoreDetailsRequest && (
+        <SubmitMoreDetailsModal
+          open={showMoreDetailsModal}
+          onOpenChange={setShowMoreDetailsModal}
+          askMoreDetailsRequest={application.askMoreDetailsRequest}
+          onSuccess={handleMoreDetailsSuccess}
+          onCancel={handleCancel}
+          allowCancel={true}
+        />
+      )}
+
+      {/* Special Consideration More Details Modal */}
+      {state.data.specialConsideration?.askMoreDetailsRequest && (
+        <SubmitMoreDetailsModal
+          open={showSpecialConsiderationModal}
+          onOpenChange={setShowSpecialConsiderationModal}
+          askMoreDetailsRequest={state.data.specialConsideration.askMoreDetailsRequest}
+          onSuccess={handleSpecialConsiderationSuccess}
+          allowCancel={false}
+        />
+      )}
+    </>
   );
 }

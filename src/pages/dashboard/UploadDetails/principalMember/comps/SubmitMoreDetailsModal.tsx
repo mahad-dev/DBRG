@@ -11,12 +11,15 @@ import { cn } from "@/lib/utils";
 import apiClient from "@/services/apiClient";
 import { toast } from "react-toastify";
 import { parseApiError } from "@/utils/errorHandler";
+import { useAuth } from "@/context/AuthContext";
 
 interface SubmitMoreDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   askMoreDetailsRequest: string;
   onSuccess: () => void;
+  onCancel?: () => void;
+  allowCancel?: boolean;
 }
 
 export default function SubmitMoreDetailsModal({
@@ -24,9 +27,14 @@ export default function SubmitMoreDetailsModal({
   onOpenChange,
   askMoreDetailsRequest,
   onSuccess,
+  onCancel,
+  allowCancel = false,
 }: SubmitMoreDetailsModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [details, setDetails] = useState("");
+  const { application, updateApplication } = useAuth();
+
+  console.log('🔍 SubmitMoreDetailsModal rendered with allowCancel:', allowCancel);
 
   const handleSubmit = async () => {
     if (!details.trim()) return;
@@ -36,6 +44,17 @@ export default function SubmitMoreDetailsModal({
       await apiClient.post("/UploadDetails/SubmitMoreDetails", {
         moreDetails: details,
       });
+
+      // Update the application object with the response
+      if (application) {
+        const updatedApplication = {
+          ...application,
+          askMoreDetailsResponse: details,
+        };
+        updateApplication(updatedApplication);
+      }
+
+      toast.success("Details submitted successfully");
       onSuccess();
       setDetails("");
       onOpenChange(false);
@@ -47,16 +66,36 @@ export default function SubmitMoreDetailsModal({
     }
   };
 
+  const handleCancel = () => {
+    setDetails("");
+    if (onCancel) {
+      onCancel();
+    } else {
+      onOpenChange(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(open) => {
-      // Prevent closing the modal - user must submit
+      // If cancel is allowed, let modal close
+      if (allowCancel) {
+        if (!open) {
+          handleCancel();
+        }
+        return;
+      }
+      // Otherwise prevent closing - user must submit
       if (!open) return;
       onOpenChange(open);
     }}>
       <DialogContent
         className="bg-black text-white border-[#C6A95F] p-6 rounded-lg max-w-lg font-inter"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          if (!allowCancel) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (!allowCancel) e.preventDefault();
+        }}
       >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-[#C6A95F] mb-4">
@@ -92,12 +131,24 @@ export default function SubmitMoreDetailsModal({
           />
         </div>
 
-        <DialogFooter className="flex gap-3 justify-end">
+        <DialogFooter className="flex flex-row gap-3 justify-end items-center">
+          {allowCancel && (
+            <Button
+              type="button"
+              variant="site_btn_transparent"
+              onClick={handleCancel}
+              disabled={isLoading}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+          )}
           <Button
+            type="button"
             variant="site_btn"
             onClick={handleSubmit}
             disabled={isLoading || !details.trim()}
-            className="cursor-pointer w-full sm:w-auto"
+            className="cursor-pointer"
           >
             {isLoading ? "Submitting..." : "Submit"}
           </Button>

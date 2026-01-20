@@ -50,6 +50,7 @@ interface AuthContextType {
   canView: (module: string) => boolean;
   login: (userData: User) => void;
   logout: () => void;
+  updateApplication: (applicationData: Application) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -254,6 +255,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('application');
   };
 
+  const updateApplication = (applicationData: Application) => {
+    setApplication(applicationData);
+
+    // Update user object with new application data
+    if (user) {
+      const updatedUser = {
+        ...user,
+        application: applicationData
+      };
+      setUser(updatedUser);
+    }
+
+    // Update localStorage
+    try {
+      const applicationJson = JSON.stringify(applicationData);
+      localStorage.setItem('application', applicationJson);
+      console.log('Updated application in localStorage:', applicationData);
+    } catch (error) {
+      console.error('Failed to update application:', error);
+    }
+  };
+
   // Permission helper functions
   const hasPermission = (permissionKey: string): boolean => {
     return permissions.some(p => p.key === permissionKey);
@@ -291,6 +314,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     canView,
     login,
     logout,
+    updateApplication,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

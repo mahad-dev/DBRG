@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Filter, MoreVertical, MapPin, Download } from "lucide-react";
 import { userApi, type User } from "@/services/userApi";
 import ReplaceDelegateModal from "./ReplaceDelegateModal";
+import ViewUserModal from "./ViewUserModal";
 import { useAuth } from "@/context/AuthContext";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
 
@@ -625,13 +626,7 @@ export default function UserManagementTable() {
                       return (
                         <TableRow key={item.userId}>
                           <TableCell className="py-4 px-2 flex items-center gap-3">
-                            <img
-                              src="/static/UserImg.png"
-                              alt="user"
-                              width={36}
-                              height={36}
-                              className="rounded-full"
-                            />
+                          
                             {item.name || "N/A"}
                           </TableCell>
                           <TableCell className="py-4 px-4 sm:px-16">
@@ -714,6 +709,7 @@ function FooterPagination({
 
 function ActionMenu({ user, onReplace, canEdit }: { user: User; onReplace: () => void; canEdit: boolean }) {
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const { hasPermission } = useAuth();
   const canGet = hasPermission('USER_MANAGEMENT.GET');
 
@@ -724,20 +720,32 @@ function ActionMenu({ user, onReplace, canEdit }: { user: User; onReplace: () =>
           <MoreVertical className="w-5 h-5 cursor-pointer text-white" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="bg-white">
-          {canGet && <DropdownMenuItem className="cursor-pointer">View</DropdownMenuItem>}
+          {canGet && (
+            <DropdownMenuItem onClick={() => setViewModalOpen(true)} className="cursor-pointer">
+              View
+            </DropdownMenuItem>
+          )}
           {canEdit && <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>}
           {canEdit && (
             <DropdownMenuItem onClick={() => setReplaceModalOpen(true)} className="cursor-pointer">
               Replace
             </DropdownMenuItem>
           )}
-          {canEdit && (
+          {/* {canEdit && (
             <DropdownMenuItem className="text-red-500 cursor-pointer">
               Delete
             </DropdownMenuItem>
-          )}
+          )} */}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {canGet && (
+        <ViewUserModal
+          open={viewModalOpen}
+          onClose={() => setViewModalOpen(false)}
+          userId={user.userId}
+        />
+      )}
 
       {canEdit && (
         <ReplaceDelegateModal

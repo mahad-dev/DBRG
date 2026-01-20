@@ -16,9 +16,10 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function UploadDetailsPrincipalMember() {
   const { state, getUploadDetails, updateFormData } = useUploadDetails();
-  const { user } = useAuth();
+  const { user, application } = useAuth();
   const currentStep = state.currentStep;
   const [showMoreDetailsModal, setShowMoreDetailsModal] = useState(false);
+  const [showSpecialConsiderationModal, setShowSpecialConsiderationModal] = useState(false);
 
   useEffect(() => {
     if (user?.userId) {
@@ -32,11 +33,18 @@ export default function UploadDetailsPrincipalMember() {
     }
   }, [currentStep]);
 
+  // Check if there's an askMoreDetailsRequest from admin in application (general)
+  useEffect(() => {
+    if (application?.askMoreDetailsRequest && !application?.askMoreDetailsResponse) {
+      setShowMoreDetailsModal(true);
+    }
+  }, [application]);
+
   // Check if there's an askMoreDetailsRequest from admin in special consideration
   useEffect(() => {
     const specialConsideration = state.data.specialConsideration;
     if (specialConsideration?.askMoreDetailsRequest && !specialConsideration?.askMoreDetailsResponse) {
-      setShowMoreDetailsModal(true);
+      setShowSpecialConsiderationModal(true);
     }
   }, [state.data.specialConsideration]);
 
@@ -101,8 +109,12 @@ export default function UploadDetailsPrincipalMember() {
   //   );
   // }
 
-  const handleMoreDetailsSuccess = () => {
-    // Refresh the data after successful submission
+  const handleMoreDetailsSuccess = async () => {
+    // Modal already updated the application in AuthContext
+    setShowMoreDetailsModal(false);
+  };
+
+  const handleSpecialConsiderationSuccess = () => {
     if (user?.userId) {
       getUploadDetails(user.userId).then((data) => {
         if (data) {
@@ -110,6 +122,10 @@ export default function UploadDetailsPrincipalMember() {
         }
       });
     }
+    setShowSpecialConsiderationModal(false);
+  };
+
+  const handleCancel = () => {
     setShowMoreDetailsModal(false);
   };
 
@@ -120,13 +136,26 @@ export default function UploadDetailsPrincipalMember() {
         <div className="mt-4">{steps[currentStep - 1]}</div>
       </div>
 
-      {/* More Details Modal */}
-      {state.data.specialConsideration?.askMoreDetailsRequest && (
+      {/* General Application More Details Modal */}
+      {application?.askMoreDetailsRequest && (
         <SubmitMoreDetailsModal
           open={showMoreDetailsModal}
           onOpenChange={setShowMoreDetailsModal}
-          askMoreDetailsRequest={state.data.specialConsideration.askMoreDetailsRequest}
+          askMoreDetailsRequest={application.askMoreDetailsRequest}
           onSuccess={handleMoreDetailsSuccess}
+          onCancel={handleCancel}
+          allowCancel={true}
+        />
+      )}
+
+      {/* Special Consideration More Details Modal */}
+      {state.data.specialConsideration?.askMoreDetailsRequest && (
+        <SubmitMoreDetailsModal
+          open={showSpecialConsiderationModal}
+          onOpenChange={setShowSpecialConsiderationModal}
+          askMoreDetailsRequest={state.data.specialConsideration.askMoreDetailsRequest}
+          onSuccess={handleSpecialConsiderationSuccess}
+          allowCancel={false}
         />
       )}
     </>
