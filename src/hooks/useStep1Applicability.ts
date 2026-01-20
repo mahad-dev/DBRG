@@ -7,9 +7,9 @@ import { MembershipType } from "../types/uploadDetails";
 export type ServicesState = Record<"trading" | "refining" | "logistics" | "financial", boolean>;
 export type AnswersState = Record<string, boolean | null>;
 
-export function useStep1Applicability(applicability?: any, application?: any) {
-  // Membership
-  const [membership, setMembership] = useState<string | null>(null);
+export function useStep1Applicability(applicability?: any, application?: any, defaultMembershipFromRoute?: string) {
+  // Membership - initialize with route-based default if provided
+  const [membership, setMembership] = useState<string | null>(defaultMembershipFromRoute || null);
 
   // Services
   const [services, setServices] = useState<ServicesState>({

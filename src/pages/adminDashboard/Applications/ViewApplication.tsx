@@ -191,6 +191,12 @@ export default function ViewApplication() {
               {data.application.adminComments && (
                 <Field label="Admin Comments" value={data.application.adminComments} />
               )}
+              {data.application.askMoreDetailsRequest && (
+                <Field label="Ask More Details Request" value={data.application.askMoreDetailsRequest} />
+              )}
+              {data.application.askMoreDetailsResponse && (
+                <Field label="Ask More Details Response" value={data.application.askMoreDetailsResponse} />
+              )}
             </Section>
 
             {/* Applicability */}
@@ -202,7 +208,7 @@ export default function ViewApplication() {
                 />
                 <Field
                   label="Services"
-                  value={data.applicability.services || "N/A"}
+                  value={getServicesLabel(data.applicability.services)}
                 />
                 <Field
                   label="Refining/Trading Category"
@@ -608,6 +614,12 @@ export default function ViewApplication() {
                 {data.specialConsideration.remarks && (
                   <Field label="Remarks" value={data.specialConsideration.remarks} />
                 )}
+                {data.specialConsideration.askMoreDetailsRequest && (
+                  <Field label="Ask More Details Request" value={data.specialConsideration.askMoreDetailsRequest} />
+                )}
+                {data.specialConsideration.askMoreDetailsResponse && (
+                  <Field label="Ask More Details Response" value={data.specialConsideration.askMoreDetailsResponse} />
+                )}
               </Section>
             )}
           </div>
@@ -749,4 +761,22 @@ function formatDate(date: string | null | undefined): string {
   } catch {
     return "N/A";
   }
+}
+
+function getServicesLabel(services: string | null | undefined): string {
+  if (!services) return "N/A";
+
+  const serviceMap: Record<string, string> = {
+    "1": "Trading in Precious Metals",
+    "2": "Gold Refining",
+    "3": "Logistics & Vaulting",
+    "4": "Financial Services in UAE",
+  };
+
+  const serviceIds = services.split(",").map(s => s.trim());
+  const labels = serviceIds
+    .map(id => serviceMap[id] || id)
+    .filter(label => label);
+
+  return labels.length > 0 ? labels.join(", ") : "N/A";
 }
