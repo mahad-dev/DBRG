@@ -89,11 +89,11 @@ const dashboardLayoutRoutes: RouteConfig[] = [
   { path: "resource-library", element: <ApplicationGuard><ResourceLibrary /></ApplicationGuard>, name: "ResourceLibrary" },
   { path: "notifications", element: <ApplicationGuard><Notifications /></ApplicationGuard>, name: "Notifications" },
   { path: "settings", element: <MemberSettings />, name: "MemberSettings" },
-  { path: "upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetails /></ApplicationGuard>, name: "UploadDetails" },
-  { path: "member-type/principal-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsPrincipalMember /></ApplicationGuard>, name: "UploadDetailsPrincipalMember" },
-  { path: "member-type/member-bank/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsMemberBank /></ApplicationGuard>, name: "UploadDetailsMemberBank" },
-  { path: "member-type/contributing-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsContributingMember /></ApplicationGuard>, name: "UploadDetailsContributingMember" },
-  { path: "member-type/affiliate-member/upload-details", element: <ApplicationGuard requireCompleted={false}><UploadDetailsAffiliateMember /></ApplicationGuard>, name: "UploadDetailsAffiliateMember" },
+  { path: "upload-details", element: <ApplicationGuard requireApproved={false}><UploadDetails /></ApplicationGuard>, name: "UploadDetails" },
+  { path: "member-type/principal-member/upload-details", element: <ApplicationGuard requireApproved={false}><UploadDetailsPrincipalMember /></ApplicationGuard>, name: "UploadDetailsPrincipalMember" },
+  { path: "member-type/member-bank/upload-details", element: <ApplicationGuard requireApproved={false}><UploadDetailsMemberBank /></ApplicationGuard>, name: "UploadDetailsMemberBank" },
+  { path: "member-type/contributing-member/upload-details", element: <ApplicationGuard requireApproved={false}><UploadDetailsContributingMember /></ApplicationGuard>, name: "UploadDetailsContributingMember" },
+  { path: "member-type/affiliate-member/upload-details", element: <ApplicationGuard requireApproved={false}><UploadDetailsAffiliateMember /></ApplicationGuard>, name: "UploadDetailsAffiliateMember" },
 ];
 
 /* ---------------------------------------------------------

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
+import MultiUploadBox from "@/components/custom/ui/MultiUploadBox";
 import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import {
@@ -61,8 +62,10 @@ export default function Step1Applicability() {
   } = useStep1Applicability(formData.applicability, formData.application);
 
   // Document ID states for immediate uploads
-  const [officeProofDocumentId, setOfficeProofDocumentId] = useState<number | null>(null);
-  const [tradeLicenseDocumentId, setTradeLicenseDocumentId] = useState<number | null>(null);
+  // Multi-document arrays for office proof and trade license
+  const [officeProofDocumentIds, setOfficeProofDocumentIds] = useState<number[]>([]);
+  const [tradeLicenseDocumentIds, setTradeLicenseDocumentIds] = useState<number[]>([]);
+  // Single document for signed AML (kept as single)
   const [signedAMLDocumentId, setSignedAMLDocumentId] = useState<number | null>(null);
 
   // Helper to extract document ID from S3 path (local version with fallback)
@@ -83,55 +86,83 @@ export default function Step1Applicability() {
   // CRITICAL FIX: Extract document IDs synchronously using useMemo BEFORE Formik initializes
   const extractedDocumentIds = useMemo(() => {
     if (!formData.applicability) {
-      return { officeProof: null, tradeLicense: null, signedAML: null };
+      return { officeProofIds: [], tradeLicenseIds: [], signedAML: null };
     }
 
     const affiliateData = (formData.applicability.affiliateMember || formData.applicability) as any;
     console.log('🔍 useMemo: Extracting document IDs from formData.applicability:', affiliateData);
 
-    // Extract Office Proof Document ID
-    let officeProofId: number | null = null;
+    // Extract Office Proof Document IDs (ARRAY)
+    let officeProofIds: number[] = [];
     if (affiliateData.uaeOfficeProofDocumentPaths && affiliateData.uaeOfficeProofDocumentPaths.length > 0) {
-      const path = affiliateData.uaeOfficeProofDocumentPaths[0];
-
-      // Backend sends string (e.g., "1041"), handle all cases
-      let backendId = null;
-      if (typeof affiliateData.uaeOfficeProofDocuments === 'string') {
-        backendId = parseInt(affiliateData.uaeOfficeProofDocuments, 10);
-      } else if (typeof affiliateData.uaeOfficeProofDocuments === 'number') {
-        backendId = affiliateData.uaeOfficeProofDocuments;
-      } else if (Array.isArray(affiliateData.uaeOfficeProofDocuments) && affiliateData.uaeOfficeProofDocuments.length > 0) {
-        const firstItem = affiliateData.uaeOfficeProofDocuments[0];
-        backendId = typeof firstItem === 'number' ? firstItem : parseInt(firstItem, 10);
+      // Handle backend array of IDs
+      if (Array.isArray(affiliateData.uaeOfficeProofDocuments)) {
+        officeProofIds = affiliateData.uaeOfficeProofDocuments
+          .map((item: any) => typeof item === 'number' ? item : parseInt(String(item), 10))
+          .filter((id: number) => !isNaN(id));
+      } else if (affiliateData.uaeOfficeProofDocuments) {
+        // Check if it's a comma-separated string (e.g., "1820,1821,1822")
+        const docValue = String(affiliateData.uaeOfficeProofDocuments);
+        if (docValue.includes(',')) {
+          // Parse comma-separated string
+          officeProofIds = docValue.split(',')
+            .map((id: string) => parseInt(id.trim(), 10))
+            .filter((id: number) => !isNaN(id));
+        } else {
+          // Single value - convert to array
+          const singleId = typeof affiliateData.uaeOfficeProofDocuments === 'number'
+            ? affiliateData.uaeOfficeProofDocuments
+            : parseInt(docValue, 10);
+          if (!isNaN(singleId)) officeProofIds = [singleId];
+        }
       }
 
-      // Try backend ID first, fallback to path extraction
-      officeProofId = backendId ?? extractIdFromPathLocal(path);
-      console.log('✅ useMemo: Office proof - Path:', path, 'Backend ID:', backendId, 'Extracted ID:', officeProofId);
+      // Fallback: extract from paths if IDs not available
+      if (officeProofIds.length === 0) {
+        officeProofIds = affiliateData.uaeOfficeProofDocumentPaths
+          .map((path: string) => extractIdFromPathLocal(path))
+          .filter((id: number | null) => id !== null) as number[];
+      }
+
+      console.log('✅ useMemo: Office proof IDs:', officeProofIds);
     }
 
-    // Extract Trade License Document ID
-    let tradeLicenseId: number | null = null;
+    // Extract Trade License Document IDs (ARRAY)
+    let tradeLicenseIds: number[] = [];
     if (affiliateData.eligibilitySupportingDocumentPath && affiliateData.eligibilitySupportingDocumentPath.length > 0) {
-      const path = affiliateData.eligibilitySupportingDocumentPath[0];
-
-      // Backend sends string (e.g., "1042"), handle all cases
-      let backendId = null;
-      if (typeof affiliateData.eligibilitySupportingDocuments === 'string') {
-        backendId = parseInt(affiliateData.eligibilitySupportingDocuments, 10);
-      } else if (typeof affiliateData.eligibilitySupportingDocuments === 'number') {
-        backendId = affiliateData.eligibilitySupportingDocuments;
-      } else if (Array.isArray(affiliateData.eligibilitySupportingDocuments) && affiliateData.eligibilitySupportingDocuments.length > 0) {
-        const firstItem = affiliateData.eligibilitySupportingDocuments[0];
-        backendId = typeof firstItem === 'number' ? firstItem : parseInt(firstItem, 10);
+      // Handle backend array of IDs
+      if (Array.isArray(affiliateData.eligibilitySupportingDocuments)) {
+        tradeLicenseIds = affiliateData.eligibilitySupportingDocuments
+          .map((item: any) => typeof item === 'number' ? item : parseInt(String(item), 10))
+          .filter((id: number) => !isNaN(id));
+      } else if (affiliateData.eligibilitySupportingDocuments) {
+        // Check if it's a comma-separated string (e.g., "1823,1824")
+        const docValue = String(affiliateData.eligibilitySupportingDocuments);
+        if (docValue.includes(',')) {
+          // Parse comma-separated string
+          tradeLicenseIds = docValue.split(',')
+            .map((id: string) => parseInt(id.trim(), 10))
+            .filter((id: number) => !isNaN(id));
+        } else {
+          // Single value - convert to array
+          const singleId = typeof affiliateData.eligibilitySupportingDocuments === 'number'
+            ? affiliateData.eligibilitySupportingDocuments
+            : parseInt(docValue, 10);
+          if (!isNaN(singleId)) tradeLicenseIds = [singleId];
+        }
       }
 
-      // Try backend ID first, fallback to path extraction
-      tradeLicenseId = backendId ?? extractIdFromPathLocal(path);
-      console.log('✅ useMemo: Trade license - Path:', path, 'Backend ID:', backendId, 'Extracted ID:', tradeLicenseId);
+      // Fallback: extract from paths if IDs not available
+      if (tradeLicenseIds.length === 0) {
+        tradeLicenseIds = affiliateData.eligibilitySupportingDocumentPath
+          .map((path: string) => extractIdFromPathLocal(path))
+          .filter((id: number | null) => id !== null) as number[];
+      }
+
+      console.log('✅ useMemo: Trade license IDs:', tradeLicenseIds);
     }
 
-    // Extract Signed AML Document ID
+    // Extract Signed AML Document ID (SINGLE - unchanged)
     let signedAMLId: number | null = null;
     if (affiliateData.signedAMLDeclarationPath) {
       // Backend sends number (e.g., 1043)
@@ -147,8 +178,8 @@ export default function Step1Applicability() {
     }
 
     return {
-      officeProof: officeProofId && !isNaN(officeProofId) ? officeProofId : null,
-      tradeLicense: tradeLicenseId && !isNaN(tradeLicenseId) ? tradeLicenseId : null,
+      officeProofIds,
+      tradeLicenseIds,
       signedAML: signedAMLId && !isNaN(signedAMLId) ? signedAMLId : null,
     };
   }, [formData.applicability]);
@@ -181,19 +212,17 @@ export default function Step1Applicability() {
   }, [formData.application?.membershipType, navigate]);
 
   // Additional refs and states for other files
-  const [officeProofFile, setOfficeProofFile] = useState<File | null>(null);
-  const [existingOfficeProofPath, setExistingOfficeProofPath] = useState<string | null>(null);
-  const [tradeLicenseFile, setTradeLicenseFile] = useState<File | null>(null);
-  const [existingTradeLicensePath, setExistingTradeLicensePath] = useState<string | null>(null);
+  // Multi-document paths (arrays) for office proof and trade license
+  const [existingOfficeProofPaths, setExistingOfficeProofPaths] = useState<string[]>([]);
+  const [existingTradeLicensePaths, setExistingTradeLicensePaths] = useState<string[]>([]);
+  // Single document for signed AML (kept as single)
   const [existingSignedAMLPath, setExistingSignedAMLPath] = useState<string | null>(null);
-  const officeProofRef = useRef<HTMLInputElement>(null);
-  const tradeLicenseRef = useRef<HTMLInputElement>(null);
 
   // Sync extracted document IDs from useMemo to component state
   useEffect(() => {
     console.log('🔄 Syncing extracted IDs to component state:', extractedDocumentIds);
-    setOfficeProofDocumentId(extractedDocumentIds.officeProof);
-    setTradeLicenseDocumentId(extractedDocumentIds.tradeLicense);
+    setOfficeProofDocumentIds(extractedDocumentIds.officeProofIds);
+    setTradeLicenseDocumentIds(extractedDocumentIds.tradeLicenseIds);
     setSignedAMLDocumentId(extractedDocumentIds.signedAML);
   }, [extractedDocumentIds]);
 
@@ -209,13 +238,19 @@ export default function Step1Applicability() {
       setInternationalOrg(affiliateData.isInternationalOrgWithUAEBranch ?? null);
       setHasAMLNotices(affiliateData.hasUnresolvedAMLNotices ?? null);
 
-      // Set existing paths for files
-      if (affiliateData.uaeOfficeProofDocumentPaths && affiliateData.uaeOfficeProofDocumentPaths.length > 0) {
-        setExistingOfficeProofPath(affiliateData.uaeOfficeProofDocumentPaths[0]);
+      // Set existing paths for files (ARRAYS for multi-upload fields)
+      if (affiliateData.uaeOfficeProofDocumentPaths && Array.isArray(affiliateData.uaeOfficeProofDocumentPaths)) {
+        setExistingOfficeProofPaths(affiliateData.uaeOfficeProofDocumentPaths);
+      } else if (affiliateData.uaeOfficeProofDocumentPaths) {
+        // Handle single path as array
+        setExistingOfficeProofPaths([affiliateData.uaeOfficeProofDocumentPaths]);
       }
 
-      if (affiliateData.eligibilitySupportingDocumentPath && affiliateData.eligibilitySupportingDocumentPath.length > 0) {
-        setExistingTradeLicensePath(affiliateData.eligibilitySupportingDocumentPath[0]);
+      if (affiliateData.eligibilitySupportingDocumentPath && Array.isArray(affiliateData.eligibilitySupportingDocumentPath)) {
+        setExistingTradeLicensePaths(affiliateData.eligibilitySupportingDocumentPath);
+      } else if (affiliateData.eligibilitySupportingDocumentPath) {
+        // Handle single path as array
+        setExistingTradeLicensePaths([affiliateData.eligibilitySupportingDocumentPath]);
       }
 
       if (affiliateData.signedAMLDeclarationPath) {
@@ -286,42 +321,46 @@ export default function Step1Applicability() {
     dispatch({ type: 'SET_SAVING', payload: true });
     try {
       // CRITICAL: Use IDs from Formik state first (these are validated), fallback to component state
-      const formikOfficeProofId = formikValues?.uaeOfficeProofDocumentsId;
-      const formikTradeLicenseId = formikValues?.eligibilitySupportingDocumentsId;
+      const formikOfficeProofIds = formikValues?.uaeOfficeProofDocumentsIds;
+      const formikTradeLicenseIds = formikValues?.eligibilitySupportingDocumentsIds;
       const formikSignedAMLId = formikValues?.signedAMLDeclarationId;
 
       console.log('🎯 Formik Document IDs:', {
-        officeProof: formikOfficeProofId,
-        tradeLicense: formikTradeLicenseId,
+        officeProofIds: formikOfficeProofIds,
+        tradeLicenseIds: formikTradeLicenseIds,
         signedAML: formikSignedAMLId,
       });
 
-      // Use document IDs from Formik first, then component state, then extract from paths
-      let finalOfficeProofId = formikOfficeProofId || officeProofDocumentId;
-      let finalTradeLicenseId = formikTradeLicenseId || tradeLicenseDocumentId;
+      // Use document IDs from Formik first, then component state (ARRAYS for multi-upload fields)
+      let finalOfficeProofIds = formikOfficeProofIds || officeProofDocumentIds;
+      let finalTradeLicenseIds = formikTradeLicenseIds || tradeLicenseDocumentIds;
       let finalSignedAMLId = formikSignedAMLId || signedAMLDocumentId;
 
       // Debug: Log document IDs to verify they're set
       console.log('📄 Component State Document IDs:', {
-        officeProof: officeProofDocumentId,
-        tradeLicense: tradeLicenseDocumentId,
+        officeProofIds: officeProofDocumentIds,
+        tradeLicenseIds: tradeLicenseDocumentIds,
         signedAML: signedAMLDocumentId,
         hasUAEOffice,
         existingPaths: {
-          officeProof: existingOfficeProofPath,
-          tradeLicense: existingTradeLicensePath,
+          officeProofPaths: existingOfficeProofPaths,
+          tradeLicensePaths: existingTradeLicensePaths,
           signedAML: existingSignedAMLPath,
         }
       });
 
-      // CRITICAL FIX: If validation passed but IDs are still null, extract from existing paths
-      if (!finalOfficeProofId && existingOfficeProofPath) {
-        finalOfficeProofId = extractIdFromPathLocal(existingOfficeProofPath);
-        console.warn('⚠️ Office proof ID was null, extracted from path:', finalOfficeProofId);
+      // CRITICAL FIX: If validation passed but IDs arrays are empty, extract from existing paths
+      if ((!finalOfficeProofIds || finalOfficeProofIds.length === 0) && existingOfficeProofPaths.length > 0) {
+        finalOfficeProofIds = existingOfficeProofPaths
+          .map(path => extractIdFromPathLocal(path))
+          .filter(id => id !== null) as number[];
+        console.warn('⚠️ Office proof IDs were empty, extracted from paths:', finalOfficeProofIds);
       }
-      if (!finalTradeLicenseId && existingTradeLicensePath) {
-        finalTradeLicenseId = extractIdFromPathLocal(existingTradeLicensePath);
-        console.warn('⚠️ Trade license ID was null, extracted from path:', finalTradeLicenseId);
+      if ((!finalTradeLicenseIds || finalTradeLicenseIds.length === 0) && existingTradeLicensePaths.length > 0) {
+        finalTradeLicenseIds = existingTradeLicensePaths
+          .map(path => extractIdFromPathLocal(path))
+          .filter(id => id !== null) as number[];
+        console.warn('⚠️ Trade license IDs were empty, extracted from paths:', finalTradeLicenseIds);
       }
       if (!finalSignedAMLId && existingSignedAMLPath) {
         finalSignedAMLId = extractIdFromPathLocal(existingSignedAMLPath);
@@ -329,14 +368,14 @@ export default function Step1Applicability() {
       }
 
       console.log('✅ Final IDs after extraction:', {
-        officeProof: finalOfficeProofId,
-        tradeLicense: finalTradeLicenseId,
+        officeProofIds: finalOfficeProofIds,
+        tradeLicenseIds: finalTradeLicenseIds,
         signedAML: finalSignedAMLId,
       });
 
       // CRITICAL: Backend requires non-null values for these fields
-      if (!finalTradeLicenseId) {
-        toast.error('Trade license document is missing. Please upload it.');
+      if (!finalTradeLicenseIds || finalTradeLicenseIds.length === 0) {
+        toast.error('At least one trade license document is required. Please upload it.');
         dispatch({ type: 'SET_SAVING', payload: false });
         return;
       }
@@ -345,8 +384,8 @@ export default function Step1Applicability() {
         dispatch({ type: 'SET_SAVING', payload: false });
         return;
       }
-      if (hasUAEOffice && !finalOfficeProofId) {
-        toast.error('UAE office proof document is missing. Please upload it.');
+      if (hasUAEOffice && (!finalOfficeProofIds || finalOfficeProofIds.length === 0)) {
+        toast.error('At least one UAE office proof document is required. Please upload it.');
         dispatch({ type: 'SET_SAVING', payload: false });
         return;
       }
@@ -359,8 +398,8 @@ export default function Step1Applicability() {
         operatesInBullionOrRefining3Years: licensedBullion || false,
         isInternationalOrgWithUAEBranch: internationalOrg || false,
         hasUnresolvedAMLNotices: hasAMLNotices || false,
-        uaeOfficeProofDocuments: finalOfficeProofId ? [finalOfficeProofId] : null,
-        eligibilitySupportingDocuments: finalTradeLicenseId ? [finalTradeLicenseId] : null,
+        uaeOfficeProofDocuments: finalOfficeProofIds && finalOfficeProofIds.length > 0 ? finalOfficeProofIds : null,
+        eligibilitySupportingDocuments: finalTradeLicenseIds && finalTradeLicenseIds.length > 0 ? finalTradeLicenseIds : null,
         signedAMLDeclaration: finalSignedAMLId,
       };
 
@@ -392,28 +431,25 @@ export default function Step1Applicability() {
     operatesInBullionOrRefining3Years: licensedBullion,
     isInternationalOrgWithUAEBranch: internationalOrg,
     hasUnresolvedAMLNotices: hasAMLNotices,
-    uaeOfficeProofDocuments: officeProofFile || null,
-    uaeOfficeProofDocumentsId: extractedDocumentIds.officeProof || null,
-    eligibilitySupportingDocuments: tradeLicenseFile || null,
-    eligibilitySupportingDocumentsId: extractedDocumentIds.tradeLicense || null,
+    // Multi-upload fields (arrays)
+    uaeOfficeProofDocuments: null, // Not used for validation, just for touched state
+    uaeOfficeProofDocumentsIds: extractedDocumentIds.officeProofIds || [],
+    eligibilitySupportingDocuments: null, // Not used for validation, just for touched state
+    eligibilitySupportingDocumentsIds: extractedDocumentIds.tradeLicenseIds || [],
+    // Single upload field (unchanged)
     signedAMLDeclaration: signedAMLFile || null,
     signedAMLDeclarationId: extractedDocumentIds.signedAML || null,
   };
 
   console.log('📋 Formik initialValues:', {
-    hasFiles: {
-      officeProof: !!officeProofFile,
-      tradeLicense: !!tradeLicenseFile,
-      signedAML: !!signedAMLFile,
-    },
     hasIds: {
-      officeProof: extractedDocumentIds.officeProof,
-      tradeLicense: extractedDocumentIds.tradeLicense,
+      officeProofIds: extractedDocumentIds.officeProofIds,
+      tradeLicenseIds: extractedDocumentIds.tradeLicenseIds,
       signedAML: extractedDocumentIds.signedAML,
     },
     hasPaths: {
-      officeProof: !!existingOfficeProofPath,
-      tradeLicense: !!existingTradeLicensePath,
+      officeProofPaths: existingOfficeProofPaths.length,
+      tradeLicensePaths: existingTradeLicensePaths.length,
       signedAML: !!existingSignedAMLPath,
     }
   });
@@ -430,7 +466,7 @@ export default function Step1Applicability() {
 
   return (
     <Formik
-      key={`${extractedDocumentIds.officeProof}-${extractedDocumentIds.tradeLicense}-${extractedDocumentIds.signedAML}`}
+      key={`${extractedDocumentIds.officeProofIds.join(',')}-${extractedDocumentIds.tradeLicenseIds.join(',')}-${extractedDocumentIds.signedAML}`}
       initialValues={initialValues}
       validationSchema={affiliateMemberStep1Schema}
       onSubmit={handleSubmit}
@@ -439,7 +475,7 @@ export default function Step1Applicability() {
       validateOnBlur={true}
       validateOnMount={false}
     >
-      {({ errors, touched, setFieldValue, setFieldTouched, submitForm }) => (
+      {({ errors, touched, setFieldValue, setFieldTouched, submitForm, validateField }) => (
         <Form>
           <div className="w-full min-h-screen bg-[#353535] flex justify-center">
             <div className="w-full max-w-[1100px] p-8 rounded-xl">
@@ -512,46 +548,30 @@ export default function Step1Applicability() {
               <p className="text-[20px] text-white mb-3">
                 Proof of office (lease agreement, utility bill, etc.) <span className="text-red-500">*</span>
               </p>
-              <input
-                ref={officeProofRef}
-                type="file"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  handleFileUpload(file, setOfficeProofFile, setOfficeProofDocumentId, setFieldValue, setFieldTouched, 'uaeOfficeProofDocuments');
-                }}
-              />
-              <UploadBox
+              <MultiUploadBox
                 title=""
-                file={officeProofFile}
-                prefilledUrl={existingOfficeProofPath}
-                onClick={() => officeProofRef.current?.click()}
-                onDrop={(e) => {
-                  const file = e.dataTransfer?.files?.[0] || null;
-                  handleFileUpload(file, setOfficeProofFile, setOfficeProofDocumentId, setFieldValue, setFieldTouched, 'uaeOfficeProofDocuments');
-                }}
-                onRemove={() => {
-                  setOfficeProofFile(null);
-                  setOfficeProofDocumentId(null);
-                  setExistingOfficeProofPath(null);
-                  setFieldValue('uaeOfficeProofDocuments', null);
-                  setFieldValue('uaeOfficeProofDocumentsId', null);
+                documentIds={officeProofDocumentIds}
+                prefilledPaths={existingOfficeProofPaths}
+                onUploadComplete={(newIds, _newPaths) => {
+                  setOfficeProofDocumentIds(newIds);
+                  setFieldValue('uaeOfficeProofDocumentsIds', newIds);
+                  setFieldValue('uaeOfficeProofDocuments', null); // Trigger validation
                   setFieldTouched('uaeOfficeProofDocuments', true);
+                  validateField('uaeOfficeProofDocuments');
                 }}
+                onRemove={(index) => {
+                  const updatedIds = officeProofDocumentIds.filter((_, i) => i !== index);
+                  const updatedPaths = existingOfficeProofPaths.filter((_, i) => i !== index);
+                  setOfficeProofDocumentIds(updatedIds);
+                  setExistingOfficeProofPaths(updatedPaths);
+                  setFieldValue('uaeOfficeProofDocumentsIds', updatedIds);
+                  setFieldValue('uaeOfficeProofDocuments', null); // Trigger validation
+                  setFieldTouched('uaeOfficeProofDocuments', true);
+                  validateField('uaeOfficeProofDocuments');
+                }}
+                maxFiles={5}
+                error={touched.uaeOfficeProofDocuments && pendingUploads === 0 ? (errors.uaeOfficeProofDocuments as string) : undefined}
               />
-              {touched.uaeOfficeProofDocuments && errors.uaeOfficeProofDocuments && pendingUploads === 0 && (
-                <p className="text-red-500 text-sm mt-1">{errors.uaeOfficeProofDocuments as string}</p>
-              )}
-              {existingOfficeProofPath && !officeProofFile && (
-                <button
-                  type="button"
-                  onClick={() => downloadDocument(extractIdFromPathLocal(existingOfficeProofPath), "Office Proof Document")}
-                  disabled={downloadingId === extractIdFromPathLocal(existingOfficeProofPath)}
-                  className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
-                >
-                  {downloadingId === extractIdFromPathLocal(existingOfficeProofPath) ? 'Downloading...' : 'Download Previous Document'}
-                </button>
-              )}
             </div>
           )}
         </div>
@@ -601,46 +621,30 @@ export default function Step1Applicability() {
           <p className="text-[20px] text-white w-full mb-3">
             Trade license, proof of years in operation, and/or global trade association membership certificate <span className="text-red-500">*</span>
           </p>
-          <input
-            ref={tradeLicenseRef}
-            type="file"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              handleFileUpload(file, setTradeLicenseFile, setTradeLicenseDocumentId, setFieldValue, setFieldTouched, 'eligibilitySupportingDocuments');
-            }}
-          />
-          <UploadBox
+          <MultiUploadBox
             title=""
-            file={tradeLicenseFile}
-            prefilledUrl={existingTradeLicensePath}
-            onClick={() => tradeLicenseRef.current?.click()}
-            onDrop={(e) => {
-              const file = e.dataTransfer?.files?.[0] || null;
-              handleFileUpload(file, setTradeLicenseFile, setTradeLicenseDocumentId, setFieldValue, setFieldTouched, 'eligibilitySupportingDocuments');
-            }}
-            onRemove={() => {
-              setTradeLicenseFile(null);
-              setTradeLicenseDocumentId(null);
-              setExistingTradeLicensePath(null);
-              setFieldValue('eligibilitySupportingDocuments', null);
-              setFieldValue('eligibilitySupportingDocumentsId', null);
+            documentIds={tradeLicenseDocumentIds}
+            prefilledPaths={existingTradeLicensePaths}
+            onUploadComplete={(newIds, _newPaths) => {
+              setTradeLicenseDocumentIds(newIds);
+              setFieldValue('eligibilitySupportingDocumentsIds', newIds);
+              setFieldValue('eligibilitySupportingDocuments', null); // Trigger validation
               setFieldTouched('eligibilitySupportingDocuments', true);
+              validateField('eligibilitySupportingDocuments');
             }}
+            onRemove={(index) => {
+              const updatedIds = tradeLicenseDocumentIds.filter((_, i) => i !== index);
+              const updatedPaths = existingTradeLicensePaths.filter((_, i) => i !== index);
+              setTradeLicenseDocumentIds(updatedIds);
+              setExistingTradeLicensePaths(updatedPaths);
+              setFieldValue('eligibilitySupportingDocumentsIds', updatedIds);
+              setFieldValue('eligibilitySupportingDocuments', null); // Trigger validation
+              setFieldTouched('eligibilitySupportingDocuments', true);
+              validateField('eligibilitySupportingDocuments');
+            }}
+            maxFiles={5}
+            error={touched.eligibilitySupportingDocuments && pendingUploads === 0 ? (errors.eligibilitySupportingDocuments as string) : undefined}
           />
-          {touched.eligibilitySupportingDocuments && errors.eligibilitySupportingDocuments && pendingUploads === 0 && (
-            <p className="text-red-500 text-sm mt-1">{errors.eligibilitySupportingDocuments as string}</p>
-          )}
-          {existingTradeLicensePath && !tradeLicenseFile && (
-            <button
-              type="button"
-              onClick={() => downloadDocument(extractIdFromPathLocal(existingTradeLicensePath), "Trade License Document")}
-              disabled={downloadingId === extractIdFromPathLocal(existingTradeLicensePath)}
-              className="mt-2 inline-block text-[#C6A95F] underline cursor-pointer disabled:opacity-50"
-            >
-              {downloadingId === extractIdFromPathLocal(existingTradeLicensePath) ? 'Downloading...' : 'Download Previous Document'}
-            </button>
-          )}
         </div>
 
         {/* Upload: AML */}

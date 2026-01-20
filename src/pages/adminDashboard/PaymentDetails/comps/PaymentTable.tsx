@@ -171,7 +171,7 @@ export default function PaymentTable() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, statusFilter]);
 
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const totalPages = totalCount > 0 ? Math.ceil(totalCount / ITEMS_PER_PAGE) : (data.length > 0 ? 1 : 0);
 
   const handleInvoiceSuccess = () => {
     fetchPayments();

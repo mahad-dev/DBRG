@@ -24,22 +24,29 @@ export const step1ApplicabilitySchema = Yup.lazy((values: any) => {
     // AML Notices question
     hasUnresolvedAMLNotices: requiredBoolean('AML notices question'),
 
-    // Required documents - accept File OR existing document ID
+    // Required documents - accept array of document IDs
     eligibilitySupportingDocuments: Yup.mixed()
       .nullable()
-      .test('file-required', 'Trade license / proof of years / trade association certificate is required', function(value) {
-        const { eligibilitySupportingDocumentsId } = this.parent;
-        console.log('🔍 Validating eligibilitySupportingDocuments:', {
+      .test('files-required', 'At least one trade license / proof document is required', function(value) {
+        const { eligibilitySupportingDocumentsIds } = this.parent;
+        console.log('🔍 Validating eligibilitySupportingDocuments (array):', {
           value,
-          file: value instanceof File ? 'File present' : 'No file',
-          documentId: eligibilitySupportingDocumentsId,
-          documentIdType: typeof eligibilitySupportingDocumentsId,
-          isValid: !!(value instanceof File || eligibilitySupportingDocumentsId)
+          documentIds: eligibilitySupportingDocumentsIds,
+          documentIdsLength: Array.isArray(eligibilitySupportingDocumentsIds) ? eligibilitySupportingDocumentsIds.length : 0,
+          isValid: Array.isArray(eligibilitySupportingDocumentsIds) && eligibilitySupportingDocumentsIds.length > 0
         });
-        // Valid if there's a new file OR an existing document ID
-        if (value instanceof File) return true;
-        if (eligibilitySupportingDocumentsId) return true;
+        // Valid if there's at least one document ID in the array
+        if (Array.isArray(eligibilitySupportingDocumentsIds) && eligibilitySupportingDocumentsIds.length > 0) {
+          return true;
+        }
         return false;
+      })
+      .test('max-files', 'Maximum 5 documents allowed', function(_value) {
+        const { eligibilitySupportingDocumentsIds } = this.parent;
+        if (Array.isArray(eligibilitySupportingDocumentsIds) && eligibilitySupportingDocumentsIds.length > 5) {
+          return false;
+        }
+        return true;
       }),
 
     signedAMLDeclaration: Yup.mixed()
@@ -59,31 +66,38 @@ export const step1ApplicabilitySchema = Yup.lazy((values: any) => {
         return false;
       }),
 
-    // Optional fields for tracking existing document IDs
-    eligibilitySupportingDocumentsId: Yup.number().nullable(),
+    // Optional fields for tracking existing document IDs (arrays for multi-upload)
+    eligibilitySupportingDocumentsIds: Yup.array().of(Yup.number()).nullable(),
     signedAMLDeclarationId: Yup.number().nullable(),
   });
 
-  // CONDITIONAL: If hasUAEOffice = true, require office proof document
+  // CONDITIONAL: If hasUAEOffice = true, require office proof documents (array)
   if (values.hasUAEOffice === true) {
     schema = schema.shape({
       uaeOfficeProofDocuments: Yup.mixed()
         .nullable()
-        .test('file-required', 'UAE office proof document is required', function(value) {
-          const { uaeOfficeProofDocumentsId } = this.parent;
-          console.log('🔍 Validating uaeOfficeProofDocuments:', {
+        .test('files-required', 'At least one UAE office proof document is required', function(value) {
+          const { uaeOfficeProofDocumentsIds } = this.parent;
+          console.log('🔍 Validating uaeOfficeProofDocuments (array):', {
             value,
-            file: value instanceof File ? 'File present' : 'No file',
-            documentId: uaeOfficeProofDocumentsId,
-            documentIdType: typeof uaeOfficeProofDocumentsId,
-            isValid: !!(value instanceof File || uaeOfficeProofDocumentsId)
+            documentIds: uaeOfficeProofDocumentsIds,
+            documentIdsLength: Array.isArray(uaeOfficeProofDocumentsIds) ? uaeOfficeProofDocumentsIds.length : 0,
+            isValid: Array.isArray(uaeOfficeProofDocumentsIds) && uaeOfficeProofDocumentsIds.length > 0
           });
-          // Valid if there's a new file OR an existing document ID
-          if (value instanceof File) return true;
-          if (uaeOfficeProofDocumentsId) return true;
+          // Valid if there's at least one document ID in the array
+          if (Array.isArray(uaeOfficeProofDocumentsIds) && uaeOfficeProofDocumentsIds.length > 0) {
+            return true;
+          }
           return false;
+        })
+        .test('max-files', 'Maximum 5 documents allowed', function(_value) {
+          const { uaeOfficeProofDocumentsIds } = this.parent;
+          if (Array.isArray(uaeOfficeProofDocumentsIds) && uaeOfficeProofDocumentsIds.length > 5) {
+            return false;
+          }
+          return true;
         }),
-      uaeOfficeProofDocumentsId: Yup.number().nullable(),
+      uaeOfficeProofDocumentsIds: Yup.array().of(Yup.number()).nullable(),
     });
   }
 

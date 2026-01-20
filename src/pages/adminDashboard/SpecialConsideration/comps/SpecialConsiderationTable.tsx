@@ -235,15 +235,22 @@ export default function SpecialConsiderationTable() {
   const handleAskMoreDetails = async (details: string) => {
     if (!selectedRequest) return;
     try {
-      await apiClient.put("/SpecialConsideration/AskMoreDetails", {
+      const response = await apiClient.put("/SpecialConsideration/AskMoreDetails", {
         id: selectedRequest.id,
         details,
       });
-      setAskMoreDetailsModal(false);
-      fetchRequests();
+
+      // Check response status
+      if (response.data.status === true) {
+        toast.success(response.data.message || "Request sent successfully");
+        setAskMoreDetailsModal(false);
+        fetchRequests();
+      } else {
+        toast.error(response.data.message || "Failed to request more details");
+      }
     } catch (error: any) {
       console.error("Ask More Details Error:", error);
-      toast.error(error?.message || "Failed to request more details");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to request more details");
     }
   };
 
