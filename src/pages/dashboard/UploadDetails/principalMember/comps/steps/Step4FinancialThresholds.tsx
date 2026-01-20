@@ -399,13 +399,13 @@ export default function Step4FinancialThresholds() {
                 </div>
 
                 {/* Download Template */}
-                <Button
+                {/* <Button
                   type="button"
                   variant="site_btn"
                   className="w-full md:w-[220px] h-[42px] rounded-[10px] text-[18px] bg-[#C6A95F] text-black font-gilroySemiBold cursor-pointer"
                 >
                   Download Template
-                </Button>
+                </Button> */}
               </div>
             </div>
 

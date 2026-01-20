@@ -40,7 +40,7 @@ async saveUploadDetails(
     ...(sectionNumber === MemberApplicationSection.Applicability && { applicability: payload.applicability }),
     ...(sectionNumber === MemberApplicationSection.CompanyDetails && { companyDetails: payload.companyDetails }),
     ...(sectionNumber === MemberApplicationSection.BankRelationReq && { bankRelationshipRequirement: payload.bankRelationshipRequirement }),
-    ...(sectionNumber === MemberApplicationSection.FinancialThreshold && { financialThreshold: payload.financialThreshold }),
+    ...(sectionNumber === MemberApplicationSection.FinancialThreshold && { financialThresholds: payload.financialThreshold }),
     ...(sectionNumber === MemberApplicationSection.RegulatorCompliance && { regulatoryCompliance: payload.regulatorCompliance }),
     ...(sectionNumber === MemberApplicationSection.RequiredDocs && { memberRequiredDocuments: payload.memberRequiredDocuments }),
     ...(sectionNumber === MemberApplicationSection.DataProtectionPrivacy && { dataProtectionPrivacy: payload.dataProtectionPrivacy }),
