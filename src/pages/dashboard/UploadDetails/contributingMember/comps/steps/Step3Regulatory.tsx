@@ -84,10 +84,10 @@ export default function Step3Regulatory() {
         membershipType: formData.application.membershipType,
         regulatorCompliance: {
           compliantWithAmlCft: hook.compliantUAE ?? false,
-          complianceOfficerFullName: emptyToNull(hook.officerName),
-          complianceOfficerDesignation: emptyToNull(hook.officerDesignation),
-          complianceOfficerContactNumber: emptyToNull(hook.officerContact),
-          complianceOfficerEmail: emptyToNull(hook.officerEmail),
+          complianceOfficerFullName: hook.compliantUAE ? emptyToNull(hook.officerName) : null,
+          complianceOfficerDesignation: hook.compliantUAE ? emptyToNull(hook.officerDesignation) : null,
+          complianceOfficerContactNumber: hook.compliantUAE ? emptyToNull(hook.officerContact) : null,
+          complianceOfficerEmail: hook.compliantUAE ? emptyToNull(hook.officerEmail) : null,
           hasOngoingCases: hook.ongoingCases ?? false,
           ongoingCasesDetails: emptyToNull(hook.ongoingCasesDetails),
           investigationSupportingDocuments: ongoingDetailsFileId ? [ongoingDetailsFileId] : [],
@@ -221,7 +221,8 @@ export default function Step3Regulatory() {
           </div>
         </div>
 
-        {/* Compliance Officer Details */}
+        {/* Compliance Officer Details - only show when compliant */}
+        {hook.compliantUAE === true && (
         <div>
           <Label
             className="
@@ -303,6 +304,7 @@ export default function Step3Regulatory() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Ongoing cases */}
         <div>
