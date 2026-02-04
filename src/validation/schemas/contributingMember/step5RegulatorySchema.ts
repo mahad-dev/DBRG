@@ -12,12 +12,6 @@ export const step5RegulatorySchema = Yup.lazy((values: any) => {
     // AML/CFT Compliance
     compliantUAE: requiredBoolean('AML/CFT compliance'),
 
-    // Compliance Officer Details
-    officerName: requiredString('Officer name'),
-    officerDesignation: requiredString('Officer designation'),
-    officerContact: requiredString('Officer contact number'),
-    officerEmail: requiredEmail('Officer email'),
-
     // Ongoing Cases
     ongoingCases: requiredBoolean('Ongoing cases question'),
 
@@ -44,6 +38,16 @@ export const step5RegulatorySchema = Yup.lazy((values: any) => {
     preciousPolicy: requiredBoolean('Precious metals policy question'),
     responsibleSourcingAudit: requiredBoolean('Responsible sourcing audit question'),
   });
+
+  // CONDITIONAL: If compliantUAE = true, require officer details
+  if (values.compliantUAE === true) {
+    schema = schema.shape({
+      officerName: requiredString('Officer name'),
+      officerDesignation: requiredString('Officer designation'),
+      officerContact: requiredString('Officer contact number'),
+      officerEmail: requiredEmail('Officer email'),
+    });
+  }
 
   // CONDITIONAL: If ongoingCases = true, require details and file
   if (values.ongoingCases === true) {
