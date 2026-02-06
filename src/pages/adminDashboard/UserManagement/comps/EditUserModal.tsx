@@ -21,7 +21,6 @@ import {
 import { Loader2 } from "lucide-react";
 import { userApi, type User, type Permission } from "@/services/userApi";
 import { toast } from "react-toastify";
-import { ServiceCheckbox } from "@/components/custom/ui/ServiceCheckbox";
 
 interface EditUserModalProps {
   open: boolean;
@@ -230,7 +229,9 @@ export default function EditUserModal({
                       name="email"
                       type="email"
                       placeholder="xyz@gmail.com"
-                      className="h-12 rounded-[10px] bg-white text-black"
+                      disabled
+                      readOnly
+                      className="h-12 rounded-[10px] bg-gray-200 text-black cursor-not-allowed"
                     />
                     <ErrorMessage
                       name="email"
@@ -282,14 +283,12 @@ export default function EditUserModal({
                     <label className="mb-3 block text-sm font-semibold text-[#C6A95F]">
                       Permissions
                     </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-4">
                       {parents.map((parent) => (
                         <div key={parent.id} className="border border-white/20 rounded-lg p-4 bg-white/5">
-                          <div className="mb-3">
-                            <ServiceCheckbox
-                              label={parent.name}
-                              checked={values.permissionIds.includes(parent.id)}
-                              onChange={() => {
+                          <label className="flex items-center gap-2 cursor-pointer mb-2">
+                            <div
+                              onClick={() => {
                                 const isChecked = values.permissionIds.includes(parent.id);
                                 if (isChecked) {
                                   const childIds = grouped[parent.key]?.map(c => c.id) || [];
@@ -303,36 +302,49 @@ export default function EditUserModal({
                                   setFieldValue("permissionIds", [...values.permissionIds, parent.id]);
                                 }
                               }}
-                              id={`parent-${parent.id}`}
-                              transparent={true}
-                            />
-                          </div>
+                              className={`w-5 h-5 rounded border flex items-center justify-center transition-all shrink-0 cursor-pointer
+                                ${values.permissionIds.includes(parent.id) ? "bg-[#C6A95F] border-[#C6A95F]" : "bg-transparent border-white"}`}
+                            >
+                              {values.permissionIds.includes(parent.id) && (
+                                <svg className="w-3 h-3 text-black" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-base font-medium text-white">{parent.name}</span>
+                          </label>
 
                           {grouped[parent.key] && grouped[parent.key].length > 0 && (
-                            <div className="ml-8 space-y-2">
+                            <div className="ml-7 space-y-2">
                               {grouped[parent.key].map((perm) => (
-                                <ServiceCheckbox
-                                  key={perm.id}
-                                  label={perm.name}
-                                  checked={values.permissionIds.includes(perm.id)}
-                                  onChange={() => {
-                                    const isSelected = values.permissionIds.includes(perm.id);
-                                    if (isSelected) {
-                                      setFieldValue(
-                                        "permissionIds",
-                                        values.permissionIds.filter((id) => id !== perm.id)
-                                      );
-                                    } else {
-                                      const newPermissions = [...values.permissionIds, perm.id];
-                                      if (!values.permissionIds.includes(parent.id)) {
-                                        newPermissions.push(parent.id);
+                                <label key={perm.id} className="flex items-center gap-2 cursor-pointer">
+                                  <div
+                                    onClick={() => {
+                                      const isSelected = values.permissionIds.includes(perm.id);
+                                      if (isSelected) {
+                                        setFieldValue(
+                                          "permissionIds",
+                                          values.permissionIds.filter((id) => id !== perm.id)
+                                        );
+                                      } else {
+                                        const newPermissions = [...values.permissionIds, perm.id];
+                                        if (!values.permissionIds.includes(parent.id)) {
+                                          newPermissions.push(parent.id);
+                                        }
+                                        setFieldValue("permissionIds", newPermissions);
                                       }
-                                      setFieldValue("permissionIds", newPermissions);
-                                    }
-                                  }}
-                                  id={`child-${perm.id}`}
-                                  transparent={true}
-                                />
+                                    }}
+                                    className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 cursor-pointer
+                                      ${values.permissionIds.includes(perm.id) ? "bg-[#C6A95F] border-[#C6A95F]" : "bg-transparent border-white/60"}`}
+                                  >
+                                    {values.permissionIds.includes(perm.id) && (
+                                      <svg className="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                  <span className="text-sm text-white/80">{perm.name}</span>
+                                </label>
                               ))}
                             </div>
                           )}
