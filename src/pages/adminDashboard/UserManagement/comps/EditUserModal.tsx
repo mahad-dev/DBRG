@@ -50,7 +50,7 @@ interface FormValues {
 const validationSchema = Yup.object({
   name: Yup.string().required("Name is required"),
   phone: Yup.string().required("Phone number is required"),
-  email: Yup.string()
+  email: Yup.string() 
     .email("Invalid email address")
     .required("Email is required"),
   role: Yup.number().required("Role is required"),
