@@ -23,6 +23,7 @@ import { Search, Filter, MoreVertical, MapPin, Download } from "lucide-react";
 import { userApi, type User } from "@/services/userApi";
 import ReplaceDelegateModal from "./ReplaceDelegateModal";
 import ViewUserModal from "./ViewUserModal";
+import EditUserModal from "./EditUserModal";
 import { useAuth } from "@/context/AuthContext";
 import { generatePDFReport, generateCSVReport, generateExcelReport } from "@/utils/pdfExport";
 
@@ -710,6 +711,7 @@ function FooterPagination({
 function ActionMenu({ user, onReplace, canEdit }: { user: User; onReplace: () => void; canEdit: boolean }) {
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const { hasPermission } = useAuth();
   const canGet = hasPermission('USER_MANAGEMENT.GET');
 
@@ -725,7 +727,11 @@ function ActionMenu({ user, onReplace, canEdit }: { user: User; onReplace: () =>
               View
             </DropdownMenuItem>
           )}
-          {canEdit && <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>}
+          {canEdit && (
+            <DropdownMenuItem onClick={() => setEditModalOpen(true)} className="cursor-pointer">
+              Edit
+            </DropdownMenuItem>
+          )}
           {canEdit && user.status === 2 && (
             <DropdownMenuItem onClick={() => setReplaceModalOpen(true)} className="cursor-pointer">
               Replace
@@ -744,6 +750,15 @@ function ActionMenu({ user, onReplace, canEdit }: { user: User; onReplace: () =>
           open={viewModalOpen}
           onClose={() => setViewModalOpen(false)}
           userId={user.userId}
+        />
+      )}
+
+      {canEdit && (
+        <EditUserModal
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          user={user}
+          onSuccess={onReplace}
         />
       )}
 

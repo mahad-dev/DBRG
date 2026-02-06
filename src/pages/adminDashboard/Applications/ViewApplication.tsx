@@ -268,7 +268,9 @@ export default function ViewApplication() {
                 )}
                 <Field label="Website" value={data.companyDetails.website || "N/A"} />
                 <Field label="Primary Contact Name" value={data.companyDetails.primaryContactName || "N/A"} />
+                <Field label="Primary Contact Designation" value={data.companyDetails.primaryContactDesignation || "N/A"} />
                 <Field label="Primary Contact Email" value={data.companyDetails.primaryContactEmail || "N/A"} />
+                <Field label="Phone Number" value={data.companyDetails.phoneNumber || "N/A"} />
                 <Field label="Official Email" value={data.companyDetails.officialEmail || "N/A"} />
                 <Field label="Registered Office Address" value={data.companyDetails.registeredOfficeAddress || "N/A"} />
                 <Field label="Country of Incorporation" value={data.companyDetails.countryOfIncorporation || "N/A"} />
