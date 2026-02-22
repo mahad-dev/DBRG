@@ -20,13 +20,14 @@ interface MultiUploadBoxProps {
   id?: string;
 }
 
-// Helper function to extract filename from S3 URL
+// Helper: extract filename from S3 URL
 const getFilenameFromUrl = (url: string): string => {
   try {
     const urlWithoutQuery = url.split('?')[0];
     const parts = urlWithoutQuery.split('/');
     let filename = parts[parts.length - 1];
     filename = decodeURIComponent(filename);
+    // Remove leading numeric ID prefix like "1234_"
     filename = filename.replace(/^\d+_/, '');
     return filename || 'Document';
   } catch {
@@ -34,7 +35,7 @@ const getFilenameFromUrl = (url: string): string => {
   }
 };
 
-// Helper function to check if URL is an image
+// Helper: check if URL is an image
 const isImageUrl = (url: string): boolean => {
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
   return imageExtensions.some(ext => url.toLowerCase().includes(ext));
@@ -43,6 +44,7 @@ const isImageUrl = (url: string): boolean => {
 // DocumentCard Sub-component
 interface DocumentCardProps {
   documentId: number;
+  // path is optional — newly uploaded docs won't have a real S3 path yet
   path?: string;
   onRemove: () => void;
   index: number;
@@ -50,9 +52,12 @@ interface DocumentCardProps {
 
 const DocumentCard: React.FC<DocumentCardProps> = ({ documentId, path, onRemove, index }) => {
   const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
-  const fileName = path ? getFilenameFromUrl(path) : `Document ${index + 1}`;
-  const extractedId = path ? extractIdFromPath(path) : documentId;
-  const isImage = path ? isImageUrl(path) : false;
+
+  // FIX: For newly uploaded docs (no real S3 path), use documentId directly for download
+  const isRealPath = path && !path.startsWith(`/${documentId}_uploaded`);
+  const fileName = isRealPath ? getFilenameFromUrl(path!) : `Document ${index + 1}`;
+  const extractedId = isRealPath ? (extractIdFromPath(path!) ?? documentId) : documentId;
+  const isImage = isRealPath ? isImageUrl(path!) : false;
   const isDownloading = downloadingId === extractedId;
 
   const handleDownload = () => {
@@ -66,11 +71,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ documentId, path, onRemove,
       {/* File Icon or Image Preview */}
       <div className="flex-shrink-0">
         {isImage && path ? (
-          <img
-            src={path}
-            alt={fileName}
-            className="w-12 h-12 object-cover rounded"
-          />
+          <img src={path} alt={fileName} className="w-12 h-12 object-cover rounded" />
         ) : (
           <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center">
             <FileText className="w-6 h-6 text-[#C6A95F]" />
@@ -82,13 +83,14 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ documentId, path, onRemove,
       <div className="flex-1 min-w-0">
         <p className="text-white text-sm font-medium truncate">{fileName}</p>
         <p className="text-white/50 text-xs">
-          {path ? 'Previously uploaded' : 'Just uploaded'}
+          {isRealPath ? 'Previously uploaded' : 'Just uploaded'}
         </p>
       </div>
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        {path && (
+        {/* Only show download if it's a real previously-uploaded path */}
+        {isRealPath && (
           <Button
             type="button"
             size="sm"
@@ -152,7 +154,6 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
     let failedCount = 0;
 
     for (const file of filesToUpload) {
-      // Validate file type
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
         toast.error(`File ${file.name} has invalid type. Only PDF and images are allowed.`);
@@ -160,8 +161,7 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
         continue;
       }
 
-      // Validate file size (10MB)
-      const maxSize = 10 * 1024 * 1024;
+      const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
         toast.error(`File ${file.name} is too large. Maximum size is 10MB.`);
         failedCount++;
@@ -171,8 +171,8 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
       try {
         const docId = await uploadDocument(file);
         uploadedIds.push(docId);
-      } catch (error) {
-        console.error('Upload failed:', error);
+      } catch (err) {
+        console.error('Upload failed:', err);
         toast.error(`Failed to upload ${file.name}`);
         failedCount++;
       }
@@ -181,7 +181,12 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
     setUploading(false);
 
     if (uploadedIds.length > 0) {
-      onUploadComplete([...documentIds, ...uploadedIds], [...prefilledPaths]);
+      // FIX: Use a sentinel path "/{id}_uploaded" so DocumentCard knows it's a new upload
+      // Parent components use this format in extractIdFromPathLocal as fallback too
+      const newPaths = uploadedIds.map((id: number) => `/${id}_uploaded`);
+      const allIds = [...documentIds, ...uploadedIds];
+      const allPaths = [...prefilledPaths, ...newPaths];
+      onUploadComplete(allIds, allPaths);
       toast.success(`Successfully uploaded ${uploadedIds.length} document(s)`);
     }
 
@@ -189,7 +194,6 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
       toast.warning(`${failedCount} file(s) failed to upload`);
     }
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -249,10 +253,9 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
         </div>
       )}
 
-      {/* Upload Area - Show if slots available */}
+      {/* Upload Area — show only if slots remain */}
       {documentIds.length < maxFiles && (
         <div className="mt-4">
-          {/* Drag & Drop Area */}
           <div
             id={id}
             onDragOver={handleDragOver}
@@ -265,10 +268,8 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
               if (e.key === "Enter" || e.key === " ") handleUploadClick();
             }}
             className={`
-              w-full
-              max-w-[280px] sm:max-w-[230px] md:max-w-[180px]
-              bg-white
-              p-4 rounded-[10px]
+              w-full max-w-[280px] sm:max-w-[230px] md:max-w-[180px]
+              bg-white p-4 rounded-[10px]
               flex flex-col items-center justify-center
               cursor-pointer select-none
               border-2 border-dashed text-black
@@ -299,7 +300,6 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
                   <path d="M12 11v6" />
                   <path d="M9 14h6" />
                 </svg>
-
                 <p className="text-[18px] sm:text-[20px] text-center mt-1 leading-tight">
                   Drag & Drop
                   <br /> or Select Files
@@ -308,7 +308,6 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
             )}
           </div>
 
-          {/* Upload Button */}
           <div className="mt-3">
             <Button
               type="button"
@@ -339,13 +338,13 @@ export const MultiUploadBox: React.FC<MultiUploadBoxProps> = ({
         </div>
       )}
 
-      {/* File Count Indicator */}
+      {/* File Count */}
       <p className="text-sm text-white/50 mt-2">
         {documentIds.length} of {maxFiles} document(s) uploaded
         {documentIds.length >= maxFiles && " (Maximum reached)"}
       </p>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
         <p className="text-red-400 text-sm mt-2">{error}</p>
       )}

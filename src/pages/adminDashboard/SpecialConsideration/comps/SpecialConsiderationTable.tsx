@@ -43,6 +43,7 @@ type ConsiderationRequest = {
   remarks: string | null;
   statusChangedDate?: string | null;
   userId?: string;
+  askMoreDetailsRequest?: string | null;
 };
 
 /* ================= UTILITY FUNCTIONS ================= */
@@ -529,6 +530,7 @@ export default function SpecialConsiderationTable() {
         applicationDate={formatDate(selectedRequest?.applicationDate || "")}
         membershipCategory={getMembershipCategoryText(selectedRequest?.membershipType || 0)}
         requestMessage={selectedRequest?.message}
+        askMoreDetailsRequest={selectedRequest?.askMoreDetailsRequest}
       />
 
       <RemarksDialog

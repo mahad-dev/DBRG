@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,7 @@ interface AskMoreDetailsModalProps {
   membershipCategory?: string;
   requestMessage?: string;
   pictureUrl?: string;
+  askMoreDetailsRequest?: string | null;
 }
 
 // Function to generate random background color based on name
@@ -49,26 +50,40 @@ export default function AskMoreDetailsModal({
   membershipCategory,
   requestMessage,
   pictureUrl,
+  askMoreDetailsRequest,
 }: AskMoreDetailsModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
-
+const [details, setDetails] = useState("");
   const getInitial = (name?: string) => {
     return name ? name.charAt(0).toUpperCase() : 'U';
   };
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+useEffect(() => {
+  if (open) {
+    const value = askMoreDetailsRequest || "";
+    setDetails(value);
 
-  const handleSubmit = async () => {
-    const textarea = document.querySelector('textarea[placeholder="Please provide additional information..."]') as HTMLTextAreaElement;
-    const details = textarea?.value || '';
-    if (details.trim()) {
-      setIsLoading(true);
-      try {
-        await onConfirm(details);
-      } finally {
-        setIsLoading(false);
+    // Cursor ko end pe set karein
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const length = value.length;
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(length, length);
       }
+    }, 0);
+  }
+}, [open, askMoreDetailsRequest]);
+const handleSubmit = async () => {
+  if (details.trim()) {
+    setIsLoading(true);
+    try {
+      await onConfirm(details);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }
+};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -134,14 +149,17 @@ export default function AskMoreDetailsModal({
         <div className="mb-4">
           <label className="text-sm mb-2 block">Ask for More Details</label>
           <div className="flex gap-3">
-            <textarea
-              placeholder="Please provide additional information..."
-              disabled={isLoading}
-              className={cn(
-                "w-full min-h-[100px] rounded-lg border border-white px-3 py-2 text-xs text-white placeholder:text-white/60",
-                "outline-none transition-all duration-200 focus:border-white focus:ring-1 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-              )}
-            />
+<textarea
+  ref={textareaRef}
+  placeholder="Please provide additional information..."
+  disabled={isLoading}
+  value={details}
+  onChange={(e) => setDetails(e.target.value)}
+  className={cn(
+    "w-full min-h-[100px] rounded-lg border border-white px-3 py-2 text-xs text-white placeholder:text-white/60",
+    "outline-none transition-all duration-200 focus:border-white focus:ring-1 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+  )}
+/>
             <Button
               className="self-start mt-16 cursor-pointer"
               onClick={handleSubmit}
