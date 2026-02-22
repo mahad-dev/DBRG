@@ -26,10 +26,6 @@ import {
 } from "@/types/uploadDetails";
 import { useDocumentDownload } from '@/hooks/useDocumentDownload';
 
-/* --------------------------------------------------------------------- */
-/* Helpers                                                               */
-/* --------------------------------------------------------------------- */
-
 const serviceMap: Record<string, ServiceType> = {
   trading: ServiceType.TradingInPreciousMetals,
   refining: ServiceType.GoldRefining,
@@ -42,8 +38,6 @@ const extractIdFromPathLocal = (path: string | null): number | null => {
   const match = path.match(/\/(\d+)_/);
   return match ? Number(match[1]) : null;
 };
-
-/* --------------------------------------------------------------------- */
 
 export default function Step1Applicability() {
   const {
@@ -62,10 +56,24 @@ export default function Step1Applicability() {
   const isSaving = state.isSaving;
   const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
-  const [specialConsiderationOpen, setSpecialConsiderationOpen] =
-    useState(false);
-  const [currentSetValue] =
-    useState<((v: boolean) => void) | null>(null);
+  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
+  const [currentSetValue] = useState<((v: boolean) => void) | null>(null);
+
+  // Get special consideration status (0=Pending, 1=In Progress, 2=Approved, 3=Rejected)
+  const specialConsiderationStatus = formData?.specialConsideration?.status;
+  
+  // Determine if special consideration is in a blocking state
+  const isSpecialConsiderationRejected = specialConsiderationStatus === 3;
+  const isSpecialConsiderationInProgress = specialConsiderationStatus === 1;
+  
+  // Get status message for display
+  const getSpecialConsiderationStatusMessage = () => {
+    if (!formData?.specialConsideration) return "";
+    if (formData.isSpecialConsiderationApproved === true) return "";
+    if (isSpecialConsiderationRejected) return "Your special consideration request was rejected.";
+    if (isSpecialConsiderationInProgress) return "Your special consideration request is in progress.";
+    return "Your special consideration request is under review.";
+  };
 
   const hasAnyNoAnswer = () => {
     return regulatedByCBA === false || anyAMLNotices === false || hasRelationshipWithUAEGoodDeliveryBrand === false;
@@ -101,10 +109,8 @@ export default function Step1Applicability() {
     setSignedAMLDocumentId,
   } = hook;
 
-  // Track pending uploads
   const [pendingUploads, setPendingUploads] = useState(0);
 
-  // Handle file upload with immediate UI update and background API call
   const handleFileUpload = async (
     file: File | null,
     setFile: (f: File | null) => void,
@@ -113,37 +119,32 @@ export default function Step1Applicability() {
     setFieldTouched: any,
     fieldName: string
   ) => {
-    // Immediately update UI with the file (don't wait for API)
     setFile(file);
     setFieldValue(fieldName, file);
 
     if (file) {
-      // Background upload - UI already shows the file
       setPendingUploads((prev) => prev + 1);
       try {
         const documentId = await uploadDocument(file);
         setDocumentId(documentId);
         setFieldValue(`${fieldName}Id`, documentId);
-        setFieldTouched(fieldName, true); // Only touch after successful upload
+        setFieldTouched(fieldName, true);
         toast.success("File uploaded successfully!");
       } catch (error: any) {
         toast.error(parseApiError(error, "File upload failed. Please try again."));
-        // Remove file from UI on error
         setFile(null);
         setFieldValue(fieldName, null);
         setFieldValue(`${fieldName}Id`, null);
-        setFieldTouched(fieldName, true); // Touch on error too
+        setFieldTouched(fieldName, true);
       } finally {
         setPendingUploads((prev) => prev - 1);
       }
     } else {
-      // File removed
       setFieldValue(`${fieldName}Id`, null);
       setFieldTouched(fieldName, true);
     }
   };
 
-  // Redirect based on existing membershipType
   useEffect(() => {
     if (formData.application?.membershipType) {
       const membershipType = formData.application.membershipType;
@@ -170,10 +171,6 @@ export default function Step1Applicability() {
     }
   }, [formData.application?.membershipType, navigate]);
 
-  /* ------------------------------------------------------------------- */
-  /* Payload Builder – UI DRIVEN ONLY                                     */
-  /* ------------------------------------------------------------------- */
-
   const buildApplicability = (
     signedId?: number | null,
     evidenceId?: number | null,
@@ -187,7 +184,6 @@ export default function Step1Applicability() {
     if (membership === "principal") {
       const principalMember: any = {};
 
-      /* Services */
       const selectedServices = Object.keys(services)
         .filter((k) => services[k as keyof typeof services])
         .map((k) => serviceMap[k]);
@@ -196,50 +192,38 @@ export default function Step1Applicability() {
         principalMember.services = selectedServices;
       }
 
-      /* Category */
       if (category.refiner !== undefined) {
         principalMember.refiningOrTradingCategory = category.refiner
           ? RefiningOrTradingType.Refiner
           : RefiningOrTradingType.TradingCompany;
       }
 
-      /* Refiner answers */
       if (refinerAnswers.accredited !== null)
         principalMember.isAccreditedRefinery = refinerAnswers.accredited;
 
       if (refinerAnswers.aml5yrs !== null)
-        principalMember.operatedUnderUAEML5Years =
-          refinerAnswers.aml5yrs;
+        principalMember.operatedUnderUAEML5Years = refinerAnswers.aml5yrs;
 
       if (refinerAnswers.output10tons !== null)
-        principalMember.refiningOutputOver10Tons =
-          refinerAnswers.output10tons;
+        principalMember.refiningOutputOver10Tons = refinerAnswers.output10tons;
 
       if (refinerAnswers.ratedCompliant !== null)
-        principalMember.ratedCompliantByMinistry =
-          refinerAnswers.ratedCompliant;
+        principalMember.ratedCompliantByMinistry = refinerAnswers.ratedCompliant;
 
-      /* Trading answers */
       if (tradingAnswers.wholesaleBullion !== null)
-        principalMember.involvedInWholesaleBullionTrading =
-          tradingAnswers.wholesaleBullion;
+        principalMember.involvedInWholesaleBullionTrading = tradingAnswers.wholesaleBullion;
 
       if (tradingAnswers.bankRelationships !== null)
-        principalMember.hasBankingRelationships3Years =
-          tradingAnswers.bankRelationships;
+        principalMember.hasBankingRelationships3Years = tradingAnswers.bankRelationships;
 
-      /* AML */
       if (anyAMLNotices !== null)
-        principalMember.hasUnresolvedAMLNotices =
-          anyAMLNotices;
+        principalMember.hasUnresolvedAMLNotices = anyAMLNotices;
 
-      /* Documents */
       if (signedId)
         principalMember.signedAMLDeclaration = signedId;
 
       if (evidenceId)
-        principalMember.bankingRelationshipEvidence =
-          evidenceId;
+        principalMember.bankingRelationshipEvidence = evidenceId;
 
       const applicability: any = { principalMember };
 
@@ -281,12 +265,7 @@ export default function Step1Applicability() {
     return {};
   };
 
-  /* ------------------------------------------------------------------- */
-  /* Save                                                               */
-  /* ------------------------------------------------------------------- */
-
   const handleSave = async () => {
-    // 🚫 Block if special consideration exists but not approved
     if (formData.applicability?.specialConsideration && formData.isSpecialConsiderationApproved !== true) {
       toast.info(
         "Your special consideration request is under review. You can continue once it is approved."
@@ -294,7 +273,6 @@ export default function Step1Applicability() {
       return;
     }
 
-    // If ANY answer is NO and special consideration not approved → open modal, STOP save
     if (formData.isSpecialConsiderationApproved !== true && hasAnyNoAnswer()) {
       setSpecialConsiderationOpen(true);
       return;
@@ -303,7 +281,6 @@ export default function Step1Applicability() {
     dispatch({ type: "SET_SAVING", payload: true });
 
     try {
-      // Use document IDs from immediate uploads (no upload on save)
       const signedId = signedAMLDocumentId || extractIdFromPathLocal(existingSignedAMLPath);
 
       const membershipType = membership === "principal" ? MembershipType.PrincipalMember :
@@ -313,21 +290,13 @@ export default function Step1Applicability() {
 
       const payload = {
         membershipType,
-        applicability: buildApplicability(
-          signedId,
-          null
-        ),
+        applicability: buildApplicability(signedId, null),
       };
 
       updateFormData(payload);
-      await saveUploadDetails(
-        payload,
-        MemberApplicationSection.Applicability
-      );
+      await saveUploadDetails(payload, MemberApplicationSection.Applicability);
 
-      const updated = await getUploadDetails(
-        user?.userId || ""
-      );
+      const updated = await getUploadDetails(user?.userId || "");
 
       updateFormData(updated);
 
@@ -339,9 +308,7 @@ export default function Step1Applicability() {
           setCurrentStep(2);
           toast.success("Applicability saved!");
         } else {
-          toast.success(
-            "Saved. Awaiting admin approval."
-          );
+          toast.success("Saved. Awaiting admin approval.");
         }
       }
     } catch {
@@ -351,11 +318,6 @@ export default function Step1Applicability() {
     }
   };
 
-  /* ------------------------------------------------------------------- */
-  /* UI                                                                 */
-  /* ------------------------------------------------------------------- */
-
-  // Formik initial values
   const initialValues = {
     membership: membership || "",
     regulatedByCBA: regulatedByCBA,
@@ -363,7 +325,7 @@ export default function Step1Applicability() {
     brandName: brandName || "",
     anyAMLNotices: anyAMLNotices,
     signedAMLFile: signedAMLFile,
-    signedAMLFileId: signedAMLDocumentId, // Include document ID for validation
+    signedAMLFileId: signedAMLDocumentId,
   };
 
   return (
@@ -382,7 +344,6 @@ export default function Step1Applicability() {
             Section 1 – Applicability
           </h2>
 
-          {/* Membership */}
           <div className="mt-6">
             <Label className="text-white text-[18px]">
               Membership Category <span className="text-red-500">*</span>
@@ -397,20 +358,16 @@ export default function Step1Applicability() {
               ].map((opt) => (
                 <Button
                   key={opt.id}
-                disabled={!!formData.application?.membershipType && membership !== opt.id}
-                onClick={() => {
-                  if (!formData.application?.membershipType) {
-                    setMembership(opt.id);
-                    navigate(opt.path);
-                  }
-                }}
+                  disabled={!!formData.application?.membershipType && membership !== opt.id}
+                  onClick={() => {
+                    if (!formData.application?.membershipType) {
+                      setMembership(opt.id);
+                      navigate(opt.path);
+                    }
+                  }}
                   variant="site_btn"
-                  
-                
                   className={`w-[240px] ${
-                    membership === opt.id
-                      ? "text-white"
-                      : "bg-transparent border border-white"
+                    membership === opt.id ? "text-white" : "bg-transparent border border-white"
                   } ${!!formData.application?.membershipType && membership !== opt.id ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {opt.label}
@@ -422,7 +379,6 @@ export default function Step1Applicability() {
             )}
           </div>
 
-          {/* Member Bank Questions */}
           {membership === "member_bank" && (
             <>
               <div className="mt-8">
@@ -483,7 +439,6 @@ export default function Step1Applicability() {
             </>
           )}
 
-          {/* AML */}
           <div className="mt-8">
             <div className="text-white text-[20px] mb-2">
               Any unresolved UAE AML notices? <span className="text-red-500">*</span>
@@ -512,14 +467,7 @@ export default function Step1Applicability() {
                 accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 onChange={async (e) => {
                   const file = e.target.files?.[0] ?? null;
-                  await handleFileUpload(
-                    file,
-                    setSignedAMLFile,
-                    setSignedAMLDocumentId,
-                    setFieldValue,
-                    setFieldTouched,
-                    'signedAMLFile'
-                  );
+                  await handleFileUpload(file, setSignedAMLFile, setSignedAMLDocumentId, setFieldValue, setFieldTouched, 'signedAMLFile');
                 }}
               />
 
@@ -531,14 +479,7 @@ export default function Step1Applicability() {
                 onDrop={async (e) => {
                   e.preventDefault();
                   const file = e.dataTransfer?.files?.[0] ?? null;
-                  await handleFileUpload(
-                    file,
-                    setSignedAMLFile,
-                    setSignedAMLDocumentId,
-                    setFieldValue,
-                    setFieldTouched,
-                    'signedAMLFile'
-                  );
+                  await handleFileUpload(file, setSignedAMLFile, setSignedAMLDocumentId, setFieldValue, setFieldTouched, 'signedAMLFile');
                 }}
                 onRemove={() => {
                   removeSignedAMLFile();
@@ -578,7 +519,7 @@ export default function Step1Applicability() {
               }`}
             >
               {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
-                ? "Waiting for Approval"
+                ? (isSpecialConsiderationRejected ? "Rejected" : "Waiting for Approval")
                 : pendingUploads > 0
                 ? "Uploading..."
                 : isSaving
@@ -587,9 +528,8 @@ export default function Step1Applicability() {
             </Button>
           </div>
           {formData.specialConsideration && formData.isSpecialConsiderationApproved === false && (
-            <p className="mt-3 text-sm text-[#C6A95F]">
-              Your special consideration request is under admin review.
-              You will be able to continue once it is approved.
+            <p className={`mt-3 text-sm ${isSpecialConsiderationRejected ? 'text-red-400' : 'text-[#C6A95F]'}`}>
+              {getSpecialConsiderationStatusMessage()}
             </p>
           )}
 
@@ -600,31 +540,20 @@ export default function Step1Applicability() {
               try {
                 const payload = {
                   membershipType: MembershipType.PrincipalMember,
-                  applicability: buildApplicability(
-                    null,
-                    null,
-                    message
-                  ),
+                  applicability: buildApplicability(null, null, message),
                 };
 
                 updateFormData(payload);
-                await saveUploadDetails(
-                  payload,
-                  MemberApplicationSection.Applicability
-                );
+                await saveUploadDetails(payload, MemberApplicationSection.Applicability);
 
-                toast.success(
-                  "Special consideration submitted"
-                );
+                toast.success("Special consideration submitted");
 
                 currentSetValue?.(false);
               } catch {
                 toast.error("Submission failed");
               }
             }}
-            onCloseWithoutSubmit={() =>
-              currentSetValue?.(true)
-            }
+            onCloseWithoutSubmit={() => currentSetValue?.(true)}
           />
         </div>
       )}

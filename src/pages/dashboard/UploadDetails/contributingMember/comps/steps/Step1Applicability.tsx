@@ -37,6 +37,22 @@ export default function Step1Applicability() {
   const [signedAMLDocumentId, setSignedAMLDocumentId] = useState<number | null>(null);
   const { downloadDocument, downloadingId, extractIdFromPath: extractIdFromPathHook } = useDocumentDownload();
 
+  // Get special consideration status (0=Pending, 1=In Progress, 2=Approved, 3=Rejected)
+  const specialConsiderationStatus = formData?.specialConsideration?.status;
+  
+  // Determine if special consideration is in a blocking state
+  const isSpecialConsiderationRejected = specialConsiderationStatus === 3;
+  const isSpecialConsiderationInProgress = specialConsiderationStatus === 1;
+  
+  // Get status message for display
+  const getSpecialConsiderationStatusMessage = () => {
+    if (!formData?.specialConsideration) return "";
+    if (formData.isSpecialConsiderationApproved === true) return "";
+    if (isSpecialConsiderationRejected) return "Your special consideration request was rejected.";
+    if (isSpecialConsiderationInProgress) return "Your special consideration request is in progress.";
+    return "Your special consideration request is under review.";
+  };
+
   // Helper to extract document ID from S3 path
   const extractIdFromPath = (path: string | null): number | null => {
     if (!path) return null;
@@ -535,7 +551,7 @@ return (
             }`}
           >
             {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
-              ? "Waiting for Approval"
+              ? (isSpecialConsiderationRejected ? "Rejected" : "Waiting for Approval")
               : pendingUploads > 0
               ? "Uploading..."
               : isSaving
@@ -544,9 +560,8 @@ return (
           </Button>
         </div>
         {formData.specialConsideration && formData.isSpecialConsiderationApproved === false && (
-          <p className="mt-3 text-sm text-[#C6A95F]">
-            Your special consideration request is under admin review.
-            You will be able to continue once it is approved.
+          <p className={`mt-3 text-sm ${isSpecialConsiderationRejected ? 'text-red-400' : 'text-[#C6A95F]'}`}>
+            {getSpecialConsiderationStatusMessage()}
           </p>
         )}
 

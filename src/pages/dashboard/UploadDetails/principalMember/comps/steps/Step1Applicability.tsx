@@ -35,6 +35,22 @@ export default function Step1Applicability() {
   // Track pending file uploads
   const [pendingUploads, setPendingUploads] = useState<number>(0);
 
+  // Get special consideration status (0=Pending, 1=In Progress, 2=Approved, 3=Rejected)
+  const specialConsiderationStatus = formData?.specialConsideration?.status;
+  
+  // Determine if special consideration is in a blocking state
+  const isSpecialConsiderationRejected = specialConsiderationStatus === 3;
+  const isSpecialConsiderationInProgress = specialConsiderationStatus === 1;
+  
+  // Get status message for display
+  const getSpecialConsiderationStatusMessage = () => {
+    if (!formData?.specialConsideration) return "";
+    if (formData.isSpecialConsiderationApproved === true) return "";
+    if (isSpecialConsiderationRejected) return "Your special consideration request was rejected.";
+    if (isSpecialConsiderationInProgress) return "Your special consideration request is in progress.";
+    return "Your special consideration request is under review.";
+  };
+
   const hasAnyNoAnswer = () => {
     const selectedCategoryAnswers = category.refiner ? refinerAnswers : category.trading ? tradingAnswers : {};
     return Object.values(selectedCategoryAnswers).some(v => v === false) || anyAMLNotices === false;
@@ -629,8 +645,8 @@ export default function Step1Applicability() {
                     : "text-white w-[132px] sm:w-full md:w-[132px] cursor-pointer disabled:cursor-not-allowed"
                 }`}
               >
-                {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
-                  ? "Waiting for Approval"
+              {formData?.specialConsideration && formData.isSpecialConsiderationApproved === false
+                  ? (isSpecialConsiderationRejected ? "Rejected" : "Waiting for Approval")
                   : pendingUploads > 0
                   ? "Uploading..."
                   : isSaving
@@ -639,9 +655,8 @@ export default function Step1Applicability() {
               </Button>
             </div>
             {formData.specialConsideration && formData.isSpecialConsiderationApproved === false && (
-              <p className="mt-3 text-sm text-[#C6A95F]">
-                Your special consideration request is under admin review.
-                You will be able to continue once it is approved.
+              <p className={`mt-3 text-sm ${isSpecialConsiderationRejected ? 'text-red-400' : 'text-[#C6A95F]'}`}>
+                {getSpecialConsiderationStatusMessage()}
               </p>
             )}
 
