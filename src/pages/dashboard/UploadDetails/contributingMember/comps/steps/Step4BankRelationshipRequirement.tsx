@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
-import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -26,7 +25,6 @@ import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 export default function Step4BankRelationshipRequirement() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
-  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const [pendingUploads, setPendingUploads] = useState(0);
   const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
@@ -194,7 +192,6 @@ export default function Step4BankRelationshipRequirement() {
               setFieldValue('isClient24Months', val);
               setFieldTouched('isClient24Months', true);
             }}
-            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
           {touched.isClient24Months && errors.isClient24Months && (
             <p className="text-red-500 text-sm mt-2">{errors.isClient24Months as string}</p>
@@ -403,10 +400,6 @@ export default function Step4BankRelationshipRequirement() {
         </Button>
       </div>
 
-      <SpecialConsiderationDialog
-        open={specialConsiderationOpen}
-        onOpenChange={setSpecialConsiderationOpen}
-      />
     </div>
       )}
     </Formik>
