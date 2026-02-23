@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
-import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useStep4FinancialThresholds } from "@/hooks/useStep4FinancialThresholds";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { MemberApplicationSection } from '@/types/uploadDetails';
@@ -19,7 +18,6 @@ export default function Step4FinancialThresholds() {
   const formData = state.data;
   const isSaving = state.isSaving;
 
-  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const {
@@ -150,15 +148,13 @@ export default function Step4FinancialThresholds() {
       {/* 3 - Bullion Turnover */}
       <div className="mt-10">
         <Label className="text-white font-gilroy text-[18px] sm:text-[20px]">
-          3. Annual bullion turnover (In Tonnes) ≥ 50 tons (or ≥ 100 tons
-          silver)
+          3. Annual bullion turnover (In Tonnes) ≥ 50 tons (or ≥ 100 tons silver)
         </Label>
 
         <div className="mt-4">
           <YesNoGroup
             value={bullionTurnover}
             onChange={setBullionTurnover}
-            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
 
@@ -203,8 +199,7 @@ export default function Step4FinancialThresholds() {
         </Label>
 
         <div className="mt-4">
-          <YesNoGroup value={netWorth} onChange={setNetWorth} 
-            onNoClick={() => setSpecialConsiderationOpen(true)}/>
+          <YesNoGroup value={netWorth} onChange={setNetWorth} />
         </div>
 
         {/* Upload Proof */}
@@ -227,13 +222,6 @@ export default function Step4FinancialThresholds() {
             onRemove={() => setNetWorthFile(null)}
           />
 
-          {/* Download Template */}
-          {/* <Button
-            variant="site_btn"
-            className="w-full md:w-[220px] h-[42px] rounded-[10px] text-[18px] bg-[#C6A95F] text-black font-gilroySemiBold"
-          >
-            Download Template
-          </Button> */}
           {netWorthProofPath && !netWorthFile && (
             <button
               onClick={() => downloadDocument(extractIdFromPath(netWorthProofPath), "net worth proof")}
@@ -248,13 +236,13 @@ export default function Step4FinancialThresholds() {
 
       {/* Navigation */}
       <div className="mt-12 flex flex-col sm:flex-row gap-4">
-                <Button
-                  onClick={() => setCurrentStep(3)}
-                  className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
-                >
-                  Back
-                </Button>
-        
+        <Button
+          onClick={() => setCurrentStep(3)}
+          className="w-[132px] cursor-pointer h-[42px] rounded-[10px] border border-white text-white"
+        >
+          Back
+        </Button>
+
         <Button
           onClick={handleSave}
           disabled={isSaving}
@@ -264,11 +252,6 @@ export default function Step4FinancialThresholds() {
           {isSaving ? 'Saving...' : 'Save / Next'}
         </Button>
       </div>
-
-      <SpecialConsiderationDialog
-        open={specialConsiderationOpen}
-        onOpenChange={setSpecialConsiderationOpen}
-      />
     </div>
   );
 }
