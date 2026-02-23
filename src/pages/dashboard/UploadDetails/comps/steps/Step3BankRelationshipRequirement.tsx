@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
-import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -25,7 +24,6 @@ import { useDocumentDownload } from "@/hooks/useDocumentDownload";
 export default function Step3BankRelationshipRequirement() {
   const { state, dispatch, uploadDocument, saveUploadDetails, setCurrentStep } = useUploadDetails();
   const formData = state.data;
-  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
   const {
@@ -135,7 +133,6 @@ export default function Step3BankRelationshipRequirement() {
           <YesNoGroup
             value={isClient24Months}
             onChange={setIsClient24Months}
-            onNoClick={() => setSpecialConsiderationOpen(true)}
           />
         </div>
       </div>
@@ -269,11 +266,6 @@ export default function Step3BankRelationshipRequirement() {
           {state.isSaving ? 'Saving...' : 'Save'}
         </Button>
       </div>
-
-      <SpecialConsiderationDialog
-        open={specialConsiderationOpen}
-        onOpenChange={setSpecialConsiderationOpen}
-      />
     </div>
   );
 }

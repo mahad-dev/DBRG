@@ -16,7 +16,6 @@ import { format } from "date-fns";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
-import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { useStep2CompanyDetails } from '@/hooks/useStep2CompanyDetails';
 import { MemberApplicationSection } from '@/types/uploadDetails';
@@ -76,8 +75,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   const [dateOfAppointment, setDateOfAppointment] = useState<Date | undefined>(
     form.dateOfAppointment ? new Date(form.dateOfAppointment) : undefined
   );
-
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Track pending uploads
   const [pendingUploads, setPendingUploads] = useState(0);
@@ -1863,7 +1860,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           setFieldValue("anyShareholderDirectorUBOPEP", v);
           setFieldTouched("anyShareholderDirectorUBOPEP", true);
         }}
-        onNoClick={() => setIsDialogOpen(true)}
       />
       {touched.anyShareholderDirectorUBOPEP && errors.anyShareholderDirectorUBOPEP && (
         <p className="text-red-500 text-sm mt-2">{errors.anyShareholderDirectorUBOPEP as string}</p>
@@ -1879,7 +1875,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           setFieldValue("anyShareholderBeneficialOwnerKeyPersonRelatedToPEP", v);
           setFieldTouched("anyShareholderBeneficialOwnerKeyPersonRelatedToPEP", true);
         }}
-        onNoClick={() => setIsDialogOpen(true)}
       />
       {touched.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP && errors.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP && (
         <p className="text-red-500 text-sm mt-2">{errors.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP as string}</p>
@@ -1895,7 +1890,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           setFieldValue("hasCustomerPEPChecks", v);
           setFieldTouched("hasCustomerPEPChecks", true);
         }}
-        onNoClick={() => setIsDialogOpen(true)}
       />
       {touched.hasCustomerPEPChecks && errors.hasCustomerPEPChecks && (
         <p className="text-red-500 text-sm mt-2">{errors.hasCustomerPEPChecks as string}</p>
@@ -2089,11 +2083,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </Button>
       </div>
 
-      {/* Special Consideration Dialog */}
-      <SpecialConsiderationDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-      />
     </div>
       )}
     </Formik>

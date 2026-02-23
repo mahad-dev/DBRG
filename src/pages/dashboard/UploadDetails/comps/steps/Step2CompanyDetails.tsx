@@ -23,7 +23,6 @@ import { format } from "date-fns";
 import UploadBox from "@/components/custom/ui/UploadBox";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import ServiceCheckbox from "@/components/custom/ui/ServiceCheckbox";
-import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
 import { useStep2CompanyDetails } from '@/hooks/useStep2CompanyDetails';
 import { MemberApplicationSection } from '@/types/uploadDetails';
@@ -79,8 +78,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
   const [dateOfAppointment, setDateOfAppointment] = useState<Date | undefined>(
     form.dateOfAppointment ? new Date(form.dateOfAppointment) : undefined
   );
-
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Prefill date states from form data
   useEffect(() => {
@@ -155,10 +152,10 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
 
           return {
             ...shareholder,
-            passportDocument: passportDocumentId, // Use company passport document
-            nationalIdDocument: nationalIdDocumentId, // Use company national ID document
+            passportDocument: passportDocumentId,
+            nationalIdDocument: nationalIdDocumentId,
             shareholdingDocumentId: proofDocId,
-            proofFile: null, // Remove file object from payload
+            proofFile: null,
           };
         })
       );
@@ -168,18 +165,17 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         ubos.map(async (ubo) => {
           let confirmationDocId: number | null = null;
 
-          // Upload UBO confirmation document if exists
           if (ubo.confirmationFile) {
             confirmationDocId = await uploadDocument(ubo.confirmationFile);
           }
 
           return {
             ...ubo,
-            ownershipPercentage: ubo.ownershipPercentage, // Already a number
-            passportDocument: passportDocumentId, // Use company passport document
-            nationalIdDocument: nationalIdDocumentId, // Use company national ID document
+            ownershipPercentage: ubo.ownershipPercentage,
+            passportDocument: passportDocumentId,
+            nationalIdDocument: nationalIdDocumentId,
             uboConfirmationDocument: confirmationDocId,
-            confirmationFile: null, // Remove file object from payload
+            confirmationFile: null,
           };
         })
       );
@@ -256,8 +252,8 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           vatDocument: vatDocDocumentId,
           addressProofDocument: addressProofDocumentId,
           accreditationCertificate: tradeAssociationCertificateDocumentId,
-          shareholdingProof: tradeLicenseDocumentId, // Using trade license as shareholding proof
-          uboConfirmationDocument: coiDocumentId, // Using COI as UBO confirmation
+          shareholdingProof: tradeLicenseDocumentId,
+          uboConfirmationDocument: coiDocumentId,
           shareholders: cleanedShareholders,
           ultimateBeneficialOwners: cleanedUbos,
           directors: cleanedDirectors,
@@ -280,9 +276,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         Section 2 - Company Details
       </h2>
 
-      {/* -------------------------------------- */}
       {/* Row: Legal Entity Name + Entity Type */}
-      {/* -------------------------------------- */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div>
           <Label>Legal Entity Name</Label>
@@ -312,9 +306,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </div>
       </div>
 
-      {/* -------------------------------------- */}
       {/* Row: Trade License No + Licensing Authority */}
-      {/* -------------------------------------- */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div>
           <Label>Trade License / Registration No</Label>
@@ -339,9 +331,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </div>
       </div>
 
-      {/* -------------------------------------- */}
       {/* Upload Trade License */}
-      {/* -------------------------------------- */}
       <div className="mt-6">
         <Label>Upload Trade License</Label>
 
@@ -362,9 +352,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* Row: Issuance + Expiry */}
-      {/* -------------------------------------- */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div>
           <Label>Date of Issuance</Label>
@@ -417,9 +405,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </div>
       </div>
 
-      {/* -------------------------------------- */}
       {/* Row: Country of Incorporation + Date of Incorporation */}
-      {/* -------------------------------------- */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div>
           <Label>Country of Incorporation</Label>
@@ -458,9 +444,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </div>
       </div>
 
-      {/* -------------------------------------- */}
       {/* Upload Certificate of Incorporation */}
-      {/* -------------------------------------- */}
       <div className="mt-6">
         <Label>Upload Certificate of Incorporation</Label>
 
@@ -481,9 +465,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* Passport ID + Upload Passport */}
-      {/* -------------------------------------- */}
       <div className="mt-6">
         <Label>Passport ID</Label>
         <Input
@@ -515,9 +497,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* National ID + Upload National ID */}
-      {/* -------------------------------------- */}
       <div className="mt-6">
         <Label>National ID Number</Label>
         <Input
@@ -549,9 +529,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* VAT Number + VAT Document */}
-      {/* -------------------------------------- */}
       <div className="mt-6">
         <Label>VAT Number</Label>
         <Input
@@ -583,9 +561,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* Tax Registration Number + Document */}
-      {/* -------------------------------------- */}
       <div className="mt-6">
         <Label>Tax Registration Number</Label>
         <Input
@@ -617,9 +593,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* Website + Email + Phone */}
-      {/* -------------------------------------- */}
       <div className="grid md:grid-cols-3 gap-6 mt-6">
         <div>
           <Label>Website</Label>
@@ -655,9 +629,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </div>
       </div>
 
-      {/* -------------------------------------- */}
       {/* Primary Contact Person */}
-      {/* -------------------------------------- */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div>
           <Label>Primary Contact – Name</Label>
@@ -693,9 +665,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* Registered Address + Upload Address Proof */}
-      {/* -------------------------------------- */}
       <div className="mt-6">
         <Label>Registered Office Address in UAE</Label>
         <Input
@@ -727,10 +697,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* SHAREHOLDERS SECTION */}
-      {/* -------------------------------------- */}
-
       <h3 className="text-[22px] mt-10 mb-4 font-bold text-[#C6A95F]">
         Ownership and Management Details
       </h3>
@@ -894,9 +861,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         Add Shareholder
       </Button>
 
-      {/* -------------------------------------- */}
       {/* UBO SECTION */}
-      {/* -------------------------------------- */}
       <h4 className="font-bold text-[20px] mt-10 text-white">
         b. Ultimate Beneficial Owner (UBO) Details
       </h4>
@@ -1024,9 +989,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         Add UBO
       </Button>
 
-      {/* -------------------------------------- */}
       {/* DIRECTORS SECTION */}
-      {/* -------------------------------------- */}
       <h4 className="font-bold text-[20px] mt-10 text-white">
         c. Director Details
       </h4>
@@ -1112,16 +1075,13 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         Add Director
       </Button>
 
-      {/* -------------------------------------- */}
       {/* PEP Questions */}
-      {/* -------------------------------------- */}
       <h4 className="font-bold text-[20px] mt-10 mb-3 text-white">
         d. Is any shareholder, director, UBO a Politically Exposed Person?
       </h4>
       <YesNoGroup
         value={form.anyShareholderDirectorUBOPEP}
         onChange={(v) => setField("anyShareholderDirectorUBOPEP", v)}
-        onNoClick={() => setIsDialogOpen(true)}
       />
 
       <h4 className="font-bold text-[20px] mt-10 mb-3 text-white">
@@ -1130,7 +1090,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       <YesNoGroup
         value={form.anyShareholderBeneficialOwnerKeyPersonRelatedToPEP}
         onChange={(v) => setField("anyShareholderBeneficialOwnerKeyPersonRelatedToPEP", v)}
-        onNoClick={() => setIsDialogOpen(true)}
       />
 
       <h4 className="font-bold text-[20px] mt-10 mb-3 text-white">
@@ -1139,12 +1098,9 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
       <YesNoGroup
         value={form.hasCustomerPEPChecks}
         onChange={(v) => setField("hasCustomerPEPChecks", v)}
-        onNoClick={() => setIsDialogOpen(true)}
       />
 
-      {/* -------------------------------------- */}
       {/* Trade Association */}
-      {/* -------------------------------------- */}
       <h4 className="font-bold text-[22px] mt-10 text-[#C6A95F]">
         Membership of Trade Association
       </h4>
@@ -1196,9 +1152,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         </div>
       </div>
 
-      {/* -------------------------------------- */}
       {/* Accreditations */}
-      {/* -------------------------------------- */}
       <h4 className="mt-10 text-[20px] font-bold text-white">
         Recognized Accreditations (Select all that apply)
       </h4>
@@ -1260,9 +1214,7 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
         />
       </div>
 
-      {/* -------------------------------------- */}
       {/* Navigation Buttons */}
-      {/* -------------------------------------- */}
       <div className="mt-10 flex justify-start gap-4">
         <Button
           onClick={() => setCurrentStep(1)}
@@ -1280,12 +1232,6 @@ export default function Step2CompanyDetails({ onNext }: StepProps): React.JSX.El
           {isSaving ? 'Saving...' : 'Save / Next'}
         </Button>
       </div>
-
-      {/* Special Consideration Dialog */}
-      <SpecialConsiderationDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-      />
     </div>
   );
 }

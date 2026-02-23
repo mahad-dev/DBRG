@@ -1,9 +1,8 @@
-import { useState } from "react";
+ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import YesNoGroup from "@/components/custom/ui/YesNoGroup";
 import UploadBox from "@/components/custom/ui/UploadBox";
-import SpecialConsiderationDialog from "../SpecialConsiderationDialog";
 import { useStep5Regulatory } from "@/hooks/useStep5Regulatory";
 import { Input } from "@/components/ui/input";
 import { useUploadDetails } from '@/context/UploadDetailsContext';
@@ -18,7 +17,6 @@ export default function Step3Regulatory() {
   const formData = state.data;
   const isSaving = state.isSaving;
 
-  const [specialConsiderationOpen, setSpecialConsiderationOpen] = useState(false);
   const [pendingUploads, setPendingUploads] = useState<number>(0);
   const { downloadDocument, downloadingId, extractIdFromPath } = useDocumentDownload();
 
@@ -182,7 +180,6 @@ export default function Step3Regulatory() {
                       setFieldValue('compliantUAE', val);
                       setFieldTouched('compliantUAE', true);
                     }}
-                    onNoClick={() => setSpecialConsiderationOpen(true)}
                   />
                 </div>
                 {touched.compliantUAE && errors.compliantUAE && (
@@ -285,7 +282,6 @@ export default function Step3Regulatory() {
                     setFieldValue('ongoingCases', val);
                     setFieldTouched('ongoingCases', true);
                   }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
                 />
                 {touched.ongoingCases && errors.ongoingCases && (
                   <p className="text-red-500 text-sm mt-1">{errors.ongoingCases as string}</p>
@@ -372,7 +368,6 @@ export default function Step3Regulatory() {
                     setFieldValue('sanctionsListed', val);
                     setFieldTouched('sanctionsListed', true);
                   }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
                 />
                 {touched.sanctionsListed && errors.sanctionsListed && (
                   <p className="text-red-500 text-sm mt-1">{errors.sanctionsListed as string}</p>
@@ -391,7 +386,6 @@ export default function Step3Regulatory() {
                     setFieldValue('policiesPrepared', val);
                     setFieldTouched('policiesPrepared', true);
                   }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
                 />
                 {touched.policiesPrepared && errors.policiesPrepared && (
                   <p className="text-red-500 text-sm mt-1">{errors.policiesPrepared as string}</p>
@@ -456,7 +450,6 @@ export default function Step3Regulatory() {
                     setFieldValue('trainingOngoing', val);
                     setFieldTouched('trainingOngoing', true);
                   }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
                 />
                 {touched.trainingOngoing && errors.trainingOngoing && (
                   <p className="text-red-500 text-sm mt-1">{errors.trainingOngoing as string}</p>
@@ -475,7 +468,6 @@ export default function Step3Regulatory() {
                     setFieldValue('idProcesses', val);
                     setFieldTouched('idProcesses', true);
                   }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
                 />
                 {touched.idProcesses && errors.idProcesses && (
                   <p className="text-red-500 text-sm mt-1">{errors.idProcesses as string}</p>
@@ -494,7 +486,6 @@ export default function Step3Regulatory() {
                     setFieldValue('riskAssessment', val);
                     setFieldTouched('riskAssessment', true);
                   }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
                 />
                 {touched.riskAssessment && errors.riskAssessment && (
                   <p className="text-red-500 text-sm mt-1">{errors.riskAssessment as string}</p>
@@ -513,7 +504,6 @@ export default function Step3Regulatory() {
                     setFieldValue('penalties', val);
                     setFieldTouched('penalties', true);
                   }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
                 />
                 {touched.penalties && errors.penalties && (
                   <p className="text-red-500 text-sm mt-1">{errors.penalties as string}</p>
@@ -591,15 +581,14 @@ export default function Step3Regulatory() {
                 <Label className="text-[22px] sm:text-[18px] font-normal leading-[100%] text-white my-3 font-gilory">
                   Is your company Supply Chain Compliant? <span className="text-red-500">*</span>
                 </Label>
-                <YesNoGroup
-                  value={hook.supplyChainCompliant}
-                  onChange={(val) => {
-                    hook.setSupplyChainCompliant(val);
-                    setFieldValue('supplyChainCompliant', val);
-                    setFieldTouched('supplyChainCompliant', true);
-                  }}
-                  onNoClick={() => setSpecialConsiderationOpen(true)}
-                />
+                  <YesNoGroup
+                    value={hook.supplyChainCompliant}
+                    onChange={(val) => {
+                      hook.setSupplyChainCompliant(val);
+                      setFieldValue('supplyChainCompliant', val);
+                      setFieldTouched('supplyChainCompliant', true);
+                    }}
+                  />
                 {touched.supplyChainCompliant && errors.supplyChainCompliant && (
                   <p className="text-red-500 text-sm mt-1">{errors.supplyChainCompliant as string}</p>
                 )}
@@ -615,7 +604,6 @@ export default function Step3Regulatory() {
                       setFieldValue('preciousPolicy', val);
                       setFieldTouched('preciousPolicy', true);
                     }}
-                    onNoClick={() => setSpecialConsiderationOpen(true)}
                   />
                   {touched.preciousPolicy && errors.preciousPolicy && (
                     <p className="text-red-500 text-sm mt-1">{errors.preciousPolicy as string}</p>
@@ -679,7 +667,6 @@ export default function Step3Regulatory() {
                       setFieldValue('responsibleSourcingAudit', val);
                       setFieldTouched('responsibleSourcingAudit', true);
                     }}
-                    onNoClick={() => setSpecialConsiderationOpen(true)}
                   />
                   {touched.responsibleSourcingAudit && errors.responsibleSourcingAudit && (
                     <p className="text-red-500 text-sm mt-1">{errors.responsibleSourcingAudit as string}</p>
@@ -755,11 +742,6 @@ export default function Step3Regulatory() {
               </Button>
             </div>
 
-            {/* Special Consideration Dialog */}
-            <SpecialConsiderationDialog
-              open={specialConsiderationOpen}
-              onOpenChange={setSpecialConsiderationOpen}
-            />
           </div>
         </Form>
       )}
